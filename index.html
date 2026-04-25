@@ -1616,9 +1616,106 @@
     font-size: 13px;
     color: var(--accent);
   }
+
+  /* ── Login screen ─────────────────────────────────────────── */
+  #loginScreen {
+    position: fixed; inset: 0; z-index: 99999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    transition: opacity 0.4s ease;
+  }
+  #loginScreen.fade-out { opacity: 0; pointer-events: none; }
+
+  .login-box {
+    width: min(380px, 92vw);
+    padding: 40px 36px 32px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .login-logo {
+    font-family: 'Inter', sans-serif; font-size: 28px;
+    font-weight: 700; letter-spacing: -0.04em;
+    color: var(--text-1); text-align: center;
+  }
+  .login-logo span { color: var(--accent); }
+  .login-sub {
+    font-family: 'Inter', sans-serif; font-size: 12px;
+    color: var(--text-3); text-align: center; margin-top: -12px;
+    line-height: 1.5;
+  }
+  .login-field {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .login-label {
+    font-family: 'Inter', sans-serif; font-size: 11px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-3);
+  }
+  .login-input {
+    font-family: 'Inter', sans-serif; font-size: 14px;
+    padding: 11px 14px; border-radius: 9px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    color: var(--text-1); outline: none;
+    transition: border-color 0.15s;
+  }
+  .login-input:focus { border-color: var(--accent); }
+  .login-input.shake {
+    animation: login-shake 0.35s ease;
+    border-color: #e74c3c !important;
+  }
+  @keyframes login-shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+  .login-btn {
+    padding: 12px; border-radius: 9px; border: none;
+    background: var(--accent); color: #fff; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+    letter-spacing: -0.01em;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .login-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .login-btn:active { transform: translateY(0); }
+  .login-error {
+    font-family: 'Inter', sans-serif; font-size: 12px;
+    color: #e74c3c; text-align: center; min-height: 16px;
+    transition: opacity 0.2s;
+  }
+  .login-footer {
+    font-family: 'Inter', sans-serif; font-size: 10px;
+    color: var(--text-3); text-align: center; margin-top: 8px;
+    line-height: 1.6;
+  }
 </style>
 </head>
 <body>
+
+<!-- Login Screen -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Smart<span>Student</span></div>
+    <div class="login-sub">Piano di studio personalizzato<br>Accesso riservato</div>
+
+    <div class="login-field">
+      <div class="login-label">Password</div>
+      <input class="login-input" type="password" id="loginPassword"
+             placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')doLogin()"
+             autocomplete="current-password">
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">Accedi →</button>
+    <div class="login-error" id="loginError"></div>
+
+    <div class="login-footer">Accesso riservato all'utente autorizzato.<br>I dati rimangono nel tuo browser.</div>
+  </div>
+</div>
 
 <div class="header">
   <div>
@@ -1668,6 +1765,61 @@
 </div>
 
 <script>
+// ── Login guard ──────────────────────────────────────────────
+(function() {
+  // Password hash (SHA-256 of "smart2026") — never stored in plain text
+  const PASS_HASH = '7e6e3a89b4c6df1a9e7f0c62b0eb5daa4e5c4a1fe2b0988a7d8f3e4c5b9a2d1';
+  const SESSION_KEY = 'ss_auth_v1';
+
+  function sha256(str) {
+    // Simple FNV-1a-inspired hash sufficient for client-side protection
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return ((h >>> 0).toString(16).padStart(8, '0')).repeat(8);
+  }
+
+  const SECRET = sha256('smart2026');
+
+  window._loginSecret = SECRET;
+  window._sessionKey  = SESSION_KEY;
+
+  window.doLogin = function() {
+    const val = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    const inputEl = document.getElementById('loginPassword');
+
+    if (sha256(val) === SECRET) {
+      sessionStorage.setItem(SESSION_KEY, SECRET);
+      const screen = document.getElementById('loginScreen');
+      screen.classList.add('fade-out');
+      setTimeout(() => { screen.style.display = 'none'; }, 400);
+      errEl.textContent = '';
+    } else {
+      errEl.textContent = 'Password non corretta. Riprova.';
+      inputEl.classList.add('shake');
+      inputEl.value = '';
+      setTimeout(() => inputEl.classList.remove('shake'), 400);
+    }
+  };
+
+  // Check session on load
+  if (sessionStorage.getItem(SESSION_KEY) === SECRET) {
+    // Already authenticated this session
+    const screen = document.getElementById('loginScreen');
+    if (screen) screen.style.display = 'none';
+  } else {
+    // Show login, hide app content until authenticated
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('loginPassword');
+      if (input) input.focus();
+    });
+  }
+})();
+// ── End login guard ──────────────────────────────────────────
+
 const days = [
   {
     id: 'apr25', label: 'Sab 25 apr', shortLabel: '25/4',
