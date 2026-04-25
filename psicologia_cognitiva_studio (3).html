@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Psicologia Cognitiva — Piano di Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Styrene+A:wght@300;400;500&family=Tiempos+Text:ital,wght@0,400;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
+
+  :root {
+    /* Superfici — stessa logica warm-neutral di claude.ai */
+    --bg:        #1c1917;   /* stone-900 */
+    --surface:   #231f1c;   /* stone-850 circa */
+    --surface2:  #292522;   /* stone-800 */
+    --surface3:  #312d29;   /* stone-750 — hover, input */
+    --border:    #3d3834;   /* stone-700 */
+    --border-subtle: #2e2a27; /* stone-750 */
+
+    /* Testo — tre livelli, tutti warm-neutral */
+    --text:      #e7e0d8;   /* stone-100 */
+    --text-2:    #a8a099;   /* stone-400 */
+    --text-3:    #65605b;   /* stone-500 */
+
+    /* Accento unico — arancio-rame di Claude */
+    --accent:    #d97757;   /* claude orange */
+    --accent-bg: rgba(217,119,87,0.10);
+    --accent-border: rgba(217,119,87,0.25);
+
+    /* Stati semantici — derivati dall'accento, non colori extra */
+    --done-bg:     rgba(217,119,87,0.08);
+    --done-border: rgba(217,119,87,0.30);
+    --done-text:   #d97757;
+
+    --partial-bg:     rgba(168,160,153,0.08);
+    --partial-border: rgba(168,160,153,0.25);
+    --partial-text:   #a8a099;
+
+    --skip-bg:     rgba(120,113,108,0.08);
+    --skip-border: rgba(120,113,108,0.20);
+    --skip-text:   #78716c;
+
+    /* Overlay */
+    --overlay: rgba(0,0,0,0.85);
+  }
+
+  /* ── Light mode ─────────────────────────────────────────── */
+  [data-theme="light"] {
+    --bg:        #faf9f7;   /* stone-50 warm */
+    --surface:   #f5f3f0;   /* stone-100 */
+    --surface2:  #ede9e4;   /* stone-200 */
+    --surface3:  #e4dfd8;   /* stone-300 — hover, input */
+    --border:    #d6cfc6;   /* stone-300 */
+    --border-subtle: #e8e3dd; /* stone-200 */
+
+    --text:      #1c1917;   /* stone-900 */
+    --text-2:    #57534e;   /* stone-600 */
+    --text-3:    #a8a29e;   /* stone-400 */
+
+    --accent:    #c2603d;   /* claude orange, leggermente più scuro per contrasto su chiaro */
+    --accent-bg: rgba(194,96,61,0.08);
+    --accent-border: rgba(194,96,61,0.22);
+
+    --done-bg:     rgba(194,96,61,0.07);
+    --done-border: rgba(194,96,61,0.28);
+    --done-text:   #c2603d;
+
+    --partial-bg:     rgba(87,83,78,0.07);
+    --partial-border: rgba(87,83,78,0.22);
+    --partial-text:   #57534e;
+
+    --skip-bg:     rgba(168,162,158,0.10);
+    --skip-border: rgba(168,162,158,0.28);
+    --skip-text:   #a8a29e;
+
+    --overlay: rgba(0,0,0,0.55);
+  }
+
+  /* ── Theme switch ────────────────────────────────────────── */
+  .theme-switch {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .theme-switch-label {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-3);
+    transition: color 0.2s;
+  }
+
+  .theme-track {
+    width: 32px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    position: relative;
+    transition: background 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .theme-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-3);
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  [data-theme="light"] .theme-track {
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+  }
+
+  [data-theme="light"] .theme-thumb {
+    transform: translateX(14px);
+    background: var(--accent);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .header h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .header p {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 4px;
+  }
+
+  .progress-bar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .progress-bar {
+    width: 200px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-label {
+    font-family: 'Inter', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 80px);
+  }
+
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    padding: 0 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-label {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-3);
+    margin-bottom: 0.5rem;
+  }
+
+  .day-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .day-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-2);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    text-align: left;
+    width: 100%;
+    transition: all 0.15s;
+  }
+
+  .day-nav-item:hover { background: var(--surface); color: var(--text); }
+  .day-nav-item.active { background: var(--surface2); color: var(--accent); }
+  .day-nav-item.status-done { border-left: 2px solid var(--done-border); }
+  .day-nav-item.status-partial { border-left: 2px solid var(--partial-border); }
+  .day-nav-item.status-skip { border-left: 2px solid var(--skip-border); }
+
+  .day-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .status-done .day-dot { background: var(--done-border); }
+  .status-partial .day-dot { background: var(--partial-border); }
+  .status-skip .day-dot { background: var(--skip-border); }
+
+  .main {
+    padding: 2rem 2.5rem;
+    max-width: 900px;
+  }
+
+  .day-block {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .day-block.visible { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .day-title {
+    font-family: 'Inter', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+
+  .day-name {
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--text);
+  }
+
+  .day-name span {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .status-buttons {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .status-btn {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-2);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+
+  .status-btn:hover { border-color: var(--text-2); color: var(--text); }
+  .status-btn.done { background: var(--done-bg); border-color: var(--done-border); color: var(--done-text); }
+  .status-btn.partial { background: var(--partial-bg); border-color: var(--partial-border); color: var(--partial-text); }
+  .status-btn.skip { background: var(--skip-bg); border-color: var(--skip-border); color: var(--skip-text); }
+
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  .day-subtitle {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 4px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-tag {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .tag-studio     { background: var(--accent-bg); color: var(--accent); }
+  .tag-retrieval  { background: var(--accent-bg); color: var(--accent); }
+  .tag-revisione  { background: var(--partial-bg); color: var(--partial-text); }
+  .tag-integrazione { background: var(--partial-bg); color: var(--partial-text); }
+  .tag-simulazione { background: var(--done-bg); color: var(--done-text); }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .section-body {
+    padding: 14px;
+  }
+
+  .lesson-ref {
+    font-family: 'Inter', monospace;
+    font-size: 11px;
+    color: var(--text-2);
+    margin-bottom: 10px;
+  }
+
+  .questions-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .question-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .q-check {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    background: none;
+  }
+
+  .q-check.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .q-check.checked::after {
+    content: '';
+    width: 8px;
+    height: 5px;
+    border-left: 2px solid var(--bg);
+    border-bottom: 2px solid var(--bg);
+    transform: rotate(-45deg) translateY(-1px);
+    display: block;
+  }
+
+  .q-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .q-type {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    color: var(--text-3);
+    flex-shrink: 0;
+    margin-top: 3px;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .notes-area {
+    margin-top: 10px;
+  }
+
+  .notes-area label {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-3);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .notes-area textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .notes-area textarea:focus { border-color: var(--accent); }
+
+  .tip-box {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-bottom: 1rem;
+    font-size: 12px;
+    color: var(--accent);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .tip-icon { flex-shrink: 0; margin-top: 1px; }
+
+  .rest-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--text-3);
+  }
+
+  .rest-day .big-label {
+    font-family: 'Inter', monospace;
+    font-size: 2rem;
+    color: var(--border);
+    letter-spacing: 0.1em;
+  }
+
+  .exam-day-content {
+    text-align: center;
+    padding: 2rem 0;
+  }
+
+  .exam-day-content .big-label {
+    font-family: 'Inter', monospace;
+    font-size: 1.5rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .exam-day-content p {
+    color: var(--text-2);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .week-divider {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-3);
+    padding: 8px 1.25rem;
+    background: var(--border-subtle);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* API Key Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: var(--overlay);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+    max-width: 460px;
+    width: 90%;
+  }
+  .modal-box h2 {
+    font-family: 'Inter', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.75rem;
+  }
+  .modal-box p {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-bottom: 1.25rem;
+    line-height: 1.6;
+  }
+  .modal-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Inter', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    outline: none;
+    margin-bottom: 1rem;
+    transition: border-color 0.15s;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-btn {
+    font-family: 'Inter', monospace;
+    font-size: 11px;
+    padding: 8px 20px;
+    border-radius: 3px;
+    border: 1px solid var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+  .modal-btn:hover { background: rgba(217,119,87,0.20); border-color: var(--accent); }
+  .modal-note {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 0.75rem;
+  }
+
+  /* Question answer area */
+  .question-item {
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 10px 12px;
+    background: var(--surface2);
+  }
+  .q-top { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+  .q-answer-area { margin-top: 4px; }
+  .q-answer-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 8px 10px;
+    resize: vertical;
+    min-height: 70px;
+    outline: none;
+    transition: border-color 0.15s;
+    line-height: 1.5;
+  }
+  .q-answer-input:focus { border-color: var(--accent); }
+  .q-verify-btn {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    padding: 5px 12px;
+    border-radius: 3px;
+    border: 1px solid var(--accent);
+    background: var(--accent-bg);
+    color: var(--accent);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+    transition: all 0.15s;
+  }
+  .q-verify-btn:hover { background: rgba(217,119,87,0.18); border-color: var(--accent); }
+  .q-verify-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .q-feedback {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.6;
+    display: none;
+    border-left: 3px solid var(--border);
+  }
+  .q-feedback.visible { display: block; }
+  .q-feedback.loading {
+    color: var(--text-2);
+    border-left-color: var(--text-3);
+    background: var(--border-subtle);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+  }
+  .q-feedback.good {
+    border-left-color: var(--accent);
+    background: var(--accent-bg);
+    color: var(--text);
+  }
+  .q-feedback.partial {
+    border-left-color: var(--text-2);
+    background: var(--partial-bg);
+    color: var(--text);
+  }
+  .q-feedback.poor {
+    border-left-color: var(--skip-text);
+    background: var(--skip-bg);
+    color: var(--text);
+  }
+  .q-feedback-label {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 5px;
+  }
+  .feedback-good { color: var(--accent); }
+  .feedback-partial { color: var(--text-2); }
+  .feedback-poor { color: var(--skip-text); }
+
+  /* API key indicator in header */
+  .api-indicator {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    color: var(--text-3);
+    background: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .api-indicator.connected { border-color: var(--accent-border); color: var(--accent); }
+
+  .timer-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .timer-display {
+    font-family: 'Inter', monospace;
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    min-width: 100px;
+  }
+
+  .timer-display.running { color: var(--accent); }
+  .timer-display.paused { color: var(--text-2); }
+
+  .timer-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .timer-btn {
+    font-family: 'Inter', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-2);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+
+  .timer-btn:hover { border-color: var(--text-2); color: var(--text); }
+  .timer-btn.primary { border-color: var(--accent); color: var(--accent); }
+  .timer-btn.primary:hover { background: var(--accent-bg); }
+  .timer-btn.pause-btn { border-color: var(--text-2); color: var(--text-2); }
+  .timer-btn.pause-btn:hover { background: var(--partial-bg); }
+  .timer-btn.stop-btn { border-color: var(--skip-border); color: var(--skip-text); }
+  .timer-btn.stop-btn:hover { background: var(--skip-bg); }
+
+  .timer-meta {
+    margin-left: auto;
+    text-align: right;
+  }
+
+  .timer-saved {
+    font-family: 'Inter', monospace;
+    font-size: 11px;
+    color: var(--text-2);
+  }
+
+  .timer-saved span { color: var(--accent); }
+
+  .total-hours-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .total-hours-label {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .total-hours-value {
+    font-family: 'Inter', monospace;
+    font-size: 13px;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Psicologia Cognitiva — Prof. Serra</h1>
+    <p>Piano di studio personalizzato · 25 aprile → 11 maggio 2025 · Esame 12 maggio</p>
+  </div>
+  <div style="display:flex;gap:1.5rem;align-items:flex-end;">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+      <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ API non configurata</button>
+    </div>
+    <div class="total-hours-wrap">
+      <div class="total-hours-label">Ore totali studiate</div>
+      <div style="display:flex;align-items:center;gap:10px;"><div class="total-hours-value" id="totalHoursDisplay">0h 00m</div><button onclick="resetTotalHours()" style="font-family:'Inter',monospace;font-size:9px;padding:3px 7px;border-radius:3px;border:1px solid var(--border);background:none;color:var(--text-3);cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;" title="Azzera contatore ore">reset</button></div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel">0 / 17 giorni</div>
+    </div>
+    <div class="theme-switch" onclick="toggleTheme()" title="Cambia tema">
+      <span class="theme-switch-label" id="themeSwitchLabel">Dark</span>
+      <div class="theme-track"><div class="theme-thumb"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- API Key Modal -->
+<div class="modal-overlay" id="apiModal" style="display:none">
+  <div class="modal-box">
+    <h2>Configura API Key</h2>
+    <p>Inserisci la tua API key di Anthropic per abilitare la verifica delle risposte in tempo reale. La chiave viene salvata solo nel tuo browser e non viene mai trasmessa altrove.</p>
+    <input class="modal-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+    <button class="modal-btn" onclick="saveApiKey()">Salva e connetti</button>
+    <button onclick="document.getElementById('apiModal').style.display='none'" style="font-family:'Inter',monospace;font-size:11px;padding:8px 16px;border:none;background:none;color:var(--text-3);cursor:pointer;margin-left:8px;">Annulla</button>
+    <p class="modal-note">La chiave è salvata nel localStorage del tuo browser. Non condividerla mai con nessuno.</p>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="week-divider">Settimana 1 — Studio primario</div>
+    <div class="sidebar-section">
+      <div class="day-nav" id="dayNav"></div>
+    </div>
+  </div>
+
+  <div class="main" id="mainContent"></div>
+</div>
+
+<script>
+const days = [
+  {
+    id: 'apr25', label: 'Lun 25 apr', shortLabel: '25/4',
+    type: 'studio',
+    title: 'Lezioni 1–2',
+    subtitle: 'La Psicologia come Scienza · Il Metodo Scientifico',
+    tip: 'Per ogni lezione: chiudi le slide, scrivi su un foglio tutto quello che ricordi, poi confronta con il materiale. Non rileggere — produci.',
+    sections: [
+      {
+        tag: 'studio', label: 'Studio primario — 1.5h',
+        title: 'Lez. 1 — La Psicologia come Scienza',
+        ref: 'Slide pp. 1–7 · Feldman cap. 1',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1.5h',
+        title: 'Lez. 2 — Il Metodo Scientifico',
+        ref: 'Slide pp. 8–14 · Feldman cap. 1',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Cos\'è la psicologia cognitiva e quali processi studia? Descrivi le relazioni tra mente, cervello, corpo e ambiente.', type: 'definizione' },
+      { text: 'Descrivi il contributo di Broca e Wernicke alla nascita della psicologia cognitiva. Perché i casi clinici da loro descritti sono importanti?', type: 'meccanismo' },
+      { text: 'Quali sono le 5 fasi del metodo scientifico? Descrivile in ordine e spiega perché è importante seguire questo percorso invece di affidarsi al senso comune.', type: 'meccanismo' },
+      { text: 'Cosa si intende per variabile indipendente e variabile dipendente in un esperimento? Fai un esempio concreto.', type: 'definizione' },
+      { text: 'Qual è la differenza tra uno studio correlazionale e uno sperimentale? Quale dei due permette di stabilire relazioni di causa-effetto e perché?', type: 'connessione' },
+      { text: 'Elenca e descrivi brevemente i principi etici fondamentali della ricerca in psicologia.', type: 'definizione' },
+      { text: 'Cosa si intende per "doppia dissociazione" e perché è importante nello studio delle funzioni cognitive?', type: 'connessione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'apr26', label: 'Mar 26 apr', shortLabel: '26/4',
+    type: 'studio',
+    title: 'Lezioni 3–4 + Retrieval Lez. 1–2',
+    subtitle: 'Tecniche di indagine · Misura · Retrieval prime due lezioni',
+    tip: 'Il retrieval di ieri va fatto prima di studiare il nuovo materiale. Metti via il documento e rispondi a memoria alle domande di ieri.',
+    sections: [
+      {
+        tag: 'retrieval', label: 'Retrieval — 30 min',
+        title: 'Ripasso attivo Lez. 1–2',
+        ref: 'Fai le domande del 25 apr prima di aprire le slide di oggi',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 3 — Le Tecniche di Indagine',
+        ref: 'Slide pp. 15–23 · Feldman cap. 2',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 4 — La Misura in Psicologia Cognitiva',
+        ref: 'Slide pp. 24–32 · Feldman cap. 2',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Cos\'è una neuroscienza? Quando nasce il termine e con quale obiettivo?', type: 'definizione' },
+      { text: 'Descrivi le principali tecniche di neuroimaging (RM, PET, SPECT, EEG) e spiega cosa permette di misurare ciascuna.', type: 'meccanismo' },
+      { text: 'Cosa si intende per stimolazione transcranica? Descrivi TMS e tDCS, spiegando come funzionano e quali effetti producono.', type: 'meccanismo' },
+      { text: 'Cosa si intende per "mental test" o test psicologico? Quali condizioni deve soddisfare affinché sia considerato uno strumento di misura valido?', type: 'definizione' },
+      { text: 'Descrivi le varie forme di validità di un test (di contenuto, rispetto a un criterio, di costrutto). Perché la validità di costrutto è considerata la più complessa?', type: 'meccanismo' },
+      { text: 'Qual è la differenza tra conoscenza intuitiva e conoscenza mediante i test? Perché i test psicologici sono preferibili al giudizio del senso comune?', type: 'connessione' },
+      { text: 'Cosa si intende per attendibilità di un test e come si misura?', type: 'definizione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'apr27', label: 'Mer 27 apr', shortLabel: '27/4',
+    type: 'studio',
+    title: 'Lezioni 5–6 + Retrieval Lez. 3–4',
+    subtitle: 'Geni e comportamento · Cervello Prima Parte',
+    tip: 'Attenzione alla lezione 5: il tema geni/ambiente è trasversale e torna in molte altre lezioni (intelligenza, apprendimento). Connettilo subito.',
+    sections: [
+      {
+        tag: 'retrieval', label: 'Retrieval — 30 min',
+        title: 'Ripasso attivo Lez. 3–4',
+        ref: 'Domande del 26 apr da fare a memoria',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 5 — Geni, Ambiente e Comportamento',
+        ref: 'Slide pp. 33–41 · Feldman cap. 3',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 6 — Cervello e Comportamento (Prima parte)',
+        ref: 'Slide pp. 42–49 · Feldman cap. 3',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Qual è la differenza tra genotipo e fenotipo? Perché genotipo e fenotipo non sono mai una copia l\'uno dell\'altro?', type: 'definizione' },
+      { text: 'Cosa si intende per ereditabilità? Come si stima l\'influenza genetica e cosa ci dicono gli studi sui gemelli?', type: 'meccanismo' },
+      { text: 'Quali sono le determinanti del comportamento? Geni e ambiente possono essere considerati fattori separati?', type: 'connessione' },
+      { text: 'Descrivi la struttura di un neurone: soma, dendriti, assone. Qual è la funzione di ciascuna parte?', type: 'definizione' },
+      { text: 'Cosa sono le cellule gliali e quale funzione svolgono nel sistema nervoso?', type: 'definizione' },
+      { text: 'Descrivi le fasi dell\'attività elettrica di un neurone: potenziale di riposo, potenziale d\'azione, fase di refrattarietà.', type: 'meccanismo' },
+      { text: 'Cosa sono i neurotrasmettitori e come agiscono sulla sinapsi? Fai almeno due esempi.', type: 'meccanismo' }
+    ],
+    notes: true
+  },
+  {
+    id: 'apr28', label: 'Gio 28 apr', shortLabel: '28/4',
+    type: 'studio',
+    title: 'Lezioni 7–8 + Retrieval Lez. 5–6',
+    subtitle: 'Cervello Seconda Parte · Presupposti Teorici',
+    tip: 'La lezione 8 è teoricamente densa: Cognitivismo, HIP, TOTE, Modularismo, Connessionismo. Costruisci una mappa schematica mentre studi.',
+    sections: [
+      {
+        tag: 'retrieval', label: 'Retrieval — 30 min',
+        title: 'Ripasso attivo Lez. 5–6',
+        ref: 'Domande del 27 apr da fare a memoria',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 7 — Cervello e Comportamento (Seconda parte)',
+        ref: 'Slide pp. 49–54 · Feldman cap. 3',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 8 — I Principali Presupposti Teorici',
+        ref: 'Slide pp. 55–64 · Feldman cap. 1',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Descrivi le tre parti principali del cervello (rombencefalo, mesencefalo, prosencefalo) e le strutture contenute in ciascuna.', type: 'meccanismo' },
+      { text: 'Cos\'è il sistema limbico? Quali strutture lo compongono e quali funzioni svolge?', type: 'definizione' },
+      { text: 'Qual è il ruolo dell\'ippocampo e dell\'amigdala rispettivamente? Come si differenziano nelle loro funzioni?', type: 'connessione' },
+      { text: 'Cos\'è il cognitivismo e quando nasce? Chi è considerato il suo padre fondatore?', type: 'definizione' },
+      { text: 'Descrivi il modello Human Information Processing (HIP): come viene elaborata l\'informazione secondo questo modello?', type: 'meccanismo' },
+      { text: 'Cos\'è il modularismo secondo Fodor? Distingui tra sistemi di input e sistemi centrali.', type: 'meccanismo' },
+      { text: 'Qual è la differenza tra modularismo e connessionismo come approcci teorici alla cognizione?', type: 'connessione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'apr29', label: 'Ven 29 apr', shortLabel: '29/4',
+    type: 'studio',
+    title: 'Lezioni 9–10 + Retrieval Lez. 7–8',
+    subtitle: 'Sensazione e Percezione Prima e Seconda Parte',
+    tip: 'Sensazione e percezione si estendono su tre lezioni — cerca il filo conduttore: come lo stimolo fisico diventa esperienza percettiva.',
+    sections: [
+      {
+        tag: 'retrieval', label: 'Retrieval — 30 min',
+        title: 'Ripasso attivo Lez. 7–8',
+        ref: 'Domande del 28 apr da fare a memoria',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 9 — Sensazione e Percezione (Prima parte)',
+        ref: 'Slide pp. 65–75 · Feldman cap. 4',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 10 — Sensazione e Percezione (Seconda parte)',
+        ref: 'Slide pp. 76–87 · Feldman cap. 4',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Descrivi il processo che trasforma una sensazione in percezione: dal recettore sensoriale alla rappresentazione neurale.', type: 'meccanismo' },
+      { text: 'Cosa sono i processi bottom-up e top-down nella percezione? Fai un esempio per ciascuno.', type: 'definizione' },
+      { text: 'Descrivi i tre esperimenti citati nella lezione 9 sulla percezione e cosa dimostrano ciascuno.', type: 'meccanismo' },
+      { text: 'Come funziona la trasduzione visiva? Descrivi il ruolo di bastoncelli, coni e fotopigmenti.', type: 'meccanismo' },
+      { text: 'Descrivi la teoria della doppia analisi nella percezione del colore. Come combina la teoria tricromatica con quella dei processi opposti?', type: 'connessione' },
+      { text: 'Qual è la funzione del nervo ottico e cosa si intende per punto cieco?', type: 'definizione' },
+      { text: 'Cosa sono i fotopigmenti e come agiscono nella conversione della luce in segnale nervoso?', type: 'meccanismo' }
+    ],
+    notes: true
+  },
+  {
+    id: 'apr30', label: 'Sab 30 apr', shortLabel: '30/4',
+    type: 'studio',
+    title: 'Lezioni 11–12 + Retrieval Lez. 9–10',
+    subtitle: 'Sensazione e Percezione Terza Parte · Attenzione e Coscienza',
+    tip: 'La lezione 12 sulla coscienza è concettualmente difficile. Concentrati sui tipi di attenzione e su come si misurano gli stati di coscienza.',
+    sections: [
+      {
+        tag: 'retrieval', label: 'Retrieval — 30 min',
+        title: 'Ripasso attivo Lez. 9–10',
+        ref: 'Domande del 29 apr da fare a memoria',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 11 — Sensazione e Percezione (Terza parte)',
+        ref: 'Slide pp. 88–99 · Feldman cap. 4',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 12 — Attenzione e Coscienza',
+        ref: 'Slide pp. 90–99 · Feldman cap. 5',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Cos\'è il New Look on Perception e quando emerge? Qual è l\'apporto del costruttivismo di Bruner a questa corrente?', type: 'definizione' },
+      { text: 'In che senso la percezione è "relativa" secondo il New Look? Cosa influenza i nostri schemi cognitivi?', type: 'connessione' },
+      { text: 'Come si definisce la coscienza in psicologia cognitiva? Quali sono le sue caratteristiche principali?', type: 'definizione' },
+      { text: 'Descrivi le differenze tra attenzione selettiva, attenzione divisa e attenzione sostenuta.', type: 'meccanismo' },
+      { text: 'Come si misurano gli stati di coscienza? Quali strumenti e metodi vengono utilizzati?', type: 'meccanismo' },
+      { text: 'Perché abbiamo la coscienza? Quali funzioni adattive svolge secondo la prospettiva cognitiva?', type: 'connessione' },
+      { text: 'Qual è la differenza tra il processo bottom-up e top-down nella percezione e come si collega alla coscienza?', type: 'connessione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag1', label: 'Gio 1 mag', shortLabel: '1/5',
+    type: 'rest',
+    title: 'Festa — riposo',
+    subtitle: 'Niente studio oggi'
+  },
+  {
+    id: 'mag2', label: 'Ven 2 mag', shortLabel: '2/5',
+    type: 'studio',
+    title: 'Lezioni 13–14 + Retrieval Lez. 11–12',
+    subtitle: 'Apprendimento · Memoria Prima Parte',
+    tip: 'L\'apprendimento è il cuore della psicologia cognitiva. Nota come i meccanismi che studi (condizionamento, ecc.) si collegano alla tua esperienza diretta di apprendimento.',
+    sections: [
+      {
+        tag: 'retrieval', label: 'Retrieval — 30 min',
+        title: 'Ripasso attivo Lez. 11–12',
+        ref: 'Domande del 30 apr da fare a memoria',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 13 — Apprendimento: Il Ruolo dell\'Esperienza',
+        ref: 'Slide pp. 100–110 · Feldman cap. 5',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 14 — La Memoria (Prima parte)',
+        ref: 'Slide pp. 111–124 · Feldman cap. 6',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Come si definisce l\'apprendimento in psicologia cognitiva? Qual è la differenza tra adattamento all\'ambiente ed evoluzione?', type: 'definizione' },
+      { text: 'Descrivi il condizionamento classico di Pavlov: stimolo condizionato, incondizionato, risposta condizionata. Fai un esempio.', type: 'meccanismo' },
+      { text: 'Cos\'è il condizionamento operante? Descrivi il ruolo del rinforzo e della punizione secondo Skinner.', type: 'meccanismo' },
+      { text: 'Cosa dice la legge dell\'effetto di Thorndike? Come si collega al condizionamento operante?', type: 'connessione' },
+      { text: 'Come cambia il concetto di apprendimento nella prospettiva cognitivista rispetto a quella comportamentista?', type: 'connessione' },
+      { text: 'Descrivi il modello di Atkinson e Shiffrin della memoria. Quali sono i tre sistemi di memoria?', type: 'meccanismo' },
+      { text: 'Cos\'è la memoria di lavoro secondo Baddeley? Quali componenti la costituiscono e quale funzione svolge ciascuna?', type: 'definizione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag3', label: 'Sab 3 mag', shortLabel: '3/5',
+    type: 'studio',
+    title: 'Lezioni 15–16 + Revisione Lez. 1–4',
+    subtitle: 'Memoria Seconda Parte · Linguaggio · Prima revisione spaziata',
+    tip: 'La revisione spaziata di oggi sulle lezioni 1–4 è rapida: 30 minuti, solo titoli e parole chiave. L\'obiettivo non è ristudiarle, ma riattivare la traccia mnemonica.',
+    sections: [
+      {
+        tag: 'revisione', label: 'Revisione spaziata — 30 min',
+        title: 'Revisione Lez. 1–4',
+        ref: 'Scorri solo i concetti chiave. Per ogni lezione: scrivi 5 parole chiave senza guardare, poi verifica.',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 15 — La Memoria (Seconda parte)',
+        ref: 'Slide pp. 125–134 · Feldman cap. 6',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 16 — Il Linguaggio',
+        ref: 'Slide pp. 135–144 · Feldman cap. 7',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Descrivi le tre fasi della memoria: codifica, ritenzione/immagazzinamento, recupero. Cosa avviene in ciascuna?', type: 'meccanismo' },
+      { text: 'Cos\'è la teoria della profondità della codifica di Craik e Lockhart (1972)? Quali sono i tre livelli di elaborazione?', type: 'definizione' },
+      { text: 'Come gli schemi mentali influenzano la codifica e il recupero delle informazioni secondo Bartlett?', type: 'meccanismo' },
+      { text: 'Qual è la differenza tra richiamo e riconoscimento nel recupero della memoria? Quale è più efficiente e perché?', type: 'connessione' },
+      { text: 'Descrivi la struttura del linguaggio: grammatica, sintassi, semantica. Cosa distingue il linguaggio umano da altri sistemi di comunicazione?', type: 'definizione' },
+      { text: 'Cos\'è la struttura superficiale e la struttura profonda del linguaggio? Fai un esempio di frase ambigua.', type: 'meccanismo' },
+      { text: 'Come si comprende e si produce il discorso? Descrivi il ruolo dell\'elaborazione bottom-up e top-down nel linguaggio.', type: 'connessione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag4', label: 'Dom 4 mag', shortLabel: '4/5',
+    type: 'rest',
+    title: 'Domenica — riposo',
+    subtitle: 'Giornata libera. Niente studio.'
+  },
+  {
+    id: 'mag5', label: 'Lun 5 mag', shortLabel: '5/5',
+    type: 'studio',
+    title: 'Lezioni 17–18 + Revisione Lez. 5–8',
+    subtitle: 'Il Pensiero · Intelligenza · Revisione spaziata',
+    tip: 'Il pensiero e l\'intelligenza sono lezioni ad alto rischio di domanda d\'esame. Studia bene le teorie (triarchica, intelligenze multiple, fluida/cristallizzata).',
+    sections: [
+      {
+        tag: 'revisione', label: 'Revisione spaziata — 30 min',
+        title: 'Revisione Lez. 5–8',
+        ref: 'Neuroni, geni, presupposti teorici. 5 parole chiave per lezione senza guardare.',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 17 — Il Pensiero',
+        ref: 'Slide pp. 145–158 · Feldman cap. 7',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 18 — Intelligenza',
+        ref: 'Slide pp. 159–168 · Feldman cap. 8',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Cos\'è il pensiero in psicologia cognitiva? Quali funzioni adattive svolge?', type: 'definizione' },
+      { text: 'Descrivi le fasi della soluzione di problemi. Qual è il ruolo degli schemi nella risoluzione dei problemi?', type: 'meccanismo' },
+      { text: 'Qual è la differenza tra ragionamento deduttivo e induttivo? Fai un esempio per ciascuno.', type: 'connessione' },
+      { text: 'Descrivi la distinzione tra intelligenza fluida e cristallizzata introdotta da Cattell e Horn.', type: 'definizione' },
+      { text: 'Cos\'è la teoria triarchica dell\'intelligenza di Sternberg? Descrivi le tre componenti.', type: 'meccanismo' },
+      { text: 'Quali sono i due approcci principali allo studio dell\'intelligenza (psicometrico e dei processi cognitivi)? In cosa differiscono?', type: 'connessione' },
+      { text: 'Descrivi il modello gerarchico di Carroll: i tre livelli di capacità cognitive.', type: 'meccanismo' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag6', label: 'Mar 6 mag', shortLabel: '6/5',
+    type: 'studio',
+    title: 'Lezioni 19–20 + Revisione Lez. 9–12',
+    subtitle: 'Motivazione · Emozioni · Revisione spaziata',
+    tip: 'Motivazione ed emozioni sono spesso collegate nelle domande d\'esame. Pensa a come i sistemi motivazionali si intrecciano con le risposte emotive.',
+    sections: [
+      {
+        tag: 'revisione', label: 'Revisione spaziata — 30 min',
+        title: 'Revisione Lez. 9–12',
+        ref: 'Percezione, attenzione, coscienza. 5 parole chiave per lezione senza guardare.',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 19 — La Motivazione',
+        ref: 'Slide pp. 169–181 · Feldman cap. 10',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1h',
+        title: 'Lez. 20 — Emozioni',
+        ref: 'Slide pp. 182–193 · Feldman cap. 10',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Cos\'è la motivazione? Descrivi il meccanismo omeostatico e come si collega alla teoria delle pulsioni di Clark Hull.', type: 'definizione' },
+      { text: 'Descrivi la teoria di Hebb sull\'attivazione ottimale. Qual è il livello di stimolazione ideale per il comportamento?', type: 'meccanismo' },
+      { text: 'Cosa sono il BAS e il BIS? Come si differenziano nelle loro funzioni motivazionali?', type: 'definizione' },
+      { text: 'Descrivi la piramide di Maslow: quali sono i cinque livelli di bisogno e come si organizzano gerarchicamente?', type: 'meccanismo' },
+      { text: 'Quali sono i correlati neurali della motivazione? Quale ruolo svolge la dopamina?', type: 'connessione' },
+      { text: 'Descrivi le strutture cerebrali coinvolte nelle emozioni: insula, nucleo accumbens, corteccia anteriore del cingolo, corteccia orbitofrontale.', type: 'meccanismo' },
+      { text: 'Come la corteccia prefrontale è coinvolta nella regolazione emotiva? Qual è il suo rapporto con il sistema limbico?', type: 'connessione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag7', label: 'Mer 7 mag', shortLabel: '7/5',
+    type: 'studio',
+    title: 'Lezione 21 + Revisione Lez. 13–16',
+    subtitle: 'Mente e Comportamento Sociale · Revisione spaziata',
+    tip: 'Hai completato lo studio di tutto il programma. Da domani si entra nella fase di consolidamento intensivo.',
+    sections: [
+      {
+        tag: 'revisione', label: 'Revisione spaziata — 30 min',
+        title: 'Revisione Lez. 13–16',
+        ref: 'Apprendimento, memoria, linguaggio. 5 parole chiave per lezione senza guardare.',
+        content: null
+      },
+      {
+        tag: 'studio', label: 'Studio primario — 1.5h',
+        title: 'Lez. 21 — Mente e Comportamento Sociale',
+        ref: 'Slide pp. 194–204 · Feldman cap. 14',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'Cos\'è la cognizione sociale? Come si formano le prime impressioni sugli altri?', type: 'definizione' },
+      { text: 'Cos\'è l\'Halo Effect (effetto alone)? Descrivi il meccanismo e fai un esempio.', type: 'definizione' },
+      { text: 'Cosa dice la teoria dello scambio sociale? Come influenza la formazione e il mantenimento delle relazioni?', type: 'meccanismo' },
+      { text: 'Cos\'è l\'attrattività e quale ruolo svolge nell\'effetto di matching nelle relazioni romantiche?', type: 'connessione' },
+      { text: 'Cos\'è l\'altruismo in psicologia cognitiva? Come si distingue dal comportamento prosociale generico?', type: 'definizione' },
+      { text: 'Cos\'è l\'empatia e quali aree cerebrali sono coinvolte nella cognizione sociale?', type: 'connessione' },
+      { text: 'Descrivi la teoria di Sternberg sull\'amore: quali componenti lo costituiscono?', type: 'meccanismo' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag8', label: 'Gio 8 mag', shortLabel: '8/5',
+    type: 'revisione',
+    title: 'Revisione Lez. 1–7 + Retrieval intensivo',
+    subtitle: 'Prima metà del programma — consolidamento',
+    tip: 'Oggi niente studio nuovo. Solo recupero. Per ogni blocco di domande: scrivi la risposta per intero, come se fossi all\'esame. Non rispondere a parole — scrivi.',
+    sections: [
+      {
+        tag: 'revisione', label: 'Revisione spaziata — 1.5h',
+        title: 'Revisione Lez. 1–7',
+        ref: 'Psicologia, metodo, tecniche, misura, geni, cervello I e II',
+        content: null
+      },
+      {
+        tag: 'retrieval', label: 'Retrieval scritto — 1.5h',
+        title: 'Domande simulate esame su Lez. 1–7',
+        ref: 'Rispondi per iscritto come all\'esame. Almeno 3 domande complete.',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'SIMULAZIONE ESAME: Descrivi le origini della psicologia cognitiva, dal contributo di Broca e Wernicke al cognitivismo degli anni \'50. Quali sono i principali presupposti teorici?', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Qual è la differenza tra metodo correlazionale e sperimentale? Descrivi come si costruisce un esperimento in psicologia cognitiva.', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Descrivi la struttura e il funzionamento del neurone, includendo l\'attività elettrica e la trasmissione sinaptica.', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Cos\'è un test psicologico e quali condizioni deve soddisfare per essere considerato uno strumento di misura valido?', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Descrivi le strutture cerebrali coinvolte nelle funzioni cognitive (sistema limbico, lobi cerebrali, aree di Broca e Wernicke).', type: 'simulazione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag9', label: 'Ven 9 mag', shortLabel: '9/5',
+    type: 'revisione',
+    title: 'Revisione Lez. 8–14 + Retrieval intensivo',
+    subtitle: 'Seconda parte del programma — consolidamento',
+    tip: 'Attenzione alle domande di connessione oggi: come si collegano apprendimento e memoria? Come il modello HIP si collega alla struttura della memoria?',
+    sections: [
+      {
+        tag: 'revisione', label: 'Revisione spaziata — 1.5h',
+        title: 'Revisione Lez. 8–14',
+        ref: 'Presupposti teorici, percezione I-II-III, attenzione, apprendimento, memoria I',
+        content: null
+      },
+      {
+        tag: 'retrieval', label: 'Retrieval scritto — 1.5h',
+        title: 'Domande simulate esame su Lez. 8–14',
+        ref: 'Rispondi per iscritto come all\'esame. Almeno 3 domande complete.',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'SIMULAZIONE ESAME: Descrivi il modello Human Information Processing e i principali presupposti del cognitivismo. Come si differenzia dal comportamentismo?', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Descrivi il processo percettivo dalla sensazione alla percezione. Qual è la differenza tra processi bottom-up e top-down?', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Cos\'è il condizionamento classico e come si differenzia dal condizionamento operante? Descrivi il contributo di Pavlov e Skinner.', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Descrivi i sistemi di memoria secondo Atkinson e Shiffrin. Qual è il ruolo della memoria di lavoro di Baddeley?', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Cos\'è la coscienza e come si distinguono le diverse forme di attenzione (selettiva, divisa, sostenuta)?', type: 'simulazione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag10', label: 'Sab 10 mag', shortLabel: '10/5',
+    type: 'revisione',
+    title: 'Revisione Lez. 15–21 + Retrieval finale',
+    subtitle: 'Terza parte del programma — consolidamento finale',
+    tip: 'Ultima giornata di studio intensivo. Dopo le 18:00 smetti di studiare. Il cervello consolida durante il riposo: non forzare.',
+    sections: [
+      {
+        tag: 'revisione', label: 'Revisione spaziata — 1.5h',
+        title: 'Revisione Lez. 15–21',
+        ref: 'Memoria II, linguaggio, pensiero, intelligenza, motivazione, emozioni, mente sociale',
+        content: null
+      },
+      {
+        tag: 'retrieval', label: 'Retrieval scritto — 1.5h',
+        title: 'Domande simulate esame su Lez. 15–21',
+        ref: 'Rispondi per iscritto come all\'esame. Smetti alle 18:00.',
+        content: null
+      }
+    ],
+    questions: [
+      { text: 'SIMULAZIONE ESAME: Descrivi le tre fasi della memoria (codifica, ritenzione, recupero) e la teoria della profondità della codifica di Craik e Lockhart.', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Descrivi la struttura del linguaggio (grammatica, sintassi, semantica) e il processo di comprensione del discorso.', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Cos\'è l\'intelligenza? Confronta l\'approccio psicometrico con quello dei processi cognitivi. Descrivi almeno due teorie (es. Sternberg, Cattell-Horn).', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Descrivi i meccanismi della motivazione: omeostatici, teoria delle pulsioni, teoria dell\'attivazione ottimale, piramide di Maslow.', type: 'simulazione' },
+      { text: 'SIMULAZIONE ESAME: Cos\'è la cognizione sociale? Descrivi la formazione delle prime impressioni, l\'effetto alone e la teoria dello scambio sociale.', type: 'simulazione' }
+    ],
+    notes: true
+  },
+  {
+    id: 'mag11', label: 'Dom 11 mag', shortLabel: '11/5',
+    type: 'rest',
+    title: 'Riposo pre-esame',
+    subtitle: 'Niente studio. Riposa, mangia bene, dormi presto.'
+  },
+  {
+    id: 'mag12', label: 'Lun 12 mag', shortLabel: '12/5',
+    type: 'exam',
+    title: 'ESAME',
+    subtitle: 'Psicologia Cognitiva — Prof. Serra'
+  }
+];
+
+const state = JSON.parse(localStorage.getItem('psico_state') || '{}');
+
+function saveState() {
+  localStorage.setItem('psico_state', JSON.stringify(state));
+  updateProgress();
+}
+
+function updateProgress() {
+  const studyDays = days.filter(d => d.type !== 'rest' && d.type !== 'exam');
+  const done = studyDays.filter(d => state[d.id]?.status === 'done').length;
+  const pct = Math.round((done / studyDays.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = done + ' / ' + studyDays.length + ' giorni';
+}
+
+function buildNav() {
+  const nav = document.getElementById('dayNav');
+  days.forEach(day => {
+    const item = document.createElement('button');
+    item.className = 'day-nav-item';
+    item.dataset.id = day.id;
+    const status = state[day.id]?.status || '';
+    if (status) item.classList.add('status-' + status);
+    item.innerHTML = `<div class="day-dot"></div>${day.label}`;
+    item.onclick = () => showDay(day.id);
+    nav.appendChild(item);
+  });
+}
+
+function showDay(id) {
+  document.querySelectorAll('.day-block').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('.day-nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('block-' + id)?.classList.add('visible');
+  document.querySelector(`[data-id="${id}"]`)?.classList.add('active');
+}
+
+function buildDays() {
+  const main = document.getElementById('mainContent');
+  days.forEach(day => {
+    const block = document.createElement('div');
+    block.className = 'day-block';
+    block.id = 'block-' + day.id;
+
+    if (day.type === 'rest') {
+      block.innerHTML = `
+        <div class="day-header">
+          <div><div class="day-title">${day.label}</div><div class="day-name">${day.title}</div></div>
+        </div>
+        <div class="rest-day">
+          <div class="big-label">RIPOSO</div>
+          <p style="color:var(--text-3);font-size:13px;">${day.subtitle}</p>
+        </div>`;
+    } else if (day.type === 'exam') {
+      block.innerHTML = `
+        <div class="day-header">
+          <div><div class="day-title">${day.label}</div><div class="day-name"><span>${day.title}</span></div></div>
+        </div>
+        <div class="exam-day-content">
+          <div class="big-label">IN BOCCA AL LUPO</div>
+          <p>${day.subtitle}</p>
+          <p style="margin-top:1rem;color:var(--text-3);font-size:12px;">Hai studiato bene. Fidati del lavoro fatto.</p>
+        </div>`;
+    } else {
+      const dayState = state[day.id] || {};
+      const checks = dayState.checks || {};
+      const notes = dayState.notes || '';
+
+      let sectionsHtml = (day.sections || []).map(s => `
+        <div class="section-card">
+          <div class="section-head">
+            <span class="section-tag tag-${s.tag}">${s.tag}</span>
+            <span class="section-title">${s.title}</span>
+          </div>
+          <div class="section-body">
+            <div class="lesson-ref">${s.ref}</div>
+          </div>
+        </div>`).join('');
+
+      let questionsHtml = (day.questions || []).map((q, i) => `
+        <li class="question-item">
+          <div class="q-top">
+            <div class="q-check ${checks[i] ? 'checked' : ''}" onclick="toggleCheck('${day.id}', ${i}, this)"></div>
+            <div class="q-text">${q.text}</div>
+            <div class="q-type">${q.type}</div>
+          </div>
+          <div class="q-answer-area">
+            <textarea class="q-answer-input" id="answer-${day.id}-${i}" placeholder="Scrivi qui la tua risposta..."></textarea>
+            <button class="q-verify-btn" onclick="verifyAnswer('${day.id}', ${i}, '${q.text.replace(/'/g, "\\'")}', '${q.type}')">Verifica risposta →</button>
+            <div class="q-feedback" id="feedback-${day.id}-${i}"></div>
+          </div>
+        </li>`).join('');
+
+      const statusDone = dayState.status === 'done' ? 'done' : '';
+      const statusPartial = dayState.status === 'partial' ? 'partial' : '';
+      const statusSkip = dayState.status === 'skip' ? 'skip' : '';
+
+      block.innerHTML = `
+        <div class="day-header">
+          <div>
+            <div class="day-title">${day.label}</div>
+            <div class="day-name"><span>${day.title}</span></div>
+            <div class="day-subtitle">${day.subtitle}</div>
+          </div>
+          <div class="status-buttons">
+            <button class="status-btn ${statusDone}" onclick="setStatus('${day.id}','done',this)">✓ Fatto</button>
+            <button class="status-btn ${statusPartial}" onclick="setStatus('${day.id}','partial',this)">◑ Parziale</button>
+            <button class="status-btn ${statusSkip}" onclick="setStatus('${day.id}','skip',this)">✗ Saltato</button>
+          </div>
+        </div>
+        <div class="timer-block" id="timer-${day.id}">
+          <div class="timer-display" id="timerDisplay-${day.id}">00:00:00</div>
+          <div class="timer-controls">
+            <button class="timer-btn primary" id="timerStartBtn-${day.id}" onclick="timerStart('${day.id}')">Inizia sessione</button>
+            <button class="timer-btn pause-btn" id="timerPauseBtn-${day.id}" onclick="timerPause('${day.id}')" style="display:none">Pausa</button>
+            <button class="timer-btn stop-btn" id="timerStopBtn-${day.id}" onclick="timerStop('${day.id}')" style="display:none">Chiudi sessione</button>
+          </div>
+          <div class="timer-meta">
+            <div class="timer-saved">Sessioni salvate: <span id="timerSaved-${day.id}">${formatSeconds(dayState.totalSeconds || 0)}</span></div>
+          </div>
+        </div>
+        ${day.tip ? `<div class="tip-box"><span class="tip-icon">→</span><span>${day.tip}</span></div>` : ''}
+        ${sectionsHtml}
+        <div class="section-card">
+          <div class="section-head">
+            <span class="section-tag tag-retrieval">retrieval practice</span>
+            <span class="section-title">Domande per questa giornata</span>
+          </div>
+          <div class="section-body">
+            <ul class="questions-list">${questionsHtml}</ul>
+            <div class="notes-area" style="margin-top:14px;">
+              <label>Note e punti deboli emersi</label>
+              <textarea placeholder="Scrivi qui cosa non ricordavi, cosa devi ripassare, concetti da approfondire..." onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    main.appendChild(block);
+  });
+}
+
+function formatSeconds(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function formatHoursMinutes(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  return h + 'h ' + String(m).padStart(2,'0') + 'm';
+}
+
+const timerState = {};
+
+function timerStart(dayId) {
+  if (timerState[dayId] && timerState[dayId].running) return;
+  if (!timerState[dayId]) timerState[dayId] = { elapsed: 0 };
+  timerState[dayId].running = true;
+  timerState[dayId].startedAt = Date.now() - (timerState[dayId].elapsed * 1000);
+  timerState[dayId].interval = setInterval(function() { timerTick(dayId); }, 1000);
+  var disp = document.getElementById('timerDisplay-' + dayId);
+  disp.classList.add('running');
+  disp.classList.remove('paused');
+  document.getElementById('timerStartBtn-' + dayId).style.display = 'none';
+  document.getElementById('timerPauseBtn-' + dayId).style.display = '';
+  document.getElementById('timerStopBtn-' + dayId).style.display = '';
+}
+
+function timerTick(dayId) {
+  var elapsed = Math.floor((Date.now() - timerState[dayId].startedAt) / 1000);
+  timerState[dayId].elapsed = elapsed;
+  var el = document.getElementById('timerDisplay-' + dayId);
+  if (el) el.textContent = formatSeconds(elapsed);
+}
+
+function timerPause(dayId) {
+  if (!timerState[dayId] || !timerState[dayId].running) return;
+  clearInterval(timerState[dayId].interval);
+  timerState[dayId].running = false;
+  timerState[dayId].elapsed = Math.floor((Date.now() - timerState[dayId].startedAt) / 1000);
+  var disp = document.getElementById('timerDisplay-' + dayId);
+  disp.classList.remove('running');
+  disp.classList.add('paused');
+  var btn = document.getElementById('timerPauseBtn-' + dayId);
+  btn.textContent = 'Riprendi';
+  btn.onclick = function() { timerResume(dayId); };
+}
+
+function timerResume(dayId) {
+  timerState[dayId].startedAt = Date.now() - (timerState[dayId].elapsed * 1000);
+  timerState[dayId].running = true;
+  timerState[dayId].interval = setInterval(function() { timerTick(dayId); }, 1000);
+  var disp = document.getElementById('timerDisplay-' + dayId);
+  disp.classList.add('running');
+  disp.classList.remove('paused');
+  var btn = document.getElementById('timerPauseBtn-' + dayId);
+  btn.textContent = 'Pausa';
+  btn.onclick = function() { timerPause(dayId); };
+}
+
+function timerStop(dayId) {
+  if (timerState[dayId] && timerState[dayId].running) {
+    clearInterval(timerState[dayId].interval);
+    timerState[dayId].elapsed = Math.floor((Date.now() - timerState[dayId].startedAt) / 1000);
+  }
+  var sessionSecs = timerState[dayId] ? timerState[dayId].elapsed : 0;
+  if (!state[dayId]) state[dayId] = {};
+  state[dayId].totalSeconds = (state[dayId].totalSeconds || 0) + sessionSecs;
+  timerState[dayId] = { elapsed: 0, running: false };
+  var disp = document.getElementById('timerDisplay-' + dayId);
+  disp.textContent = '00:00:00';
+  disp.classList.remove('running', 'paused');
+  document.getElementById('timerStartBtn-' + dayId).style.display = '';
+  var pauseBtn = document.getElementById('timerPauseBtn-' + dayId);
+  pauseBtn.style.display = 'none';
+  pauseBtn.textContent = 'Pausa';
+  pauseBtn.onclick = function() { timerPause(dayId); };
+  document.getElementById('timerStopBtn-' + dayId).style.display = 'none';
+  var savedEl = document.getElementById('timerSaved-' + dayId);
+  if (savedEl) savedEl.textContent = formatSeconds(state[dayId].totalSeconds);
+  saveState();
+  updateTotalHours();
+}
+
+function updateTotalHours() {
+  var total = 0;
+  Object.values(state).forEach(function(d) { total += d.totalSeconds || 0; });
+  var el = document.getElementById('totalHoursDisplay');
+  if (el) el.textContent = formatHoursMinutes(total);
+}
+
+function resetTotalHours() {
+  if (!confirm("Azzerare il contatore delle ore totali? I progressi salvati nelle singole giornate verranno mantenuti.")) return;
+  Object.keys(state).forEach(function(k) { state[k].totalSeconds = 0; });
+  days.forEach(function(d) {
+    var el = document.getElementById("timerSaved-" + d.id);
+    if (el) el.textContent = "00:00:00";
+  });
+  saveState();
+  updateTotalHours();
+}
+
+function toggleCheck(dayId, idx, el) {
+  if (!state[dayId]) state[dayId] = {};
+  if (!state[dayId].checks) state[dayId].checks = {};
+  state[dayId].checks[idx] = !state[dayId].checks[idx];
+  el.classList.toggle('checked', state[dayId].checks[idx]);
+  saveState();
+}
+
+function setStatus(dayId, status, btn) {
+  if (!state[dayId]) state[dayId] = {};
+  state[dayId].status = status;
+  const btns = btn.parentElement.querySelectorAll('.status-btn');
+  btns.forEach(b => b.classList.remove('done','partial','skip'));
+  btn.classList.add(status);
+  const navItem = document.querySelector('[data-id="' + dayId + '"]');
+  if (navItem) {
+    navItem.classList.remove('status-done','status-partial','status-skip');
+    navItem.classList.add('status-' + status);
+  }
+  saveState();
+}
+
+function saveNotes(dayId, value) {
+  if (!state[dayId]) state[dayId] = {};
+  state[dayId].notes = value;
+  saveState();
+}
+
+function showApiModal() {
+  const current = localStorage.getItem('anthropic_api_key') || '';
+  document.getElementById('apiKeyInput').value = current;
+  document.getElementById('apiModal').style.display = 'flex';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    alert('Chiave non valida. Deve iniziare con sk-ant-');
+    return;
+  }
+  localStorage.setItem('anthropic_api_key', key);
+  document.getElementById('apiModal').style.display = 'none';
+  updateApiIndicator();
+}
+
+function updateApiIndicator() {
+  const key = localStorage.getItem('anthropic_api_key');
+  const el = document.getElementById('apiIndicator');
+  if (key) {
+    el.textContent = '⚡ API connessa';
+    el.classList.add('connected');
+  } else {
+    el.textContent = '⚡ API non configurata';
+    el.classList.remove('connected');
+  }
+}
+
+async function verifyAnswer(dayId, qIdx, questionText, qType) {
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) {
+    showApiModal();
+    return;
+  }
+  const answerEl = document.getElementById('answer-' + dayId + '-' + qIdx);
+  const feedbackEl = document.getElementById('feedback-' + dayId + '-' + qIdx);
+  const btn = answerEl.parentElement.querySelector('.q-verify-btn');
+  const answer = answerEl.value.trim();
+  if (!answer) {
+    answerEl.focus();
+    answerEl.style.borderColor = 'var(--skip-text)';
+    setTimeout(() => { answerEl.style.borderColor = ''; }, 1500);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Valutazione in corso...';
+  feedbackEl.className = 'q-feedback loading visible';
+  feedbackEl.innerHTML = '<div class="q-feedback-label">Claude sta valutando...</div>';
+
+  const systemPrompt = `Sei un tutor universitario esperto di psicologia cognitiva che valuta le risposte degli studenti. 
+Il corso è "Psicologia Cognitiva" della Prof. Laura Serra (UNINETTUNO).
+Valuta la risposta dello studente in modo critico ma costruttivo.
+Rispondi SEMPRE in italiano.
+Struttura la tua risposta così:
+1. Una riga con SOLO il giudizio: OTTIMO / BUONO / PARZIALE / INSUFFICIENTE
+2. Poi 2-4 frasi di feedback specifico: cosa è corretto, cosa manca, cosa è impreciso.
+3. Se mancano concetti chiave, elencali brevemente.
+Sii preciso e diretto. Non essere eccessivamente indulgente.`;
+
+  const userPrompt = `Domanda (tipo: ${qType}): ${questionText}\n\nRisposta dello studente: ${answer}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || 'Errore API');
+    }
+
+    const data = await response.json();
+    const text = data.content[0].text.trim();
+    const firstLine = text.split('\n')[0].toUpperCase();
+    const rest = text.split('\n').slice(1).join('\n').trim();
+
+    let grade = 'partial';
+    let gradeLabel = 'PARZIALE';
+    let gradeClass = 'feedback-partial';
+
+    if (firstLine.includes('OTTIMO')) {
+      grade = 'good'; gradeLabel = '✓ OTTIMO'; gradeClass = 'feedback-good';
+    } else if (firstLine.includes('BUONO')) {
+      grade = 'good'; gradeLabel = '✓ BUONO'; gradeClass = 'feedback-good';
+    } else if (firstLine.includes('PARZIALE')) {
+      grade = 'partial'; gradeLabel = '◑ PARZIALE'; gradeClass = 'feedback-partial';
+    } else if (firstLine.includes('INSUFFICIENTE')) {
+      grade = 'poor'; gradeLabel = '✗ INSUFFICIENTE'; gradeClass = 'feedback-poor';
+    }
+
+    feedbackEl.className = 'q-feedback ' + grade + ' visible';
+    feedbackEl.innerHTML = '<div class="q-feedback-label ' + gradeClass + '">' + gradeLabel + '</div>' + rest.replace(/\n/g, '<br>');
+
+    if (grade === 'good' && !state[dayId]?.checks?.[qIdx]) {
+      const checkEl = document.querySelector('#block-' + dayId + ' .question-item:nth-child(' + (qIdx+1) + ') .q-check');
+      if (checkEl) toggleCheck(dayId, qIdx, checkEl);
+    }
+
+  } catch(err) {
+    feedbackEl.className = 'q-feedback poor visible';
+    feedbackEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div>' + err.message;
+    if (err.message.includes('401') || err.message.includes('auth')) {
+      localStorage.removeItem('anthropic_api_key');
+      updateApiIndicator();
+      feedbackEl.innerHTML += '<br><small>API key non valida. Clicca su "API non configurata" per inserirne una nuova.</small>';
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Verifica risposta →';
+  }
+}
+
+// ── Theme ──────────────────────────────────────────────────
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const label = document.getElementById('themeSwitchLabel');
+  if (label) label.textContent = theme === 'light' ? 'Light' : 'Dark';
+  localStorage.setItem('psico_theme', theme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+// Applica il tema salvato (o dark di default)
+applyTheme(localStorage.getItem('psico_theme') || 'dark');
+
+buildNav();
+buildDays();
+updateProgress();
+updateTotalHours();
+updateApiIndicator();
+showDay('apr25');
+</script>
+</body>
+</html>
