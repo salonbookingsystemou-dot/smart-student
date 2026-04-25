@@ -712,6 +712,258 @@
   .feedback-partial { color: var(--text-2); }
   .feedback-poor    { color: var(--skip-text); }
 
+  /* ── Quiz Modal ─────────────────────────────────────────── */
+  .quiz-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.72);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+  }
+  .quiz-overlay.open { display: flex; }
+  .quiz-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: min(580px, 95vw);
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 28px 28px 24px;
+    position: relative;
+    animation: quiz-in 0.22s cubic-bezier(0.34,1.26,0.64,1);
+  }
+  @keyframes quiz-in {
+    from { opacity: 0; transform: scale(0.93) translateY(10px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .quiz-exit-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none;
+    font-size: 22px; line-height: 1;
+    color: var(--text-3); cursor: pointer; padding: 4px 6px;
+    border-radius: 4px; transition: color 0.15s, background 0.15s;
+  }
+  .quiz-exit-btn:hover { color: var(--text); background: var(--border-subtle); }
+
+  /* Loading */
+  .quiz-loading { text-align: center; padding: 44px 0; }
+  .quiz-spinner {
+    width: 38px; height: 38px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: quiz-spin 0.75s linear infinite;
+    margin: 0 auto 18px;
+  }
+  @keyframes quiz-spin { to { transform: rotate(360deg); } }
+  .quiz-loading-label {
+    font-size: 13px; color: var(--text-2);
+    font-family: 'Inter', sans-serif;
+  }
+  .quiz-loading-sub {
+    font-size: 11px; color: var(--text-3);
+    margin-top: 6px; font-family: 'JetBrains Mono', monospace;
+    max-width: 300px; margin-left: auto; margin-right: auto;
+  }
+
+  /* Top bar */
+  .quiz-top-bar {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 14px;
+  }
+  .quiz-topic-label {
+    font-size: 10px; font-family: 'Inter', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-3);
+    max-width: 65%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .quiz-score-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 700;
+    color: var(--accent); background: var(--accent-bg);
+    border: 1px solid var(--accent);
+    border-radius: 20px; padding: 2px 11px;
+    transition: transform 0.15s;
+  }
+
+  /* Progress dots */
+  .quiz-dots {
+    display: flex; gap: 7px;
+    justify-content: center; margin-bottom: 18px;
+  }
+  .quiz-dot-item {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--border); transition: all 0.25s;
+  }
+  .quiz-dot-item.current  { background: var(--accent); transform: scale(1.3); }
+  .quiz-dot-item.correct  { background: var(--accent); }
+  .quiz-dot-item.wrong    { background: var(--skip-text); }
+
+  /* Question */
+  .quiz-question-num {
+    font-size: 10px; font-family: 'Inter', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-3); text-align: center; margin-bottom: 10px;
+  }
+  .quiz-question-text {
+    font-size: 15px; line-height: 1.65;
+    color: var(--text); font-family: 'Inter', sans-serif;
+    text-align: center; margin-bottom: 22px; min-height: 52px;
+    transition: opacity 0.15s;
+  }
+
+  /* Options */
+  .quiz-options {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 16px;
+  }
+  @media (max-width: 420px) { .quiz-options { grid-template-columns: 1fr; } }
+  .quiz-opt {
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; line-height: 1.4;
+    cursor: pointer; text-align: left;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  }
+  .quiz-opt:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    transform: translateY(-2px);
+  }
+  .quiz-opt.correct {
+    border-color: var(--accent) !important;
+    background: var(--accent-bg) !important;
+    color: var(--accent); font-weight: 600;
+  }
+  .quiz-opt.wrong {
+    border-color: var(--skip-text) !important;
+    background: var(--skip-bg) !important;
+    color: var(--skip-text);
+  }
+  .quiz-opt:disabled { cursor: default; transform: none !important; }
+
+  /* Timer bar */
+  .quiz-timer-wrap {
+    height: 3px; background: var(--border-subtle);
+    border-radius: 2px; overflow: hidden; margin-bottom: 14px;
+  }
+  .quiz-timer-bar {
+    height: 100%; background: var(--accent);
+    border-radius: 2px; transition: background 0.4s;
+  }
+  .quiz-timer-bar.urgent { background: var(--skip-text); }
+
+  /* Explanation */
+  .quiz-explanation {
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 5px;
+    padding: 10px 12px;
+    font-size: 12px; line-height: 1.65;
+    color: var(--text); font-family: 'Inter', sans-serif;
+    margin-bottom: 14px;
+  }
+  .quiz-explanation.wrong-exp { border-left-color: var(--skip-text); background: var(--skip-bg); }
+
+  /* Next button */
+  .quiz-next-btn {
+    display: block; width: 100%;
+    padding: 11px; background: var(--accent);
+    color: var(--bg); border: none; border-radius: 9px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .quiz-next-btn:hover { opacity: 0.87; transform: translateY(-1px); }
+
+  /* Results */
+  .quiz-results-view { text-align: center; padding: 6px 0 4px; }
+  .quiz-results-label {
+    font-size: 10px; font-family: 'Inter', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--text-3); margin-bottom: 22px;
+  }
+  .quiz-score-circle {
+    width: 114px; height: 114px; border-radius: 50%;
+    border: 3px solid var(--accent);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+    background: var(--accent-bg);
+  }
+  .quiz-score-big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 34px; font-weight: 700;
+    color: var(--accent); line-height: 1;
+  }
+  .quiz-score-pts {
+    font-size: 10px; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px;
+  }
+  .quiz-stars { font-size: 26px; margin-bottom: 6px; letter-spacing: 3px; }
+  .quiz-results-correct {
+    font-family: 'Inter', sans-serif; font-size: 13px;
+    color: var(--text-2); margin-bottom: 20px;
+  }
+  .quiz-best-wrap {
+    display: inline-block; min-width: 190px;
+    background: var(--border-subtle);
+    border-radius: 9px; padding: 10px 18px; margin-bottom: 22px;
+  }
+  .quiz-best-label {
+    font-size: 9px; font-family: 'Inter', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3);
+  }
+  .quiz-best-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; color: var(--text); margin-top: 4px;
+  }
+  .quiz-result-btns { display: flex; gap: 10px; justify-content: center; }
+  .quiz-retry-btn {
+    padding: 10px 22px;
+    background: var(--accent); color: var(--bg);
+    border: none; border-radius: 9px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .quiz-retry-btn:hover { opacity: 0.87; }
+  .quiz-close-btn {
+    padding: 10px 22px; background: transparent;
+    color: var(--text-2); border: 1px solid var(--border);
+    border-radius: 9px; font-family: 'Inter', sans-serif;
+    font-size: 13px; cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .quiz-close-btn:hover { border-color: var(--text-2); color: var(--text); }
+
+  /* Launch button inside day block */
+  .quiz-launch-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 14px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: 7px;
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  }
+  .quiz-launch-btn:hover {
+    background: var(--accent-bg);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+
   /* ── Voice Dictation Modal ─────────────────────────────── */
   .mic-modal-overlay {
     display: none;
@@ -1639,6 +1891,10 @@ function buildDays() {
           </div>
           <div class="section-body">
             <ul class="questions-list">${questionsHtml}</ul>
+            <button class="quiz-launch-btn" onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Genera Quiz sull'argomento
+            </button>
             <div class="notes-area" style="margin-top:14px;">
               <label>Note e punti deboli emersi</label>
               <textarea placeholder="Scrivi qui cosa non ricordavi, cosa devi ripassare, concetti da approfondire..." onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
@@ -2169,6 +2425,264 @@ function _setMicPauseIcon(isPlaying) {
   }
 }
 
+// ── Quiz ────────────────────────────────────────────────────
+let _quiz = null;
+
+async function startQuiz(dayId, topic) {
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) { showApiModal(); return; }
+
+  _quiz = null;
+  const modal   = document.getElementById('quizModal');
+  const loading = document.getElementById('quizLoading');
+  const qView   = document.getElementById('quizQuestionView');
+  const rView   = document.getElementById('quizResultsView');
+
+  loading.innerHTML = `<div class="quiz-spinner"></div>
+    <div class="quiz-loading-label">Generazione domande in corso…</div>
+    <div class="quiz-loading-sub" id="quizLoadingTopic">${topic}</div>`;
+  loading.style.display = '';
+  qView.style.display   = 'none';
+  rView.style.display   = 'none';
+  modal.classList.add('open');
+
+  const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra).
+Genera esattamente 6 domande a risposta multipla sull'argomento fornito.
+Rispondi ESCLUSIVAMENTE con un array JSON valido, senza altro testo prima o dopo, nel formato:
+[{"q":"testo domanda","opts":["opzione A","opzione B","opzione C","opzione D"],"ans":0,"exp":"spiegazione breve della risposta corretta in 1-2 frasi"}]
+Dove "ans" è l'indice 0-3 dell'opzione corretta.
+Le domande devono essere varie, stimolanti e pertinenti al corso universitario. Usa solo italiano.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1800,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: 'Argomento: ' + topic }]
+      })
+    });
+
+    if (!res.ok) {
+      const e = await res.json();
+      throw new Error(e.error?.message || 'Errore API');
+    }
+
+    const data = await res.json();
+    let raw = data.content[0].text.trim();
+    raw = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    const questions = JSON.parse(raw);
+    if (!Array.isArray(questions) || questions.length === 0) throw new Error('Risposta non valida');
+
+    _quiz = {
+      dayId, topic, questions,
+      current: 0, score: 0, correctCount: 0,
+      results: [], timerRaf: null, timerDeadline: null,
+      answered: false, TIMER_MS: 25000
+    };
+
+    loading.style.display = 'none';
+    qView.style.display   = '';
+    _showQuizQuestion(0);
+
+  } catch(e) {
+    loading.innerHTML = `
+      <div style="color:var(--skip-text);font-size:13px;margin-bottom:16px;">Errore: ${e.message}</div>
+      <button onclick="closeQuiz()" style="padding:8px 18px;background:var(--accent);color:var(--bg);border:none;border-radius:7px;cursor:pointer;font-size:13px;">Chiudi</button>`;
+  }
+}
+
+function _showQuizQuestion(idx) {
+  if (!_quiz) return;
+  const q = _quiz.questions[idx];
+  _quiz.answered = false;
+  _quiz.timerDeadline = Date.now() + _quiz.TIMER_MS;
+
+  document.getElementById('quizTopicLabel').textContent = _quiz.topic;
+  document.getElementById('quizScoreBadge').textContent = _quiz.score + ' pt';
+
+  // Dots
+  const dotsEl = document.getElementById('quizDots');
+  dotsEl.innerHTML = _quiz.questions.map((_, i) => {
+    let cls = 'quiz-dot-item';
+    if      (i < idx)  cls += _quiz.results[i] ? ' correct' : ' wrong';
+    else if (i === idx) cls += ' current';
+    return `<span class="${cls}"></span>`;
+  }).join('');
+
+  document.getElementById('quizQuestionNum').textContent = (idx + 1) + ' / ' + _quiz.questions.length;
+
+  const qtEl = document.getElementById('quizQuestionText');
+  qtEl.style.opacity = '0';
+  qtEl.textContent = q.q;
+  requestAnimationFrame(() => { qtEl.style.opacity = '1'; });
+
+  const expEl  = document.getElementById('quizExplanation');
+  const nextBtn = document.getElementById('quizNextBtn');
+  expEl.style.display  = 'none';
+  nextBtn.style.display = 'none';
+  nextBtn.textContent = idx < _quiz.questions.length - 1 ? 'Prossima →' : 'Risultati →';
+
+  document.getElementById('quizOptions').innerHTML = q.opts.map((opt, i) =>
+    `<button class="quiz-opt" onclick="selectQuizAnswer(${i})">${opt}</button>`
+  ).join('');
+
+  _startQuizTimer();
+}
+
+function _startQuizTimer() {
+  if (_quiz.timerRaf) cancelAnimationFrame(_quiz.timerRaf);
+  const bar = document.getElementById('quizTimerBar');
+  bar.style.width = '100%';
+  bar.classList.remove('urgent');
+
+  function tick() {
+    if (!_quiz || _quiz.answered) return;
+    const rem = _quiz.timerDeadline - Date.now();
+    const pct = Math.max(0, rem / _quiz.TIMER_MS * 100);
+    bar.style.width = pct.toFixed(1) + '%';
+    if (pct < 25) bar.classList.add('urgent');
+    if (rem <= 0) { selectQuizAnswer(-1); return; }
+    _quiz.timerRaf = requestAnimationFrame(tick);
+  }
+  _quiz.timerRaf = requestAnimationFrame(tick);
+}
+
+function selectQuizAnswer(optIdx) {
+  if (!_quiz || _quiz.answered) return;
+  _quiz.answered = true;
+  if (_quiz.timerRaf) { cancelAnimationFrame(_quiz.timerRaf); _quiz.timerRaf = null; }
+
+  const q       = _quiz.questions[_quiz.current];
+  const correct = q.ans;
+  const isOk    = optIdx === correct;
+  const elapsed = _quiz.TIMER_MS - Math.max(0, _quiz.timerDeadline - Date.now());
+
+  _quiz.results.push(isOk);
+  if (isOk) {
+    _quiz.correctCount++;
+    _quiz.score += 10 + (elapsed < 8000 ? 5 : 0);
+    const badge = document.getElementById('quizScoreBadge');
+    badge.style.transform = 'scale(1.18)';
+    setTimeout(() => { badge.style.transform = ''; }, 250);
+    document.getElementById('quizScoreBadge').textContent = _quiz.score + ' pt';
+  }
+
+  // Colour options
+  document.querySelectorAll('.quiz-opt').forEach((btn, i) => {
+    btn.disabled = true;
+    if      (i === correct && i === optIdx) btn.classList.add('correct');
+    else if (i === correct)                 btn.classList.add('correct');
+    else if (i === optIdx)                  btn.classList.add('wrong');
+  });
+
+  // Explanation
+  const expEl = document.getElementById('quizExplanation');
+  if (isOk) {
+    expEl.className = 'quiz-explanation';
+    expEl.innerHTML = `<strong style="color:var(--accent)">✓ Corretto</strong>${q.exp ? ' — ' + q.exp : ''}`;
+  } else if (optIdx === -1) {
+    expEl.className = 'quiz-explanation wrong-exp';
+    expEl.innerHTML = `<strong style="color:var(--skip-text)">⏱ Tempo scaduto</strong> — Risposta corretta: <em>${q.opts[correct]}</em>${q.exp ? '<br>' + q.exp : ''}`;
+  } else {
+    expEl.className = 'quiz-explanation wrong-exp';
+    expEl.innerHTML = `<strong style="color:var(--skip-text)">✗ Errato</strong> — Risposta corretta: <em>${q.opts[correct]}</em>${q.exp ? '<br>' + q.exp : ''}`;
+  }
+  expEl.style.display = '';
+
+  // Drain timer bar
+  const bar = document.getElementById('quizTimerBar');
+  bar.style.transition = 'width 0.4s ease';
+  bar.style.width = '0%';
+  setTimeout(() => { bar.style.transition = ''; }, 450);
+
+  // Update dot
+  const dotSpans = document.getElementById('quizDots').querySelectorAll('.quiz-dot-item');
+  if (dotSpans[_quiz.current]) {
+    dotSpans[_quiz.current].classList.remove('current');
+    dotSpans[_quiz.current].classList.add(isOk ? 'correct' : 'wrong');
+  }
+
+  document.getElementById('quizNextBtn').style.display = '';
+}
+
+function nextQuizQuestion() {
+  if (!_quiz) return;
+  const next = _quiz.current + 1;
+  if (next >= _quiz.questions.length) {
+    _showQuizResults();
+    return;
+  }
+  _quiz.current = next;
+  const qView = document.getElementById('quizQuestionView');
+  qView.style.opacity = '0';
+  setTimeout(() => {
+    _showQuizQuestion(next);
+    qView.style.transition = 'opacity 0.2s';
+    qView.style.opacity = '1';
+    setTimeout(() => { qView.style.transition = ''; }, 220);
+  }, 130);
+}
+
+function _showQuizResults() {
+  if (!_quiz) return;
+  document.getElementById('quizQuestionView').style.display = 'none';
+  const rView = document.getElementById('quizResultsView');
+  rView.style.display = '';
+  rView.style.opacity = '0';
+  requestAnimationFrame(() => {
+    rView.style.transition = 'opacity 0.3s';
+    rView.style.opacity = '1';
+    setTimeout(() => { rView.style.transition = ''; }, 320);
+  });
+
+  const total   = _quiz.questions.length;
+  const correct = _quiz.correctCount;
+  const score   = _quiz.score;
+  const pct     = correct / total;
+
+  document.getElementById('quizResultScore').textContent   = score;
+  document.getElementById('quizResultCorrect').textContent = correct + ' / ' + total + ' corrette';
+
+  let stars;
+  if      (pct >= 0.84) stars = '★★★';
+  else if (pct >= 0.5)  stars = '★★☆';
+  else                  stars = '★☆☆';
+  document.getElementById('quizResultStars').textContent = stars;
+
+  // Best score
+  const dayId  = _quiz.dayId;
+  const stored = state[dayId]?.quizBestScore;
+  let bestText = stored ? stored.score + ' pt — ' + stored.date : '—';
+  if (!stored || score > stored.score) {
+    if (!state[dayId]) state[dayId] = {};
+    state[dayId].quizBestScore = { score, date: new Date().toLocaleDateString('it-IT') };
+    saveState();
+    bestText = score + ' pt — oggi 🏆';
+  }
+  document.getElementById('quizBestScore').textContent = bestText;
+}
+
+function retryQuiz() {
+  if (!_quiz) return;
+  const { dayId, topic } = _quiz;
+  closeQuiz();
+  setTimeout(() => startQuiz(dayId, topic), 80);
+}
+
+function closeQuiz() {
+  if (_quiz?.timerRaf) cancelAnimationFrame(_quiz.timerRaf);
+  _quiz = null;
+  document.getElementById('quizModal').classList.remove('open');
+}
+
 // ── Theme ──────────────────────────────────────────────────
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -2192,6 +2706,56 @@ updateTotalHours();
 updateApiIndicator();
 showDay('apr25');
 </script>
+
+<!-- Quiz Modal -->
+<div id="quizModal" class="quiz-overlay">
+  <div class="quiz-box">
+    <button class="quiz-exit-btn" onclick="closeQuiz()" title="Chiudi">×</button>
+
+    <!-- Loading -->
+    <div class="quiz-loading" id="quizLoading">
+      <div class="quiz-spinner"></div>
+      <div class="quiz-loading-label">Generazione domande in corso…</div>
+      <div class="quiz-loading-sub" id="quizLoadingTopic"></div>
+    </div>
+
+    <!-- Question view -->
+    <div id="quizQuestionView" style="display:none">
+      <div class="quiz-top-bar">
+        <div class="quiz-topic-label" id="quizTopicLabel"></div>
+        <div class="quiz-score-badge" id="quizScoreBadge">0 pt</div>
+      </div>
+      <div class="quiz-dots" id="quizDots"></div>
+      <div class="quiz-question-num" id="quizQuestionNum">1 / 6</div>
+      <div class="quiz-question-text" id="quizQuestionText"></div>
+      <div class="quiz-timer-wrap">
+        <div class="quiz-timer-bar" id="quizTimerBar" style="width:100%"></div>
+      </div>
+      <div class="quiz-options" id="quizOptions"></div>
+      <div class="quiz-explanation" id="quizExplanation" style="display:none"></div>
+      <button class="quiz-next-btn" id="quizNextBtn" onclick="nextQuizQuestion()" style="display:none">Prossima →</button>
+    </div>
+
+    <!-- Results view -->
+    <div id="quizResultsView" style="display:none">
+      <div class="quiz-results-label">Quiz completato</div>
+      <div class="quiz-score-circle">
+        <div class="quiz-score-big" id="quizResultScore">0</div>
+        <div class="quiz-score-pts">punti</div>
+      </div>
+      <div class="quiz-stars" id="quizResultStars"></div>
+      <div class="quiz-results-correct" id="quizResultCorrect">0 / 6 corrette</div>
+      <div class="quiz-best-wrap">
+        <div class="quiz-best-label">Miglior punteggio</div>
+        <div class="quiz-best-val" id="quizBestScore">—</div>
+      </div>
+      <div class="quiz-result-btns">
+        <button class="quiz-retry-btn" onclick="retryQuiz()">↺ Nuovo quiz</button>
+        <button class="quiz-close-btn" onclick="closeQuiz()">Chiudi</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Voice Dictation Modal -->
 <div id="micModal" class="mic-modal-overlay">
