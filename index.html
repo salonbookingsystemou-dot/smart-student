@@ -1810,6 +1810,178 @@
     color: var(--text-3); text-align: center; margin-top: 8px;
     line-height: 1.6;
   }
+
+  /* ═══════════════════════════════════════════════════════════
+     RESPONSIVE — Mobile first (≤ 768px)
+  ═══════════════════════════════════════════════════════════ */
+
+  /* Hamburger button (hidden on desktop) */
+  .hamburger-btn {
+    display: none;
+    background: none; border: none; cursor: pointer;
+    padding: 6px; border-radius: 8px; color: var(--text-2);
+    flex-shrink: 0;
+  }
+  .hamburger-btn:hover { background: rgba(127,127,127,0.12); }
+
+  /* Mobile sidebar backdrop */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed; inset: 0; z-index: 3998;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(2px);
+  }
+  .sidebar-backdrop.open { display: block; }
+
+  /* Bottom day navigation bar (mobile only) */
+  .mobile-day-nav {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    /* ── Header ── */
+    .header {
+      padding: 0.9rem 1rem;
+      gap: 0.5rem;
+      flex-wrap: nowrap;
+      align-items: center;
+    }
+    .header h1 { font-size: 0.85rem; letter-spacing: 0.03em; }
+    .header p  { display: none; } /* hide subtitle on mobile */
+
+    .header-left  { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+    /* Hide text labels on header buttons, keep icons */
+    .sources-btn { font-size: 11px; padding: 5px 8px; }
+    .api-indicator { font-size: 10px; padding: 4px 8px; }
+    .theme-switch { scale: 0.9; }
+    .total-hours-label, .total-hours-value { font-size: 10px; }
+
+    /* Show hamburger */
+    .hamburger-btn { display: flex; align-items: center; justify-content: center; }
+
+    /* ── Layout: single column ── */
+    .layout {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    /* ── Sidebar: slide-in overlay ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: min(300px, 88vw);
+      z-index: 3999;
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.16,1,0.3,1);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      height: 100dvh;
+      padding-top: 1rem;
+      overflow-y: auto;
+    }
+    .sidebar.mobile-open { transform: translateX(0); }
+
+    /* Readiness panel compact on mobile */
+    .readiness-panel { margin: 0 0.75rem 1rem; }
+
+    /* ── Main content ── */
+    .main {
+      padding: 1rem 1rem 5rem; /* bottom padding for mobile nav bar */
+      max-width: 100%;
+    }
+
+    /* ── Day header ── */
+    .day-header { flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+    .day-quiz-area { width: 100%; }
+    .quiz-day-btn { width: 100%; justify-content: center; }
+
+    /* ── Questions ── */
+    .q-top { flex-direction: column; gap: 8px; }
+    .q-type { align-self: flex-start; flex-direction: row; gap: 6px; }
+    .q-answer-input { font-size: 15px; min-height: 110px; }
+    .q-answer-bar { flex-direction: column; gap: 8px; align-items: stretch; }
+    .q-verify-btn { width: 100%; padding: 12px; font-size: 13px; }
+    .q-mic-btn { width: 44px; height: 44px; align-self: flex-end; }
+
+    /* Feedback */
+    .q-feedback { font-size: 12px; }
+
+    /* Section cards */
+    .section-card { padding: 12px 14px; }
+    .section-head { flex-wrap: wrap; gap: 6px; }
+
+    /* ── Gen-questions button ── */
+    .gen-q-btn { width: 100%; justify-content: center; }
+
+    /* ── Quiz modal: full-screen ── */
+    .quiz-box {
+      width: 100%; max-height: 100dvh;
+      border-radius: 0;
+      padding: 20px 16px 24px;
+      min-height: 100dvh;
+    }
+    .quiz-options { gap: 10px; }
+    .quiz-option  { padding: 13px 14px; font-size: 14px; }
+    .quiz-question-text { font-size: 16px; }
+
+    /* ── Sources drawer: full width ── */
+    .sources-drawer {
+      width: 100vw;
+      border-radius: 0;
+    }
+
+    /* ── Voice modal ── */
+    .voice-modal-box {
+      width: 96vw;
+      padding: 24px 16px 20px;
+      border-radius: 16px;
+    }
+
+    /* ── Mobile bottom day nav bar ── */
+    .mobile-day-nav {
+      display: flex;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--surface2);
+      border-top: 1px solid var(--border);
+      padding: 8px 12px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      gap: 8px;
+      align-items: center;
+    }
+    .mobile-nav-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px;
+      font-family: 'Inter', sans-serif; font-size: 13px;
+      color: var(--text-2); cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+      flex-shrink: 0;
+    }
+    .mobile-nav-btn:hover { background: rgba(127,127,127,0.1); }
+    .mobile-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
+    .mobile-day-label {
+      flex: 1; text-align: center;
+      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+      color: var(--text-1); white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Plan gen overlay */
+    .plan-gen-box { width: 92vw; padding: 28px 20px; }
+
+    /* Login */
+    .login-box { padding: 28px 20px 24px; }
+  }
+
+  @media (max-width: 480px) {
+    .header h1 { font-size: 0.78rem; }
+    .main { padding: 0.75rem 0.75rem 5rem; }
+    .quiz-question-text { font-size: 15px; }
+    .quiz-option { font-size: 13px; padding: 12px; }
+    .quiz-box { padding: 16px 12px 20px; }
+  }
 </style>
 </head>
 <body>
@@ -1836,11 +2008,19 @@
 </div>
 
 <div class="header">
-  <div>
-    <h1>Psicologia Cognitiva — Prof. Serra</h1>
+  <!-- Mobile hamburger -->
+  <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileSidebar()" aria-label="Menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <div class="header-left">
+    <h1 id="headerTitle">Psicologia Cognitiva — Prof. Serra</h1>
     <p>Piano di studio personalizzato · 25 aprile → 11 maggio 2025 · Esame 12 maggio</p>
   </div>
-  <div style="display:flex;gap:1.5rem;align-items:flex-end;">
+
+  <div class="header-right" style="display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;">
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
       <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ API non configurata</button>
       <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 Fonti <span id="sourcesCount" style="display:none"></span></button>
@@ -1859,6 +2039,9 @@
     </div>
   </div>
 </div>
+
+<!-- Mobile sidebar backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
 
 <!-- API Key Modal -->
 <div class="modal-overlay" id="apiModal" style="display:none">
@@ -1942,6 +2125,19 @@
   </div>
 
   <div class="main" id="mainContent"></div>
+</div>
+
+<!-- Mobile bottom day navigation bar -->
+<div class="mobile-day-nav" id="mobileDayNav">
+  <button class="mobile-nav-btn" id="mobilePrevBtn" onclick="mobileNavDay(-1)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Prec.
+  </button>
+  <div class="mobile-day-label" id="mobileDayLabel">—</div>
+  <button class="mobile-nav-btn" id="mobileNextBtn" onclick="mobileNavDay(1)">
+    Succ.
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
 </div>
 
 <script>
@@ -4487,6 +4683,83 @@ function getActiveDays() {
   const aiPlan = localStorage.getItem('psico_ai_plan');
   return aiPlan ? JSON.parse(aiPlan).days : days;
 }
+
+// ── Mobile sidebar & navigation ──────────────────────────────
+let _mobileSidebarOpen = false;
+
+function toggleMobileSidebar() {
+  _mobileSidebarOpen ? closeMobileSidebar() : openMobileSidebar();
+}
+function openMobileSidebar() {
+  _mobileSidebarOpen = true;
+  document.querySelector('.sidebar')?.classList.add('mobile-open');
+  document.getElementById('sidebarBackdrop')?.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobileSidebar() {
+  _mobileSidebarOpen = false;
+  document.querySelector('.sidebar')?.classList.remove('mobile-open');
+  document.getElementById('sidebarBackdrop')?.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Override showDay to also close sidebar on mobile
+const _origShowDay = showDay;
+window.showDay = function(id) {
+  _origShowDay(id);
+  if (window.innerWidth <= 768) {
+    closeMobileSidebar();
+    updateMobileDayNav(id);
+  }
+};
+
+function updateMobileDayNav(currentId) {
+  const active = getActiveDays();
+  const idx = active.findIndex(d => d.id === currentId);
+  if (idx === -1) return;
+  const day = active[idx];
+  const labelEl = document.getElementById('mobileDayLabel');
+  const prevBtn = document.getElementById('mobilePrevBtn');
+  const nextBtn = document.getElementById('mobileNextBtn');
+  if (labelEl) labelEl.textContent = day.label || day.title || '—';
+  if (prevBtn) prevBtn.disabled = idx === 0;
+  if (nextBtn) nextBtn.disabled = idx === active.length - 1;
+}
+
+function mobileNavDay(dir) {
+  const active = getActiveDays();
+  const cur = document.querySelector('.day-nav-item.active');
+  const curId = cur?.dataset.id;
+  const idx = curId ? active.findIndex(d => d.id === curId) : 0;
+  const next = active[idx + dir];
+  if (next) showDay(next.id);
+}
+
+// Close sidebar on swipe left
+(function() {
+  let startX = 0;
+  document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (!_mobileSidebarOpen) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if (dx < -50) closeMobileSidebar();
+  }, { passive: true });
+  // Swipe right from edge to open sidebar
+  document.addEventListener('touchstart', e => {
+    if (e.touches[0].clientX < 20 && !_mobileSidebarOpen) startX = e.touches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (_mobileSidebarOpen) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    if (startX < 20 && dx > 50) openMobileSidebar();
+  }, { passive: true });
+})();
+
+// Init mobile nav on first load
+(function() {
+  const active = getActiveDays();
+  if (active[0]) updateMobileDayNav(active[0].id);
+})();
 
 // Init sources
 updateSourcesBtn();
