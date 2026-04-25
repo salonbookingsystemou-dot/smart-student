@@ -394,35 +394,7 @@
     align-items: flex-start;
   }
 
-  .q-check {
-    width: 16px;
-    height: 16px;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    flex-shrink: 0;
-    margin-top: 2px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    background: none;
-  }
-
-  .q-check.checked {
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-
-  .q-check.checked::after {
-    content: '';
-    width: 8px;
-    height: 5px;
-    border-left: 2px solid var(--bg);
-    border-bottom: 2px solid var(--bg);
-    transform: rotate(-45deg) translateY(-1px);
-    display: block;
-  }
+  /* .q-check removed — completion tracked via answer presence */
 
   .q-text {
     font-size: 13px;
@@ -701,16 +673,44 @@
     background: var(--skip-bg);
     color: var(--text);
   }
-  .q-feedback-label {
-    font-family: 'Inter', monospace;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 5px;
+  .q-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(128,128,128,0.15);
   }
-  .feedback-good { color: var(--accent); }
+  .q-rating-dots {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .q-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: rgba(128,128,128,0.2);
+    transition: background 0.2s;
+  }
+  .q-feedback.good   .q-dot.filled { background: var(--accent); }
+  .q-feedback.partial .q-dot.filled { background: var(--text-2); }
+  .q-feedback.poor   .q-dot.filled { background: var(--skip-text); }
+  .q-rating-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .q-review-text {
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+  .feedback-good    { color: var(--accent); }
   .feedback-partial { color: var(--text-2); }
-  .feedback-poor { color: var(--skip-text); }
+  .feedback-poor    { color: var(--skip-text); }
 
   /* ── Voice Dictation Modal ─────────────────────────────── */
   .mic-modal-overlay {
@@ -1587,7 +1587,6 @@ function buildDays() {
       let questionsHtml = (day.questions || []).map((q, i) => `
         <li class="question-item">
           <div class="q-top">
-            <div class="q-check ${checks[i] ? 'checked' : ''}" onclick="toggleCheck('${day.id}', ${i}, this)"></div>
             <div class="q-text">${q.text}</div>
             <div class="q-type">${q.type}</div>
           </div>
@@ -1876,29 +1875,34 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
     let grade = 'partial';
     let gradeLabel = 'PARZIALE';
     let gradeClass = 'feedback-partial';
+    let score = 2;
 
     if (firstLine.includes('OTTIMO')) {
-      grade = 'good'; gradeLabel = '✓ OTTIMO'; gradeClass = 'feedback-good';
+      grade = 'good'; gradeLabel = 'OTTIMO'; gradeClass = 'feedback-good'; score = 5;
     } else if (firstLine.includes('BUONO')) {
-      grade = 'good'; gradeLabel = '✓ BUONO'; gradeClass = 'feedback-good';
+      grade = 'good'; gradeLabel = 'BUONO'; gradeClass = 'feedback-good'; score = 4;
     } else if (firstLine.includes('PARZIALE')) {
-      grade = 'partial'; gradeLabel = '◑ PARZIALE'; gradeClass = 'feedback-partial';
+      grade = 'partial'; gradeLabel = 'PARZIALE'; gradeClass = 'feedback-partial'; score = 2;
     } else if (firstLine.includes('INSUFFICIENTE')) {
-      grade = 'poor'; gradeLabel = '✗ INSUFFICIENTE'; gradeClass = 'feedback-poor';
+      grade = 'poor'; gradeLabel = 'INSUFFICIENTE'; gradeClass = 'feedback-poor'; score = 1;
     }
 
+    const dots = Array.from({length: 5}, (_, i) =>
+      `<span class="q-dot${i < score ? ' filled' : ''}"></span>`
+    ).join('');
+
     feedbackEl.className = 'q-feedback ' + grade + ' visible';
-    feedbackEl.innerHTML = '<div class="q-feedback-label ' + gradeClass + '">' + gradeLabel + '</div>' + rest.replace(/\n/g, '<br>');
+    feedbackEl.innerHTML =
+      `<div class="q-rating-row">` +
+        `<span class="q-rating-dots">${dots}</span>` +
+        `<span class="q-rating-label ${gradeClass}">${gradeLabel}</span>` +
+      `</div>` +
+      `<div class="q-review-text">${rest.replace(/\n/g, '<br>')}</div>`;
 
     if (!state[dayId]) state[dayId] = {};
     if (!state[dayId].feedbacks) state[dayId].feedbacks = {};
     state[dayId].feedbacks[qIdx] = { grade: grade, html: feedbackEl.innerHTML };
     saveState();
-
-    if (grade === 'good' && !state[dayId]?.checks?.[qIdx]) {
-      const checkEl = document.querySelector('#block-' + dayId + ' .question-item:nth-child(' + (qIdx+1) + ') .q-check');
-      if (checkEl) toggleCheck(dayId, qIdx, checkEl);
-    }
 
   } catch(err) {
     feedbackEl.className = 'q-feedback poor visible';
