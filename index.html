@@ -880,6 +880,63 @@
     font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-3);
     text-align: center; padding: 12px 0; display: none;
   }
+  /* Free text input section */
+  .sources-text-section {
+    margin-bottom: 18px;
+    border: 1px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+  }
+  .sources-text-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text-2); background: var(--bg);
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+  }
+  .sources-text-toggle:hover { background: var(--accent-bg); color: var(--accent); }
+  .sources-text-chevron {
+    font-size: 16px; line-height: 1; color: var(--text-3);
+    transition: transform 0.2s; display: inline-block;
+  }
+  .sources-text-chevron.open { transform: rotate(90deg); }
+  .sources-text-body {
+    padding: 12px 14px 14px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .sources-text-title {
+    width: 100%; box-sizing: border-box;
+    font-family: 'Inter', sans-serif; font-size: 12px;
+    padding: 8px 10px; border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text);
+    outline: none; transition: border-color 0.15s;
+  }
+  .sources-text-title:focus { border-color: var(--accent); }
+  .sources-text-area {
+    width: 100%; box-sizing: border-box;
+    font-family: 'Inter', sans-serif; font-size: 12px; line-height: 1.6;
+    padding: 9px 10px; border-radius: 7px;
+    border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text);
+    resize: vertical; outline: none; transition: border-color 0.15s;
+    min-height: 140px;
+  }
+  .sources-text-area:focus { border-color: var(--accent); }
+  .sources-text-save {
+    align-self: flex-end;
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500;
+    padding: 7px 16px; border-radius: 7px;
+    background: var(--accent); color: var(--bg);
+    border: none; cursor: pointer; transition: opacity 0.15s;
+  }
+  .sources-text-save:hover { opacity: 0.85; }
+  /* Text source item looks slightly different */
+  .source-item.text-type { border-color: var(--accent); }
+  .source-item.text-type .source-item-icon { opacity: 0.85; }
+
   /* Generate questions button */
   .gen-q-btn {
     display: flex; align-items: center; gap: 6px;
@@ -3207,18 +3264,6 @@ function removeSource(id) {
   buildNav();
 }
 
-function getAllSourcesContext() {
-  const sources = getSources();
-  if (!sources.length) return '';
-  // Concat sources, trimmed to avoid blowing token budget
-  let combined = '';
-  for (const s of sources) {
-    const chunk = s.content.slice(0, SOURCE_MAX_CHARS);
-    combined += `\n\n=== ${s.title} ===\n${chunk}`;
-    if (combined.length > 30000) break; // hard cap ~7500 tokens
-  }
-  return combined.trim();
-}
 
 function updateSourcesBtn() {
   const n = getSources().length;
@@ -3244,13 +3289,20 @@ function renderSourcesList() {
     return;
   }
   el.innerHTML = sources.map(s => {
-    const kb  = (s.sizeBytes / 1024).toFixed(0);
-    const chars = s.content.length.toLocaleString('it-IT');
-    return `<div class="source-item">
-      <div class="source-item-icon">📄</div>
+    const isText = s.type === 'text';
+    const icon   = isText ? '📋' : '📄';
+    const chars  = s.content.length.toLocaleString('it-IT');
+    const meta   = isText
+      ? `${chars} caratteri · usato come timone principale`
+      : `${(s.sizeBytes/1024).toFixed(0)} KB · ${chars} caratteri estratti`;
+    const badge  = isText
+      ? `<span style="font-size:9px;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.07em;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:1px 6px;margin-left:6px;">timone</span>`
+      : '';
+    return `<div class="source-item${isText ? ' text-type' : ''}">
+      <div class="source-item-icon">${icon}</div>
       <div class="source-item-info">
-        <div class="source-item-title" title="${s.title}">${s.title}</div>
-        <div class="source-item-meta">${kb} KB originale · ${chars} caratteri estratti</div>
+        <div class="source-item-title" title="${s.title}">${s.title}${badge}</div>
+        <div class="source-item-meta">${meta}</div>
       </div>
       <button class="source-item-del" onclick="removeSource('${s.id}')" title="Rimuovi">×</button>
     </div>`;
@@ -3316,6 +3368,57 @@ function handlePdfDrop(e) {
   document.getElementById('sourcesUploadArea').classList.remove('drag-over');
   const file = e.dataTransfer.files[0];
   if (file && file.type === 'application/pdf') _processPdfFile(file);
+}
+
+// ── Free text source ────────────────────────────────────────
+function toggleTextInput() {
+  const body    = document.getElementById('textInputBody');
+  const chevron = document.getElementById('textChevron');
+  const isOpen  = body.style.display !== 'none';
+  body.style.display    = isOpen ? 'none' : '';
+  chevron.classList.toggle('open', !isOpen);
+}
+
+function saveTextSource() {
+  const titleEl   = document.getElementById('textSourceTitle');
+  const contentEl = document.getElementById('textSourceContent');
+  const title   = titleEl.value.trim() || 'Testo incollato';
+  const content = contentEl.value.trim();
+  if (!content) { alert('Incolla del testo prima di salvare.'); return; }
+
+  const sources = getSources();
+  sources.push({
+    id:        Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    title,
+    content:   content.slice(0, SOURCE_MAX_CHARS),
+    sizeBytes: content.length,
+    type:      'text',   // marks it as text (timone) — shown first in context
+    addedAt:   Date.now()
+  });
+  saveSources(sources);
+  titleEl.value   = '';
+  contentEl.value = '';
+  // close the panel
+  document.getElementById('textInputBody').style.display = 'none';
+  document.getElementById('textChevron').classList.remove('open');
+  renderSourcesList();
+  updateSourcesBtn();
+}
+
+// Text sources (programma/lista lezioni) go FIRST in context — they are the compass
+function getAllSourcesContext() {
+  const sources = getSources();
+  if (!sources.length) return '';
+  const textSrcs = sources.filter(s => s.type === 'text');
+  const pdfSrcs  = sources.filter(s => s.type !== 'text');
+  let combined = '';
+  for (const s of [...textSrcs, ...pdfSrcs]) {
+    const chunk = s.content.slice(0, SOURCE_MAX_CHARS);
+    const label = s.type === 'text' ? '📋 PROGRAMMA/LISTA LEZIONI' : '📄';
+    combined += `\n\n=== ${label}: ${s.title} ===\n${chunk}`;
+    if (combined.length > 30000) break;
+  }
+  return combined.trim();
 }
 
 // ── Generate open-ended questions from sources ─────────────
@@ -3426,6 +3529,22 @@ updateSourcesBtn();
         <div class="quiz-spinner" style="width:22px;height:22px;margin:0 auto 8px;border-width:2px;"></div>
         Estrazione testo in corso…
       </div>
+
+      <!-- Free text input -->
+      <div class="sources-text-section">
+        <div class="sources-text-toggle" onclick="toggleTextInput()" id="textToggleBtn">
+          <span>📋 Incolla testo o lista lezioni</span>
+          <span class="sources-text-chevron" id="textChevron">›</span>
+        </div>
+        <div class="sources-text-body" id="textInputBody" style="display:none">
+          <input type="text" class="sources-text-title" id="textSourceTitle"
+                 placeholder="Titolo (es. Lista lezioni — Programma corso)" maxlength="80">
+          <textarea class="sources-text-area" id="textSourceContent"
+                    placeholder="Incolla qui la lista delle lezioni, il programma del corso, il syllabus o qualsiasi testo che vuoi usare come riferimento per la generazione delle domande…" rows="8"></textarea>
+          <button class="sources-text-save" onclick="saveTextSource()">Aggiungi come fonte</button>
+        </div>
+      </div>
+
       <!-- List of sources -->
       <div id="sourcesList"></div>
     </div>
