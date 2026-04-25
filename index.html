@@ -712,6 +712,139 @@
   .feedback-partial { color: var(--text-2); }
   .feedback-poor { color: var(--skip-text); }
 
+  /* ── Voice Dictation Modal ─────────────────────────────── */
+  .mic-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+  .mic-modal-overlay.open { display: flex; }
+  .mic-modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px 22px;
+    width: 340px;
+    max-width: 92vw;
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+    animation: mic-modal-in 0.18s ease-out;
+  }
+  @keyframes mic-modal-in {
+    from { opacity: 0; transform: scale(0.94) translateY(8px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);   }
+  }
+  .mic-modal-label {
+    font-family: 'Inter', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-3);
+    margin-bottom: 6px;
+  }
+  .mic-modal-question {
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.45;
+    margin-bottom: 22px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  /* Wave bars */
+  .mic-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 52px;
+    margin-bottom: 14px;
+  }
+  .mic-indicator span {
+    display: block;
+    width: 4px;
+    border-radius: 2px;
+    background: var(--accent);
+    animation: mic-wave 1s ease-in-out infinite;
+  }
+  .mic-indicator span:nth-child(1) { animation-duration: 0.85s; animation-delay: 0.0s; }
+  .mic-indicator span:nth-child(2) { animation-duration: 1.10s; animation-delay: 0.1s; }
+  .mic-indicator span:nth-child(3) { animation-duration: 0.78s; animation-delay: 0.2s; }
+  .mic-indicator span:nth-child(4) { animation-duration: 1.00s; animation-delay: 0.1s; }
+  .mic-indicator span:nth-child(5) { animation-duration: 0.92s; animation-delay: 0.3s; }
+  .mic-indicator span:nth-child(6) { animation-duration: 1.10s; animation-delay: 0.1s; }
+  .mic-indicator span:nth-child(7) { animation-duration: 0.85s; animation-delay: 0.0s; }
+  @keyframes mic-wave {
+    0%, 100% { height: 5px;  opacity: 0.35; }
+    50%       { height: 40px; opacity: 1;    }
+  }
+  .mic-indicator.paused span {
+    animation-play-state: paused;
+    height: 5px !important;
+    opacity: 0.25 !important;
+  }
+  .mic-modal-timer {
+    font-family: 'Inter', monospace;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+    line-height: 1;
+  }
+  .mic-modal-transcript {
+    font-size: 12.5px;
+    color: var(--text);
+    min-height: 44px;
+    max-height: 88px;
+    overflow-y: auto;
+    line-height: 1.55;
+    margin-bottom: 20px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-align: left;
+  }
+  .mic-modal-transcript.interim { color: var(--text-3); font-style: italic; }
+  .mic-modal-transcript.placeholder { color: var(--text-3); }
+  .mic-modal-actions {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .mic-action-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    color: var(--text-2);
+  }
+  .mic-btn-cancel:hover  { border-color: #d95454; color: #d95454; }
+  .mic-btn-pause         { color: var(--text-2); }
+  .mic-btn-pause:hover   { border-color: var(--accent); color: var(--accent); }
+  .mic-btn-pause.paused  { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .mic-btn-apply         { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .mic-btn-apply:hover   { opacity: 0.85; }
+  .mic-modal-hint {
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.01em;
+  }
+
   /* API key indicator in header */
   .api-indicator {
     font-family: 'Inter', monospace;
@@ -1790,8 +1923,8 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
   }
 }
 
-// ── Voice Dictation ────────────────────────────────────────
-const _micSessions = {};
+// ── Voice Dictation Modal ───────────────────────────────────
+let _mic = null; // stato globale sessione microfono
 
 function startVoiceDictation(dayId, qIdx) {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1800,83 +1933,162 @@ function startVoiceDictation(dayId, qIdx) {
     return;
   }
 
-  const key = dayId + '-' + qIdx;
-  const micBtn = document.getElementById('mic-' + key);
-  const textarea = document.getElementById('answer-' + key);
+  const textarea  = document.getElementById('answer-' + dayId + '-' + qIdx);
+  const qTextEls  = document.querySelectorAll('#block-' + dayId + ' .q-text');
+  const questionText = qTextEls[qIdx] ? qTextEls[qIdx].textContent.trim() : '';
 
-  // Se già in registrazione → ferma
-  if (_micSessions[key]) {
-    _micSessions[key].stop();
-    return;
+  // Prepara UI modal
+  const modal       = document.getElementById('micModal');
+  const timerEl     = document.getElementById('micModalTimer');
+  const transcriptEl = document.getElementById('micModalTranscript');
+  const waveEl      = document.getElementById('micWave');
+  const pauseBtn    = document.getElementById('micModalPause');
+
+  document.getElementById('micModalQuestion').textContent = questionText;
+  timerEl.textContent = '00:00';
+  transcriptEl.textContent = 'In ascolto...';
+  transcriptEl.className = 'mic-modal-transcript placeholder';
+  _setMicPauseIcon(false);
+  waveEl.classList.remove('paused');
+  pauseBtn.classList.remove('paused');
+  modal.classList.add('open');
+
+  const baseText   = textarea.value;
+  let finalAdded   = '';
+  let timerSecs    = 0;
+  let isPaused     = false;
+  let closing      = false;
+
+  // Timer
+  const timerInterval = setInterval(() => {
+    if (isPaused) return;
+    timerSecs++;
+    const m = String(Math.floor(timerSecs / 60)).padStart(2, '0');
+    const s = String(timerSecs % 60).padStart(2, '0');
+    timerEl.textContent = m + ':' + s;
+  }, 1000);
+
+  function buildRecognition() {
+    const rec = new SpeechRec();
+    rec.lang = 'it-IT';
+    rec.interimResults = true;
+    rec.continuous = true;
+    rec.maxAlternatives = 1;
+
+    rec.onresult = (event) => {
+      let interim = '', final = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) final += t; else interim += t;
+      }
+      if (final) {
+        finalAdded += (finalAdded ? ' ' : '') + final.trim();
+        transcriptEl.textContent = finalAdded;
+        transcriptEl.className = 'mic-modal-transcript';
+        textarea.value = baseText + (baseText && finalAdded ? ' ' : '') + finalAdded.trim();
+        textarea.dispatchEvent(new Event('input'));
+      } else if (interim) {
+        transcriptEl.textContent = (finalAdded ? finalAdded + ' ' : '') + interim;
+        transcriptEl.className = 'mic-modal-transcript interim';
+      }
+    };
+
+    rec.onerror = (event) => {
+      if (event.error === 'not-allowed') {
+        _closeMicModal(false);
+        alert('Permesso microfono negato.\nAbilita il microfono nelle impostazioni del browser e riprova.');
+      } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
+        console.warn('[VoiceDictation]', event.error);
+      }
+    };
+
+    rec.onend = () => {
+      // Riavvio automatico se non è una chiusura/pausa intenzionale
+      if (!closing && !isPaused && _mic) {
+        setTimeout(() => {
+          if (!closing && !isPaused && _mic) {
+            try { _mic.rec = buildRecognition(); _mic.rec.start(); } catch(e) {}
+          }
+        }, 120);
+      }
+    };
+
+    return rec;
   }
 
-  const recognition = new SpeechRec();
-  recognition.lang = 'it-IT';
-  recognition.interimResults = true;
-  recognition.continuous = true;
-  recognition.maxAlternatives = 1;
-
-  _micSessions[key] = recognition;
-  micBtn.classList.add('recording');
-  micBtn.title = 'Clicca per fermare';
-
-  // Testo già presente prima di iniziare a dettare
-  const baseText = textarea.value;
-  // Traccia il testo finale aggiunto in questa sessione
-  let finalAdded = '';
-
-  recognition.onresult = (event) => {
-    let interimChunk = '';
-    let finalChunk = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const t = event.results[i][0].transcript;
-      if (event.results[i].isFinal) {
-        finalChunk += t;
-      } else {
-        interimChunk += t;
-      }
-    }
-    if (finalChunk) {
-      finalAdded += (finalAdded || baseText ? ' ' : '') + finalChunk.trim();
-      textarea.value = baseText + (baseText && finalAdded ? ' ' : '') + finalAdded.trim();
-    } else {
-      // Mostra testo interimedio in tempo reale senza modificare la base
-      const sep = (baseText || finalAdded) ? ' ' : '';
-      textarea.value = baseText + (finalAdded ? ' ' + finalAdded : '') + sep + interimChunk;
-    }
-    textarea.dispatchEvent(new Event('input'));
+  _mic = {
+    rec: buildRecognition(),
+    timerInterval,
+    textarea,
+    baseText,
+    build:       buildRecognition,
+    getFinal:    () => finalAdded,
+    getIsPaused: () => isPaused,
+    setIsPaused: (v) => { isPaused = v; },
+    close:       () => { closing = true; }
   };
 
-  recognition.onerror = (event) => {
-    if (event.error === 'not-allowed') {
-      alert('Permesso microfono negato.\nAbilita il microfono nelle impostazioni del browser e riprova.');
-    } else if (event.error === 'no-speech') {
-      // nessuna voce rilevata — semplicemente chiudi
-    } else if (event.error !== 'aborted') {
-      console.warn('[VoiceDictation] errore:', event.error);
-    }
-    _cleanup();
-  };
+  _mic.rec.start();
+}
 
-  recognition.onend = _cleanup;
+function pauseVoiceDictation() {
+  if (!_mic) return;
+  const waveEl   = document.getElementById('micWave');
+  const pauseBtn = document.getElementById('micModalPause');
 
-  function _cleanup() {
-    delete _micSessions[key];
-    if (micBtn) {
-      micBtn.classList.remove('recording');
-      micBtn.title = 'Trascrivi con voce';
-    }
-    // Assicura che il testo finale sia quello corretto (rimuove eventuale interim rimasto)
-    if (textarea && baseText !== undefined) {
-      const current = textarea.value;
-      const combined = (baseText + (finalAdded ? (baseText ? ' ' : '') + finalAdded.trim() : '')).trim();
-      if (current !== combined && finalAdded !== undefined) {
-        textarea.value = combined;
-      }
-    }
+  if (!_mic.getIsPaused()) {
+    _mic.setIsPaused(true);
+    try { _mic.rec.stop(); } catch(e) {}
+    waveEl.classList.add('paused');
+    pauseBtn.classList.add('paused');
+    pauseBtn.title = 'Riprendi';
+    _setMicPauseIcon(true);
+  } else {
+    _mic.setIsPaused(false);
+    _mic.rec = _mic.build();
+    _mic.rec.start();
+    waveEl.classList.remove('paused');
+    pauseBtn.classList.remove('paused');
+    pauseBtn.title = 'Pausa';
+    _setMicPauseIcon(false);
+  }
+}
+
+function stopVoiceDictation(apply) {
+  if (!_mic) return;
+  _closeMicModal(apply);
+}
+
+function _closeMicModal(apply) {
+  if (!_mic) return;
+  _mic.close();
+  clearInterval(_mic.timerInterval);
+  try { _mic.rec.abort(); } catch(e) {}
+
+  if (apply) {
+    const final = _mic.getFinal().trim();
+    const base  = _mic.baseText;
+    _mic.textarea.value = base + (base && final ? ' ' : '') + final;
+    _mic.textarea.dispatchEvent(new Event('input'));
+  } else {
+    _mic.textarea.value = _mic.baseText;
+    _mic.textarea.dispatchEvent(new Event('input'));
   }
 
-  recognition.start();
+  _mic = null;
+  document.getElementById('micModal').classList.remove('open');
+}
+
+function _setMicPauseIcon(isPlaying) {
+  const el = document.getElementById('micPauseIcon');
+  if (!el) return;
+  if (isPlaying) {
+    // Play icon (riprendi)
+    el.innerHTML = '<path d="M8 5v14l11-7z"/>';
+  } else {
+    // Pause icon
+    el.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+  }
 }
 
 // ── Theme ──────────────────────────────────────────────────
@@ -1902,5 +2114,30 @@ updateTotalHours();
 updateApiIndicator();
 showDay('apr25');
 </script>
+
+<!-- Voice Dictation Modal -->
+<div id="micModal" class="mic-modal-overlay">
+  <div class="mic-modal-box">
+    <div class="mic-modal-label">TRASCRIZIONE VOCALE</div>
+    <div class="mic-modal-question" id="micModalQuestion"></div>
+    <div class="mic-indicator" id="micWave">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="mic-modal-timer" id="micModalTimer">00:00</div>
+    <div class="mic-modal-transcript" id="micModalTranscript">In ascolto...</div>
+    <div class="mic-modal-actions">
+      <button class="mic-action-btn mic-btn-cancel" onclick="stopVoiceDictation(false)" title="Annulla — scarta testo">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <button class="mic-action-btn mic-btn-pause" id="micModalPause" onclick="pauseVoiceDictation()" title="Pausa">
+        <svg id="micPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+      </button>
+      <button class="mic-action-btn mic-btn-apply" onclick="stopVoiceDictation(true)" title="Applica risposta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+    </div>
+    <div class="mic-modal-hint">Parla in italiano &middot; ✓ per applicare &middot; ✕ per annullare</div>
+  </div>
+</div>
 </body>
 </html>
