@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Psicologia Cognitiva — Piano di Studio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Styrene+A:wght@300;400;500&family=Tiempos+Text:ital,wght@0,400;1,400&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
@@ -771,6 +772,127 @@
   .feedback-poor    { color: var(--skip-text); }
 
   /* ── Quiz Modal ─────────────────────────────────────────── */
+  /* ── Sources button ── */
+  .sources-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 4px 11px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: none; color: var(--text-2);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .sources-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .sources-btn.has-sources { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+  /* ── Sources Panel (slide-in drawer) ── */
+  .sources-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 4000; backdrop-filter: blur(3px);
+  }
+  .sources-overlay.open { display: block; }
+  .sources-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(440px, 96vw);
+    background: var(--surface2);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    animation: drawer-in 0.24s cubic-bezier(0.16,1,0.3,1);
+    overflow: hidden;
+  }
+  @keyframes drawer-in {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+  .sources-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 20px 16px; border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+  .sources-header-title {
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--text);
+  }
+  .sources-header-sub {
+    font-size: 11px; color: var(--text-3); margin-top: 3px;
+    font-family: 'Inter', sans-serif;
+  }
+  .sources-close-btn {
+    background: none; border: none; font-size: 20px;
+    color: var(--text-3); cursor: pointer; padding: 4px 6px; border-radius: 4px;
+    transition: color 0.15s, background 0.15s; line-height: 1;
+  }
+  .sources-close-btn:hover { color: var(--text); background: var(--border-subtle); }
+  .sources-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .sources-footer {
+    padding: 14px 20px; border-top: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+  /* Upload area */
+  .sources-upload-area {
+    border: 1.5px dashed var(--border);
+    border-radius: 10px; padding: 28px 20px;
+    text-align: center; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-bottom: 18px;
+    background: var(--bg);
+  }
+  .sources-upload-area:hover, .sources-upload-area.drag-over {
+    border-color: var(--accent); background: var(--accent-bg);
+  }
+  .sources-upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .sources-upload-label {
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-2);
+    line-height: 1.5;
+  }
+  .sources-upload-label strong { color: var(--accent); }
+  .sources-upload-label small { display: block; color: var(--text-3); margin-top: 4px; font-size: 10px; }
+  /* Source item */
+  .source-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 9px; padding: 12px 14px;
+    margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px;
+  }
+  .source-item-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .source-item-info { flex: 1; min-width: 0; }
+  .source-item-title {
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .source-item-meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-3); margin-top: 3px;
+  }
+  .source-item-del {
+    background: none; border: none; cursor: pointer; padding: 3px 5px;
+    color: var(--text-3); border-radius: 4px; font-size: 14px; line-height: 1;
+    transition: color 0.15s, background 0.15s; flex-shrink: 0;
+  }
+  .source-item-del:hover { color: var(--skip-text); background: var(--border-subtle); }
+  .sources-empty {
+    text-align: center; padding: 32px 16px;
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-3);
+    line-height: 1.6;
+  }
+  /* Spinner in drawer */
+  .sources-extracting {
+    font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-3);
+    text-align: center; padding: 12px 0; display: none;
+  }
+  /* Generate questions button */
+  .gen-q-btn {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500;
+    padding: 7px 14px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-2); cursor: pointer; transition: all 0.15s;
+    margin-top: 12px; width: 100%;
+  }
+  .gen-q-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+  .gen-q-btn.loading { opacity: 0.6; pointer-events: none; }
+  .gen-q-btn svg { flex-shrink: 0; }
+
   .quiz-overlay {
     display: none;
     position: fixed;
@@ -1346,6 +1468,7 @@
   <div style="display:flex;gap:1.5rem;align-items:flex-end;">
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
       <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ API non configurata</button>
+      <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 Fonti <span id="sourcesCount" style="display:none"></span></button>
     </div>
     <div class="total-hours-wrap">
       <div class="total-hours-label">Ore totali studiate</div>
@@ -2082,7 +2205,12 @@ function buildDays() {
           </div>
         </div>`).join('');
 
-      let questionsHtml = (day.questions || []).map((q, i) => `
+      // Use AI-generated questions if available, otherwise fall back to hardcoded
+      const aiQs   = dayState.aiQuestions;
+      const qList  = aiQs ? aiQs : (day.questions || []);
+      const isAiQ  = !!aiQs;
+
+      const _makeQItem = (q, i) => `
         <li class="question-item">
           <div class="q-top">
             <div class="q-text">${q.text}</div>
@@ -2098,7 +2226,16 @@ function buildDays() {
             </div>
             <div class="q-feedback${feedbacks[i] ? ' '+feedbacks[i].grade+' visible' : ''}" id="feedback-${day.id}-${i}">${feedbacks[i] ? feedbacks[i].html : ''}</div>
           </div>
-        </li>`).join('');
+        </li>`;
+
+      let questionsHtml = qList.map(_makeQItem).join('');
+
+      // Button to generate questions from sources
+      const genQBtn = day.questions ? `
+        <button class="gen-q-btn" id="genq-btn-${day.id}" onclick="generateQuestionsFromSource('${day.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          ${isAiQ ? '✦ Rigenera domande dalle fonti' : '✦ Genera domande dalle fonti'}
+        </button>` : '';
 
       const statusDone = dayState.status === 'done' ? 'done' : '';
       const statusPartial = dayState.status === 'partial' ? 'partial' : '';
@@ -2140,6 +2277,7 @@ function buildDays() {
           </div>
           <div class="section-body">
             <ul class="questions-list">${questionsHtml}</ul>
+            ${genQBtn}
             <div class="notes-area" style="margin-top:14px;">
               <label>Note e punti deboli emersi</label>
               <textarea placeholder="Scrivi qui cosa non ricordavi, cosa devi ripassare, concetti da approfondire..." onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
@@ -2692,9 +2830,13 @@ async function startQuiz(dayId, topic) {
   rView.style.display   = 'none';
   modal.classList.add('open');
 
-  const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.
+  // Include source context if available
+  const sourceCtx = getAllSourcesContext();
+  const sourcePreamble = sourceCtx
+    ? `Hai a disposizione il seguente materiale del corso. Basa le domande ESCLUSIVAMENTE su questo contenuto:\n--- INIZIO FONTI ---\n${sourceCtx.slice(0, 18000)}\n--- FINE FONTI ---\n\n`
+    : '';
 
-STANDARD DI QUALITÀ — ogni domanda DEVE rispettare tutti questi criteri:
+  const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.\n\n${sourcePreamble}STANDARD DI QUALITÀ — ogni domanda DEVE rispettare tutti questi criteri:
 1. Rilevanza: testa un concetto chiave del programma (non dettagli marginali o aneddoti)
 2. Chiarezza: formulazione inequivocabile, una sola interpretazione possibile
 3. Distrattori plausibili: le opzioni errate devono sembrare credibili a chi non ha studiato bene — mai opzioni assurde o palesemente errate
@@ -3025,7 +3167,276 @@ updateProgress();
 updateTotalHours();
 updateApiIndicator();
 showDay('apr25');
+
+// ── Sources (PDF fonti) ────────────────────────────────────
+const SOURCES_KEY  = 'psico_sources';
+const SOURCE_MAX_CHARS = 14000; // ~3500 tokens per fonte
+
+function getSources() {
+  try { return JSON.parse(localStorage.getItem(SOURCES_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveSources(arr) { localStorage.setItem(SOURCES_KEY, JSON.stringify(arr)); }
+
+function addSource(title, content, sizeBytes) {
+  const sources = getSources();
+  sources.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    title,
+    content: content.slice(0, SOURCE_MAX_CHARS),
+    sizeBytes,
+    addedAt: Date.now()
+  });
+  saveSources(sources);
+  renderSourcesList();
+  updateSourcesBtn();
+}
+
+function removeSource(id) {
+  saveSources(getSources().filter(s => s.id !== id));
+  // invalidate ai questions for all days (source context changed)
+  days.forEach(d => {
+    if (state[d.id]?.aiQuestions) {
+      delete state[d.id].aiQuestions;
+    }
+  });
+  saveState();
+  renderSourcesList();
+  updateSourcesBtn();
+  buildDays();
+  buildNav();
+}
+
+function getAllSourcesContext() {
+  const sources = getSources();
+  if (!sources.length) return '';
+  // Concat sources, trimmed to avoid blowing token budget
+  let combined = '';
+  for (const s of sources) {
+    const chunk = s.content.slice(0, SOURCE_MAX_CHARS);
+    combined += `\n\n=== ${s.title} ===\n${chunk}`;
+    if (combined.length > 30000) break; // hard cap ~7500 tokens
+  }
+  return combined.trim();
+}
+
+function updateSourcesBtn() {
+  const n = getSources().length;
+  const btn = document.getElementById('sourcesBtn');
+  const cnt = document.getElementById('sourcesCount');
+  if (!btn) return;
+  if (n > 0) {
+    btn.classList.add('has-sources');
+    cnt.textContent = n;
+    cnt.style.display = '';
+  } else {
+    btn.classList.remove('has-sources');
+    cnt.style.display = 'none';
+  }
+}
+
+function renderSourcesList() {
+  const el = document.getElementById('sourcesList');
+  if (!el) return;
+  const sources = getSources();
+  if (!sources.length) {
+    el.innerHTML = `<div class="sources-empty">Nessuna fonte caricata.<br>Carica le tue dispense PDF per generare<br>domande basate sul tuo programma.</div>`;
+    return;
+  }
+  el.innerHTML = sources.map(s => {
+    const kb  = (s.sizeBytes / 1024).toFixed(0);
+    const chars = s.content.length.toLocaleString('it-IT');
+    return `<div class="source-item">
+      <div class="source-item-icon">📄</div>
+      <div class="source-item-info">
+        <div class="source-item-title" title="${s.title}">${s.title}</div>
+        <div class="source-item-meta">${kb} KB originale · ${chars} caratteri estratti</div>
+      </div>
+      <button class="source-item-del" onclick="removeSource('${s.id}')" title="Rimuovi">×</button>
+    </div>`;
+  }).join('');
+}
+
+function openSourcesPanel() {
+  renderSourcesList();
+  document.getElementById('sourcesOverlay').classList.add('open');
+}
+function closeSourcesPanel() {
+  document.getElementById('sourcesOverlay').classList.remove('open');
+}
+
+// PDF.js extraction
+function _initPdfJs() {
+  if (typeof pdfjsLib === 'undefined') return false;
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  return true;
+}
+
+async function _extractPdfText(arrayBuffer) {
+  if (!_initPdfJs()) throw new Error('PDF.js non disponibile');
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page    = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(item => item.str).join(' ') + '\n';
+    if (text.length > SOURCE_MAX_CHARS * 2) break; // no need to read beyond budget
+  }
+  return text.trim();
+}
+
+async function _processPdfFile(file) {
+  const extractEl = document.getElementById('sourcesExtracting');
+  const uploadArea = document.getElementById('sourcesUploadArea');
+  extractEl.style.display = '';
+  uploadArea.style.opacity = '0.4';
+  uploadArea.style.pointerEvents = 'none';
+  try {
+    const buffer = await file.arrayBuffer();
+    const text   = await _extractPdfText(buffer);
+    if (!text || text.length < 20) throw new Error('Nessun testo estraibile dal PDF (potrebbe essere un file scansionato)');
+    addSource(file.name.replace(/\.pdf$/i, ''), text, file.size);
+  } catch(e) {
+    alert('Errore nell\'estrazione del PDF:\n' + e.message);
+  } finally {
+    extractEl.style.display = 'none';
+    uploadArea.style.opacity = '';
+    uploadArea.style.pointerEvents = '';
+  }
+}
+
+function handlePdfFileInput(input) {
+  const file = input.files[0];
+  if (file) _processPdfFile(file);
+  input.value = '';
+}
+function handlePdfDrop(e) {
+  e.preventDefault();
+  document.getElementById('sourcesUploadArea').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') _processPdfFile(file);
+}
+
+// ── Generate open-ended questions from sources ─────────────
+async function generateQuestionsFromSource(dayId) {
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) { showApiModal(); return; }
+  const sourceCtx = getAllSourcesContext();
+  if (!sourceCtx) {
+    alert('Carica prima almeno una fonte PDF nel pannello Fonti.');
+    return;
+  }
+  const day = days.find(d => d.id === dayId);
+  if (!day) return;
+  const topic = day.sections?.map(s => s.title).join(', ') || day.title || dayId;
+
+  const btn = document.getElementById('genq-btn-' + dayId);
+  if (btn) { btn.classList.add('loading'); btn.textContent = '⏳ Generazione in corso…'; }
+
+  const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.
+
+Hai a disposizione il seguente materiale del corso:
+--- INIZIO FONTI ---
+${sourceCtx.slice(0, 20000)}
+--- FINE FONTI ---
+
+Genera esattamente 7 domande a risposta aperta sull'argomento specificato, basandoti ESCLUSIVAMENTE sulle fonti fornite.
+
+DISTRIBUZIONE (Tassonomia di Bloom):
+• 2 domande tipo "definizione" (ricordo): definizioni precise, nomenclatura tecnica, autori chiave presenti nelle fonti
+• 3 domande tipo "meccanismo" (comprensione): spiegare meccanismi, descrivere processi, distinguere concetti
+• 2 domande tipo "connessione" (applicazione/analisi): collegare concetti tra loro, confrontare teorie, applicare a esempi
+
+QUALITÀ:
+- Ogni domanda deve essere rispondibile usando le fonti fornite
+- Usa terminologia e concetti effettivamente presenti nel materiale
+- Livello universitario, non banale
+
+Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
+[{"text":"testo della domanda","type":"definizione|meccanismo|connessione"}]`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2500,
+        temperature: 1,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Argomento: ${topic}\n\nGenera le domande basandoti sul materiale fornito.` }]
+      })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
+    const data = await res.json();
+    let raw = data.content[0].text.trim();
+    raw = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    const questions = JSON.parse(raw);
+    if (!Array.isArray(questions) || !questions.length) throw new Error('Risposta non valida');
+
+    if (!state[dayId]) state[dayId] = {};
+    state[dayId].aiQuestions = questions;
+    saveState();
+    buildDays();
+    buildNav();
+    showDay(dayId);
+  } catch(e) {
+    alert('Errore nella generazione:\n' + e.message);
+  } finally {
+    const b = document.getElementById('genq-btn-' + dayId);
+    if (b) { b.classList.remove('loading'); b.textContent = '✦ Rigenera domande dalle fonti'; }
+  }
+}
+
+// Init sources
+updateSourcesBtn();
 </script>
+
+<!-- Sources Panel -->
+<div id="sourcesOverlay" class="sources-overlay" onclick="if(event.target===this)closeSourcesPanel()">
+  <div class="sources-drawer">
+    <div class="sources-header">
+      <div>
+        <div class="sources-header-title">📚 Fonti di Studio</div>
+        <div class="sources-header-sub">Carica le dispense PDF — le domande saranno generate dal tuo materiale</div>
+      </div>
+      <button class="sources-close-btn" onclick="closeSourcesPanel()">×</button>
+    </div>
+    <div class="sources-body">
+      <!-- Upload area -->
+      <div class="sources-upload-area" id="sourcesUploadArea"
+           onclick="document.getElementById('pdfFileInput').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="handlePdfDrop(event)">
+        <div class="sources-upload-icon">📄</div>
+        <div class="sources-upload-label">
+          <strong>Carica un PDF</strong> o trascinalo qui<br>
+          <small>Dispense, slide, appunti — testo estratto nel browser, mai caricato online</small>
+        </div>
+      </div>
+      <input type="file" id="pdfFileInput" accept=".pdf" style="display:none" onchange="handlePdfFileInput(this)">
+      <div class="sources-extracting" id="sourcesExtracting">
+        <div class="quiz-spinner" style="width:22px;height:22px;margin:0 auto 8px;border-width:2px;"></div>
+        Estrazione testo in corso…
+      </div>
+      <!-- List of sources -->
+      <div id="sourcesList"></div>
+    </div>
+    <div class="sources-footer">
+      <div style="font-family:'Inter',sans-serif;font-size:10px;color:var(--text-3);line-height:1.5;">
+        Le fonti vengono usate automaticamente nella generazione dei quiz e delle domande.<br>
+        Il testo resta nel tuo browser (localStorage) e non viene mai trasmesso al di fuori delle chiamate API.
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Quiz Modal -->
 <div id="quizModal" class="quiz-overlay">
