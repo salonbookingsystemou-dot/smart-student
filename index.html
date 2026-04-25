@@ -138,71 +138,92 @@
     line-height: 1.6;
   }
 
+  /* ── Header redesign ────────────────────────────────────────── */
   .header {
     border-bottom: 1px solid var(--border);
-    padding: 2rem 2.5rem;
+    padding: 0 2rem;
+    height: 56px;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    gap: 1rem;
+    align-items: center;
+    gap: 0;
+    position: sticky; top: 0; z-index: 200;
+    background: var(--bg);
   }
 
+  /* Brand zone */
+  .header-brand {
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0; margin-right: auto;
+    min-width: 0;
+  }
   .header h1 {
     font-family: 'Inter', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 400;
+    font-size: 0.82rem; font-weight: 700;
     color: var(--accent);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .header p { display: none; } /* subtitle moved out */
+
+  /* Vertical divider between header zones */
+  .header-vdiv {
+    width: 1px; height: 20px;
+    background: var(--border); flex-shrink: 0;
+    margin: 0 14px;
   }
 
-  .header p {
-    font-size: 12px;
-    color: var(--text-2);
-    margin-top: 4px;
+  /* Stat pill */
+  .header-stat {
+    display: flex; flex-direction: column; align-items: center;
+    flex-shrink: 0;
+  }
+  .header-stat-label {
+    font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3);
+    margin-bottom: 2px; white-space: nowrap;
+  }
+  .header-stat-val {
+    display: flex; align-items: center; gap: 5px;
+    font-family: 'Inter', monospace; font-size: 13px; font-weight: 600;
+    color: var(--text-1);
   }
 
+  /* Progress inline */
   .progress-bar-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    flex-shrink: 0;
   }
-
   .progress-bar {
-    width: 200px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
+    width: 120px; height: 4px;
+    background: var(--border); border-radius: 2px; overflow: hidden;
   }
-
   .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.3s ease;
+    height: 100%; background: var(--accent);
+    border-radius: 2px; transition: width 0.3s ease;
+  }
+  .progress-label {
+    font-family: 'Inter', monospace; font-size: 10px; color: var(--text-3);
+    white-space: nowrap;
   }
 
-  .progress-label {
-    font-family: 'Inter', monospace;
-    font-size: 11px;
-    color: var(--accent);
+  /* Action buttons zone */
+  .header-actions {
+    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
   }
 
   .layout {
     display: grid;
     grid-template-columns: 260px 1fr;
-    min-height: calc(100vh - 80px);
+    min-height: calc(100vh - 56px);
   }
 
   .sidebar {
     border-right: 1px solid var(--border);
     padding: 1.5rem 0;
     position: sticky;
-    top: 0;
-    height: calc(100vh - 80px);
+    top: 56px;
+    height: calc(100vh - 56px);
     overflow-y: auto;
   }
 
@@ -1714,26 +1735,8 @@
 
   .timer-saved span { color: var(--accent); }
 
-  .total-hours-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
-
-  .total-hours-label {
-    font-family: 'Inter', monospace;
-    font-size: 10px;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .total-hours-value {
-    font-family: 'Inter', monospace;
-    font-size: 13px;
-    color: var(--accent);
-  }
+  /* legacy total-hours kept for JS references */
+  .total-hours-value { font-family: 'Inter', monospace; font-size: 13px; color: var(--text-1); }
 
   /* ── Login screen ─────────────────────────────────────────── */
   #loginScreen {
@@ -1931,28 +1934,27 @@
     display: none;
   }
 
+  /* Elements hidden on mobile */
+  .header-hide-mobile { /* shown on desktop, hidden on mobile */ }
+
   @media (max-width: 768px) {
     /* ── Header ── */
-    .header {
-      padding: 0.9rem 1rem;
-      gap: 0.5rem;
-      flex-wrap: nowrap;
-      align-items: center;
-    }
-    .header h1 { font-size: 0.85rem; letter-spacing: 0.03em; }
-    .header p  { display: none; } /* hide subtitle on mobile */
+    .header { padding: 0 1rem; height: 50px; gap: 0; }
+    .header h1 { font-size: 0.75rem; }
 
-    .header-left  { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-
-    /* Hide text labels on header buttons, keep icons */
-    .sources-btn { font-size: 11px; padding: 5px 8px; }
-    .api-indicator { font-size: 10px; padding: 4px 8px; }
-    .theme-switch { scale: 0.9; }
-    .total-hours-label, .total-hours-value { font-size: 10px; }
+    /* Hide non-essential header elements on mobile */
+    .header-hide-mobile { display: none !important; }
 
     /* Show hamburger */
-    .hamburger-btn { display: flex; align-items: center; justify-content: center; }
+    .hamburger-btn { display: flex; align-items: center; justify-content: center; margin-right: 8px; }
+
+    /* Compact action buttons */
+    .api-label { display: none; }
+    .sources-label { display: none; }
+    .api-indicator { padding: 5px 8px; font-size: 12px; }
+    .sources-btn { padding: 5px 8px; font-size: 12px; }
+    .header-vdiv { margin: 0 8px; }
+    .theme-switch { scale: 0.85; }
 
     /* ── Layout: single column ── */
     .layout {
@@ -2101,33 +2103,48 @@
 </div>
 
 <div class="header">
-  <!-- Mobile hamburger -->
+  <!-- Hamburger (mobile only) -->
   <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileSidebar()" aria-label="Menu">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
   </button>
 
-  <div class="header-left">
+  <!-- Brand -->
+  <div class="header-brand">
     <h1 id="headerTitle">Psicologia Cognitiva — Prof. Serra</h1>
-    <p>Piano di studio personalizzato · 25 aprile → 11 maggio 2025 · Esame 12 maggio</p>
   </div>
 
-  <div class="header-right" style="display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;">
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-      <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ API non configurata</button>
-      <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 Fonti <span id="sourcesCount" style="display:none"></span></button>
+  <!-- Divider -->
+  <div class="header-vdiv header-hide-mobile"></div>
+
+  <!-- Progress -->
+  <div class="progress-bar-wrap header-hide-mobile">
+    <div class="header-stat-label">Piano di studio</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-label" id="progressLabel">0 / 17 giorni</div>
+  </div>
+
+  <!-- Divider -->
+  <div class="header-vdiv header-hide-mobile"></div>
+
+  <!-- Hours -->
+  <div class="header-stat header-hide-mobile">
+    <div class="header-stat-label">Ore studiate</div>
+    <div class="header-stat-val">
+      <span id="totalHoursDisplay">0h 00m</span>
+      <button onclick="resetTotalHours()" style="font-family:'Inter',sans-serif;font-size:9px;padding:2px 5px;border-radius:3px;border:1px solid var(--border);background:none;color:var(--text-3);cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;" title="Azzera">✕</button>
     </div>
-    <div class="total-hours-wrap">
-      <div class="total-hours-label">Ore totali studiate</div>
-      <div style="display:flex;align-items:center;gap:10px;"><div class="total-hours-value" id="totalHoursDisplay">0h 00m</div><button onclick="resetTotalHours()" style="font-family:'Inter',monospace;font-size:9px;padding:3px 7px;border-radius:3px;border:1px solid var(--border);background:none;color:var(--text-3);cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;" title="Azzera contatore ore">reset</button></div>
-    </div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      <div class="progress-label" id="progressLabel">0 / 17 giorni</div>
-    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="header-vdiv"></div>
+
+  <!-- Action buttons -->
+  <div class="header-actions">
+    <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ <span class="api-label">API</span></button>
+    <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 <span class="sources-label">Fonti</span><span id="sourcesCount" style="display:none"></span></button>
     <div class="theme-switch" onclick="toggleTheme()" title="Cambia tema">
-      <span class="theme-switch-label" id="themeSwitchLabel">Dark</span>
       <div class="theme-track"><div class="theme-thumb"></div></div>
     </div>
   </div>
