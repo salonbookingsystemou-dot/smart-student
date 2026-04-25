@@ -211,6 +211,124 @@
     margin-bottom: 1.5rem;
   }
 
+  /* ── Readiness Panel ───────────────────────────────────────── */
+  .readiness-panel {
+    margin: 0 1.25rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+  .readiness-header {
+    padding: 12px 14px 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .readiness-header:hover { background: rgba(127,127,127,0.05); }
+  .readiness-title-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .readiness-title {
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3);
+  }
+  .readiness-score-badge {
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px;
+    transition: background 0.3s, color 0.3s;
+  }
+  .readiness-score-badge.level-0 { background: rgba(180,40,40,0.15); color: #c0392b; }
+  .readiness-score-badge.level-1 { background: rgba(180,90,0,0.15);  color: #d35400; }
+  .readiness-score-badge.level-2 { background: rgba(180,140,0,0.15); color: #b8860b; }
+  .readiness-score-badge.level-3 { background: rgba(40,140,100,0.15);color: #27ae60; }
+  .readiness-score-badge.level-4 { background: rgba(30,100,200,0.15);color: #2980b9; }
+  .readiness-bar-track {
+    height: 5px; background: var(--border); border-radius: 3px; overflow: hidden;
+  }
+  .readiness-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+  }
+  .readiness-bar-fill.level-0 { background: #c0392b; }
+  .readiness-bar-fill.level-1 { background: #d35400; }
+  .readiness-bar-fill.level-2 { background: #f39c12; }
+  .readiness-bar-fill.level-3 { background: #27ae60; }
+  .readiness-bar-fill.level-4 { background: #2980b9; }
+  .readiness-label {
+    margin-top: 6px;
+    font-family: 'Inter', sans-serif; font-size: 11px;
+    font-weight: 600; color: var(--text-2); line-height: 1.3;
+  }
+  /* Expanded detail */
+  .readiness-detail {
+    display: none; padding: 0 14px 14px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .readiness-detail.open { display: block; }
+  .readiness-objective-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 0 8px;
+    font-family: 'Inter', sans-serif; font-size: 10px; color: var(--text-3);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .objective-btn {
+    padding: 3px 8px; border-radius: 20px; border: 1px solid var(--border);
+    background: none; cursor: pointer; font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 500; color: var(--text-2);
+    transition: all 0.15s;
+  }
+  .objective-btn.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .readiness-dim {
+    margin-bottom: 8px;
+  }
+  .readiness-dim-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .readiness-dim-name {
+    font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-2);
+  }
+  .readiness-dim-val {
+    font-family: 'Inter', monospace; font-size: 11px; color: var(--text-3);
+    font-weight: 600;
+  }
+  .readiness-dim-bar {
+    height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .readiness-dim-fill {
+    height: 100%; background: var(--accent); border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .readiness-advice {
+    margin-top: 12px; padding: 10px 12px;
+    background: rgba(127,127,127,0.07); border-radius: 8px;
+    font-family: 'Inter', sans-serif; font-size: 11px;
+    color: var(--text-2); line-height: 1.6;
+  }
+  .readiness-advice strong { color: var(--accent); }
+  .readiness-target-line {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 10px; font-family: 'Inter', sans-serif; font-size: 10px;
+    color: var(--text-3);
+  }
+  .readiness-target-bar {
+    flex: 1; height: 3px; background: var(--border); border-radius: 2px;
+    position: relative;
+  }
+  .readiness-target-marker {
+    position: absolute; top: -3px; width: 2px; height: 9px;
+    background: var(--text-3); border-radius: 1px;
+  }
+  /* Chevron toggle */
+  .readiness-chevron {
+    font-size: 10px; color: var(--text-3);
+    transition: transform 0.2s;
+  }
+  .readiness-chevron.open { transform: rotate(90deg); }
+
   .sidebar-label {
     font-family: 'Inter', monospace;
     font-size: 10px;
@@ -1756,6 +1874,68 @@
 
 <div class="layout">
   <div class="sidebar">
+
+    <!-- Readiness Panel -->
+    <div class="readiness-panel" id="readinessPanel">
+      <div class="readiness-header" onclick="toggleReadinessDetail()">
+        <div class="readiness-title-row">
+          <span class="readiness-title">🎯 Quanto sei pronto</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="readiness-score-badge level-0" id="readinessBadge">—</span>
+            <span class="readiness-chevron" id="readinessChevron">›</span>
+          </div>
+        </div>
+        <div class="readiness-bar-track">
+          <div class="readiness-bar-fill level-0" id="readinessBarFill" style="width:0%"></div>
+        </div>
+        <div class="readiness-label" id="readinessLabel">Inizia a rispondere alle domande…</div>
+      </div>
+      <div class="readiness-detail" id="readinessDetail">
+        <div class="readiness-objective-row">
+          Obiettivo:
+          <button class="objective-btn active" id="obj-pass"  onclick="setObjective('pass',event)">Sufficiente</button>
+          <button class="objective-btn"        id="obj-good"  onclick="setObjective('good',event)">Buono</button>
+          <button class="objective-btn"        id="obj-excel" onclick="setObjective('excel',event)">Eccellenza</button>
+        </div>
+
+        <div class="readiness-dim" id="rdim-coverage">
+          <div class="readiness-dim-row">
+            <span class="readiness-dim-name">📚 Copertura argomenti</span>
+            <span class="readiness-dim-val" id="rdim-coverage-val">—</span>
+          </div>
+          <div class="readiness-dim-bar"><div class="readiness-dim-fill" id="rdim-coverage-bar" style="width:0%"></div></div>
+        </div>
+
+        <div class="readiness-dim" id="rdim-quality">
+          <div class="readiness-dim-row">
+            <span class="readiness-dim-name">✍️ Qualità risposte</span>
+            <span class="readiness-dim-val" id="rdim-quality-val">—</span>
+          </div>
+          <div class="readiness-dim-bar"><div class="readiness-dim-fill" id="rdim-quality-bar" style="width:0%"></div></div>
+        </div>
+
+        <div class="readiness-dim" id="rdim-quiz">
+          <div class="readiness-dim-row">
+            <span class="readiness-dim-name">🎮 Performance quiz</span>
+            <span class="readiness-dim-val" id="rdim-quiz-val">—</span>
+          </div>
+          <div class="readiness-dim-bar"><div class="readiness-dim-fill" id="rdim-quiz-bar" style="width:0%"></div></div>
+        </div>
+
+        <div class="readiness-target-line" id="readinessTargetLine">
+          <span>Soglia</span>
+          <div class="readiness-target-bar">
+            <div class="readiness-target-marker" id="readinessTargetMarker" style="left:65%"></div>
+          </div>
+          <span id="readinessTargetPct">65%</span>
+        </div>
+
+        <div class="readiness-advice" id="readinessAdvice">
+          Rispondi alle domande e fai verificare le tue risposte per ottenere una valutazione accurata.
+        </div>
+      </div>
+    </div>
+
     <div class="sidebar-section">
       <div class="day-nav" id="dayNav"></div>
     </div>
@@ -2338,6 +2518,7 @@ const state = JSON.parse(localStorage.getItem('psico_state') || '{}');
 function saveState() {
   localStorage.setItem('psico_state', JSON.stringify(state));
   updateProgress();
+  renderReadinessPanel();
 }
 
 function escHtml(s) {
@@ -2413,6 +2594,207 @@ function updateProgress() {
   const pct = Math.round((done / total) * 100);
   document.getElementById('progressFill').style.width = pct + '%';
   document.getElementById('progressLabel').textContent = done + ' / ' + total + ' giorni';
+}
+
+// ── Global Readiness System ──────────────────────────────────
+
+const OBJECTIVE_THRESHOLDS = { pass: 62, good: 76, excel: 88 };
+const OBJECTIVE_LABELS      = { pass: 'Sufficiente', good: 'Buono', excel: 'Eccellenza' };
+const GRADE_SCORE = { good: 1.0, partial: 0.50, poor: 0.20 };
+const QUIZ_MAX = 90;
+
+function getObjective() {
+  return localStorage.getItem('psico_objective') || 'pass';
+}
+function setObjective(obj, e) {
+  if (e) e.stopPropagation();
+  localStorage.setItem('psico_objective', obj);
+  ['pass','good','excel'].forEach(k => {
+    document.getElementById('obj-' + k)?.classList.toggle('active', k === obj);
+  });
+  renderReadinessPanel();
+}
+
+function calculateGlobalReadiness() {
+  const activeDays = getActiveDays();
+  const studyDays  = activeDays.filter(d => d.type !== 'rest' && d.type !== 'exam');
+  if (!studyDays.length) return null;
+
+  let totalQ = 0, answeredQ = 0, verifiedQ = 0;
+  let qualitySum = 0;
+  let quizScoreSum = 0, quizCount = 0;
+  const weakTopics = [];
+
+  studyDays.forEach(day => {
+    const ds  = state[day.id] || {};
+    const aiQs = ds.aiQuestions;
+    const qList = aiQs || day.questions || [];
+    const ans  = ds.answers   || {};
+    const fbs  = ds.feedbacks || {};
+
+    if (!qList.length) return;
+    totalQ += qList.length;
+
+    let dayVerified = 0, dayQualitySum = 0, dayAnswered = 0;
+    qList.forEach((q, i) => {
+      const hasAns = ans[i] && ans[i].trim().length > 15;
+      if (hasAns) {
+        answeredQ++; dayAnswered++;
+        if (fbs[i]) {
+          verifiedQ++; dayVerified++;
+          const score = GRADE_SCORE[fbs[i].grade] ?? 0.5;
+          qualitySum += score;
+          dayQualitySum += score;
+        } else {
+          // answered but unverified: partial credit
+          qualitySum += 0.18;
+          dayQualitySum += 0.18;
+        }
+      }
+    });
+
+    // Track weak topics
+    const dayAvg = dayAnswered > 0 ? dayQualitySum / dayAnswered : 0;
+    if (dayAnswered > 0 && dayAvg < 0.55) {
+      weakTopics.push({ title: day.title || day.label, avg: dayAvg });
+    }
+
+    // Quiz
+    const qz = ds.quizBestScore;
+    if (qz) {
+      quizScoreSum += Math.min(1, qz.score / QUIZ_MAX);
+      quizCount++;
+    }
+  });
+
+  // Component scores (0-1)
+  const coverageScore     = totalQ > 0 ? answeredQ / totalQ : 0;
+  const qualityScore      = totalQ > 0 ? qualitySum / totalQ : 0;
+  const engagementScore   = answeredQ > 0 ? verifiedQ / answeredQ : 0;
+  const quizScore         = quizCount > 0 ? quizScoreSum / quizCount : null;
+
+  // Weighted composite (weights: coverage 20, quality 50, engagement 10, quiz 20)
+  let raw;
+  if (quizScore !== null) {
+    raw = coverageScore * 0.20 + qualityScore * 0.50 + engagementScore * 0.10 + quizScore * 0.20;
+  } else {
+    // No quizzes: redistribute quiz weight to quality
+    raw = coverageScore * 0.20 + qualityScore * 0.65 + engagementScore * 0.15;
+  }
+
+  // University difficulty curve: harder to score high
+  const calibrated = Math.pow(raw, 1.22) * 100;
+  const score = Math.min(95, Math.round(calibrated));
+
+  return {
+    score,
+    coverage:   Math.round(coverageScore * 100),
+    quality:    Math.round(qualityScore  * 100),
+    engagement: Math.round(engagementScore * 100),
+    quiz:       quizScore !== null ? Math.round(quizScore * 100) : null,
+    totalQ, answeredQ, verifiedQ, quizCount,
+    weakTopics: weakTopics.sort((a,b) => a.avg - b.avg).slice(0, 2)
+  };
+}
+
+function _readinessLevel(score) {
+  if (score < 20) return 0;
+  if (score < 42) return 1;
+  if (score < 63) return 2;
+  if (score < 82) return 3;
+  return 4;
+}
+
+function _readinessText(score, obj) {
+  const threshold = OBJECTIVE_THRESHOLDS[obj];
+  const gap = threshold - score;
+
+  if (score < 10)  return 'Inizia a rispondere alle domande e a verificarle per ottenere una valutazione.';
+  if (score < 25)  return `Siamo all'inizio. Hai ancora molto lavoro davanti — ma è normale a quest'ora.`;
+  if (score < 42)  return `Hai avviato la preparazione, ma la copertura degli argomenti è ancora parziale.`;
+  if (score < 55)  return `Stai costruendo la base. Continua a rispondere e a verificare le risposte.`;
+  if (score < 63)  return `Preparazione in corso. Approfondisci gli argomenti più deboli e fai quiz.`;
+  if (gap > 15)    return `Sulla buona strada, ma l'obiettivo "${OBJECTIVE_LABELS[obj]}" richiede ancora impegno.`;
+  if (gap > 5)     return `Quasi alla soglia per "${OBJECTIVE_LABELS[obj]}". Concentrati sulle lacune.`;
+  if (gap > 0)     return `Molto vicino all'obiettivo. Pochi argomenti ancora da consolidare.`;
+  if (score < 85)  return `Hai superato la soglia per "${OBJECTIVE_LABELS[obj]}". Mantieni il ritmo.`;
+  if (score < 92)  return `Ben preparato. Fai simulazioni d'esame per il tocco finale.`;
+  return `Preparazione eccellente. Sei pronto per l'esame.`;
+}
+
+function toggleReadinessDetail() {
+  const det = document.getElementById('readinessDetail');
+  const chev = document.getElementById('readinessChevron');
+  if (!det) return;
+  det.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', det.classList.contains('open'));
+}
+
+function renderReadinessPanel() {
+  const r = calculateGlobalReadiness();
+  const obj = getObjective();
+  const threshold = OBJECTIVE_THRESHOLDS[obj];
+
+  // Update objective buttons
+  ['pass','good','excel'].forEach(k => {
+    document.getElementById('obj-' + k)?.classList.toggle('active', k === obj);
+  });
+
+  const badge   = document.getElementById('readinessBadge');
+  const barFill = document.getElementById('readinessBarFill');
+  const label   = document.getElementById('readinessLabel');
+  const advice  = document.getElementById('readinessAdvice');
+
+  if (!r || r.totalQ === 0) {
+    if (badge)   { badge.textContent = '—'; badge.className = 'readiness-score-badge level-0'; }
+    if (barFill) { barFill.style.width = '0%'; barFill.className = 'readiness-bar-fill level-0'; }
+    if (label)   label.textContent = 'Inizia a rispondere alle domande…';
+    if (advice)  advice.innerHTML = 'Rispondi alle domande e fai verificare le tue risposte per ottenere una valutazione accurata.';
+    return;
+  }
+
+  const lv = _readinessLevel(r.score);
+
+  if (badge)   { badge.textContent = r.score + '%'; badge.className = `readiness-score-badge level-${lv}`; }
+  if (barFill) { barFill.style.width = r.score + '%'; barFill.className = `readiness-bar-fill level-${lv}`; }
+
+  const labelTexts = ['Non iniziato','Molto distante','In cammino','Sulla buona strada','Ben preparato'];
+  if (label) label.textContent = labelTexts[lv];
+
+  // Dimension bars
+  const setDim = (id, val) => {
+    const v = val !== null ? val : null;
+    const valEl = document.getElementById('rdim-' + id + '-val');
+    const barEl = document.getElementById('rdim-' + id + '-bar');
+    if (valEl) valEl.textContent = v !== null ? v + '%' : '—';
+    if (barEl) barEl.style.width = (v !== null ? v : 0) + '%';
+  };
+  setDim('coverage',  r.coverage);
+  setDim('quality',   r.quality);
+  setDim('quiz',      r.quiz);
+
+  // Target marker
+  const marker = document.getElementById('readinessTargetMarker');
+  const tPct   = document.getElementById('readinessTargetPct');
+  if (marker) marker.style.left = threshold + '%';
+  if (tPct)   tPct.textContent  = `${threshold}% (${OBJECTIVE_LABELS[obj]})`;
+
+  // Advice
+  if (advice) {
+    let html = _readinessText(r.score, obj);
+    if (r.weakTopics.length) {
+      const wList = r.weakTopics.map(t => `<strong>${t.title}</strong>`).join(', ');
+      html += `<br><br>📌 Argomenti più deboli: ${wList}.`;
+    }
+    if (r.verifiedQ < r.answeredQ) {
+      const unver = r.answeredQ - r.verifiedQ;
+      html += `<br>⚡ Hai ${unver} risposta${unver > 1 ? 'e' : ''} non ancora verificata${unver > 1 ? '' : ''} — verifica per migliorare il punteggio.`;
+    }
+    if (r.quizCount === 0 && r.answeredQ > 0) {
+      html += `<br>🎮 Non hai ancora fatto quiz — provali per rafforzare il punteggio.`;
+    }
+    advice.innerHTML = html;
+  }
 }
 
 function buildNav() {
@@ -3489,6 +3871,7 @@ buildDays();
 updateProgress();
 updateTotalHours();
 updateApiIndicator();
+renderReadinessPanel();
 // Show first day of active plan (hardcoded or AI-generated)
 (function() {
   const active = getActiveDays();
