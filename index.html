@@ -243,6 +243,7 @@
 
   .day-nav-item:hover { background: var(--surface); color: var(--text); }
   .day-nav-item.active { background: var(--surface2); color: var(--accent); }
+  .nav-day-label { flex: 1; }
   .day-nav-item.status-done { border-left: 2px solid var(--done-border); }
   .day-nav-item.status-partial { border-left: 2px solid var(--partial-border); }
   .day-nav-item.status-skip { border-left: 2px solid var(--skip-border); }
@@ -495,17 +496,43 @@
   }
 
   .week-divider {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-3);
-    padding: 8px 1.25rem;
-    background: var(--border-subtle);
+    padding: 14px 0 6px;
+    margin-top: 6px;
     border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 4px;
+    font-family: 'Inter', sans-serif;
   }
+  .week-divider:first-child { margin-top: 0; padding-top: 2px; border-top: none; }
+  .week-divider-num {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+  .week-divider-desc {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--text-3);
+  }
+
+  /* Nav type tags */
+  .nav-type-tag {
+    margin-left: auto;
+    font-size: 9px;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 1px 5px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    line-height: 1.6;
+  }
+  .nav-tag-studio    { background: var(--accent-bg); color: var(--accent); }
+  .nav-tag-rest      { color: var(--text-3); font-style: italic; }
+  .nav-tag-revisione { background: rgba(130,100,220,0.12); color: #9575d4; }
+  .nav-tag-exam      { background: rgba(217,84,84,0.12); color: var(--skip-text); font-weight: 700; }
 
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1226,7 +1253,6 @@
 
 <div class="layout">
   <div class="sidebar">
-    <div class="week-divider">Settimana 1 — Studio primario</div>
     <div class="sidebar-section">
       <div class="day-nav" id="dayNav"></div>
     </div>
@@ -1239,6 +1265,7 @@
 const days = [
   {
     id: 'apr25', label: 'Sab 25 apr', shortLabel: '25/4',
+    phaseStart: { num: 'Settimana 1', desc: 'Studio primario' },
     type: 'studio',
     title: 'Lezioni 1–2',
     subtitle: 'La Psicologia come Scienza · Il Metodo Scientifico',
@@ -1461,6 +1488,7 @@ const days = [
   },
   {
     id: 'mag2', label: 'Sab 2 mag', shortLabel: '2/5',
+    phaseStart: { num: 'Settimana 2', desc: 'Studio · Revisione spaziata' },
     type: 'studio',
     title: 'Lezioni 13–14 + Retrieval Lez. 11–12',
     subtitle: 'Apprendimento · Memoria Prima Parte',
@@ -1646,6 +1674,7 @@ const days = [
   },
   {
     id: 'mag8', label: 'Ven 8 mag', shortLabel: '8/5',
+    phaseStart: { num: 'Fase finale', desc: 'Consolidamento intensivo' },
     type: 'revisione',
     title: 'Revisione Lez. 1–7 + Retrieval intensivo',
     subtitle: 'Prima metà del programma — consolidamento',
@@ -1733,6 +1762,7 @@ const days = [
   },
   {
     id: 'mag11', label: 'Lun 11 mag', shortLabel: '11/5',
+    phaseStart: { num: 'Pre-esame', desc: 'Martedì 12 maggio' },
     type: 'rest',
     title: 'Lunedì — Riposo pre-esame',
     subtitle: 'Niente studio. Riposa, mangia bene, dormi presto. Domani è il grande giorno.'
@@ -1773,13 +1803,30 @@ function updateProgress() {
 
 function buildNav() {
   const nav = document.getElementById('dayNav');
+
+  const typeTag = {
+    studio:    { cls: 'nav-tag-studio',    label: 'Studio' },
+    rest:      { cls: 'nav-tag-rest',      label: 'Riposo' },
+    revisione: { cls: 'nav-tag-revisione', label: 'Revisione' },
+    exam:      { cls: 'nav-tag-exam',      label: 'Esame' },
+  };
+
   days.forEach(day => {
+    if (day.phaseStart) {
+      const div = document.createElement('div');
+      div.className = 'week-divider';
+      div.innerHTML = `<div class="week-divider-num">${day.phaseStart.num}</div>
+        <div class="week-divider-desc">${day.phaseStart.desc}</div>`;
+      nav.appendChild(div);
+    }
+
     const item = document.createElement('button');
     item.className = 'day-nav-item';
     item.dataset.id = day.id;
     const status = state[day.id]?.status || '';
     if (status) item.classList.add('status-' + status);
-    item.innerHTML = `<div class="day-dot"></div>${day.label}`;
+    const tag = typeTag[day.type] || { cls: '', label: day.type };
+    item.innerHTML = `<div class="day-dot"></div><span class="nav-day-label">${day.label}</span><span class="nav-type-tag ${tag.cls}">${tag.label}</span>`;
     item.onclick = () => showDay(day.id);
     nav.appendChild(item);
   });
