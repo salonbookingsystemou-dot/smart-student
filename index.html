@@ -289,6 +289,7 @@
   .readiness-detail.open { display: block; }
   .readiness-objective-row {
     display: flex; align-items: center; gap: 6px;
+    flex-wrap: wrap;
     padding: 10px 0 8px;
     font-family: 'Inter', sans-serif; font-size: 10px; color: var(--text-3);
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
@@ -980,8 +981,8 @@
     display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;
   }
   .sources-exam-input {
-    font-family: 'Inter', sans-serif; font-size: 12px;
-    padding: 8px 10px; border-radius: 7px;
+    font-family: 'Inter', sans-serif; font-size: 16px; /* 16px prevents iOS zoom */
+    padding: 9px 10px; border-radius: 7px;
     border: 1px solid var(--border); background: var(--bg);
     color: var(--text-1); outline: none; width: 100%; box-sizing: border-box;
   }
@@ -1150,8 +1151,8 @@
   }
   .sources-text-title {
     width: 100%; box-sizing: border-box;
-    font-family: 'Inter', sans-serif; font-size: 12px;
-    padding: 8px 10px; border-radius: 7px;
+    font-family: 'Inter', sans-serif; font-size: 16px; /* 16px prevents iOS zoom */
+    padding: 9px 10px; border-radius: 7px;
     border: 1px solid var(--border);
     background: var(--surface2); color: var(--text);
     outline: none; transition: border-color 0.15s;
@@ -1159,7 +1160,7 @@
   .sources-text-title:focus { border-color: var(--accent); }
   .sources-text-area {
     width: 100%; box-sizing: border-box;
-    font-family: 'Inter', sans-serif; font-size: 12px; line-height: 1.6;
+    font-family: 'Inter', sans-serif; font-size: 16px; line-height: 1.6; /* 16px prevents iOS zoom */
     padding: 9px 10px; border-radius: 7px;
     border: 1px solid var(--border);
     background: var(--surface2); color: var(--text);
@@ -1776,10 +1777,11 @@
     color: var(--text-3);
   }
   .login-input {
-    font-family: 'Inter', sans-serif; font-size: 14px;
+    font-family: 'Inter', sans-serif; font-size: 16px; /* 16px prevents iOS auto-zoom */
     padding: 11px 14px; border-radius: 9px;
     border: 1.5px solid var(--border); background: var(--bg);
-    color: var(--text-1); outline: none;
+    color: var(--text-1); outline: none; width: 100%;
+    box-sizing: border-box;
     transition: border-color 0.15s;
   }
   .login-input:focus { border-color: var(--accent); }
@@ -1995,7 +1997,7 @@
     /* ── Questions ── */
     .q-top { flex-direction: column; gap: 8px; }
     .q-type { align-self: flex-start; flex-direction: row; gap: 6px; }
-    .q-answer-input { font-size: 15px; min-height: 110px; }
+    .q-answer-input { font-size: 16px; min-height: 120px; } /* 16px prevents iOS zoom */
     .q-answer-bar { flex-direction: column; gap: 8px; align-items: stretch; }
     .q-verify-btn { width: 100%; padding: 12px; font-size: 13px; }
     .q-mic-btn { width: 44px; height: 44px; align-self: flex-end; }
@@ -2018,21 +2020,38 @@
       min-height: 100dvh;
     }
     .quiz-options { gap: 10px; }
-    .quiz-option  { padding: 13px 14px; font-size: 14px; }
-    .quiz-question-text { font-size: 16px; }
+    /* FIX: correct class is .quiz-opt, not .quiz-option */
+    .quiz-opt     { padding: 14px 14px; font-size: 14px; }
+    .quiz-opt-letter { width: 28px; height: 28px; font-size: 12px; }
+    .quiz-question-text { font-size: 16px; line-height: 1.5; }
+    .quiz-dots    { flex-wrap: wrap; gap: 5px; }
 
     /* ── Sources drawer: full width ── */
-    .sources-drawer {
-      width: 100vw;
-      border-radius: 0;
-    }
+    .sources-drawer { width: 100vw; border-radius: 0; }
 
-    /* ── Voice modal ── */
-    .voice-modal-box {
-      width: 96vw;
-      padding: 24px 16px 20px;
+    /* FIX: correct class is .mic-modal-box, not .voice-modal-box */
+    .mic-modal-box {
+      width: min(96vw, 360px);
+      padding: 22px 16px 18px;
       border-radius: 16px;
     }
+    .mic-modal-label   { font-size: 11px; }
+    .mic-modal-question { font-size: 14px; -webkit-line-clamp: 3; }
+    .mic-modal-actions { gap: 20px; }
+    .mic-action-btn    { width: 50px; height: 50px; }
+
+    /* ── Sources exam fields: single column ── */
+    .sources-exam-fields { grid-template-columns: 1fr; }
+    .sources-exam-input.full-width { grid-column: 1; }
+
+    /* ── Readiness objective row: wrap ── */
+    .readiness-objective-row {
+      flex-wrap: wrap; gap: 6px; padding: 8px 0;
+    }
+    .objective-btn { padding: 5px 10px; font-size: 11px; }
+
+    /* ── Welcome modal stats: single column on very small screens ── */
+    /* (stays 2-col on 390px, only 1-col on 360px and below) */
 
     /* ── Mobile bottom day nav bar ── */
     .mobile-day-nav {
@@ -2043,16 +2062,15 @@
       border-top: 1px solid var(--border);
       padding: 8px 12px;
       padding-bottom: max(8px, env(safe-area-inset-bottom));
-      gap: 8px;
-      align-items: center;
+      gap: 8px; align-items: center;
     }
     .mobile-nav-btn {
       background: none; border: 1px solid var(--border);
-      border-radius: 8px; padding: 8px 12px;
+      border-radius: 8px; padding: 10px 14px;
       font-family: 'Inter', sans-serif; font-size: 13px;
       color: var(--text-2); cursor: pointer;
       display: flex; align-items: center; gap: 4px;
-      flex-shrink: 0;
+      flex-shrink: 0; min-height: 44px;
     }
     .mobile-nav-btn:hover { background: rgba(127,127,127,0.1); }
     .mobile-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
@@ -2063,19 +2081,42 @@
       text-overflow: ellipsis;
     }
 
+    /* ── Readiness panel in sidebar ── */
+    .readiness-panel { margin: 0 0.75rem 1rem; }
+    .readiness-detail { max-height: 60vh; overflow-y: auto; }
+
+    /* ── Quiz bloom distribution ── */
+    .quiz-bloom-dist { padding: 10px 12px; }
+    .quiz-bloom-row  { flex-wrap: nowrap; }
+
     /* Plan gen overlay */
-    .plan-gen-box { width: 92vw; padding: 28px 20px; }
+    .plan-gen-box { width: 92vw; padding: 24px 16px; }
+    .plan-gen-title { font-size: 15px; }
 
     /* Login */
     .login-box { padding: 28px 20px 24px; }
+    .login-input { font-size: 16px; } /* prevents iOS zoom on focus */
+
+    /* ── Bigger tap targets for key buttons ── */
+    .q-verify-btn, .gen-q-btn, .quiz-day-btn,
+    .sources-text-save, .gen-plan-btn,
+    .welcome-close-btn, .login-btn {
+      min-height: 48px;
+    }
   }
 
   @media (max-width: 480px) {
     .header h1 { font-size: 0.78rem; }
     .main { padding: 0.75rem 0.75rem 5rem; }
     .quiz-question-text { font-size: 15px; }
-    .quiz-option { font-size: 13px; padding: 12px; }
-    .quiz-box { padding: 16px 12px 20px; }
+    /* FIX: correct class is .quiz-opt */
+    .quiz-opt  { font-size: 13px; padding: 12px; }
+    .quiz-box  { padding: 16px 12px 20px; }
+    /* Single column welcome stats on very small devices */
+    .welcome-stats { grid-template-columns: 1fr; }
+    .welcome-stat-num { font-size: 28px; }
+    /* Sources exam: ensure single column */
+    .sources-exam-fields { grid-template-columns: 1fr; }
   }
 </style>
 </head>
