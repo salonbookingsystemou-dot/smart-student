@@ -612,7 +612,7 @@
     background: var(--surface2);
   }
   .q-top { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
-  .q-answer-area { margin-top: 4px; }
+  .q-answer-area { margin-top: 4px; width: 100%; }
   .q-answer-input {
     width: 100%;
     background: var(--bg);
@@ -645,6 +645,30 @@
   }
   .q-verify-btn:hover { background: rgba(217,119,87,0.18); border-color: var(--accent); }
   .q-verify-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .q-answer-bar { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .q-mic-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+  .q-mic-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .q-mic-btn.recording {
+    border-color: #d95454;
+    color: #d95454;
+    animation: mic-pulse 1.1s ease-in-out infinite;
+  }
+  .q-mic-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  @keyframes mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(217, 84, 84, 0.45); }
+    50%       { box-shadow: 0 0 0 6px rgba(217, 84, 84, 0); }
+  }
   .q-feedback {
     margin-top: 8px;
     padding: 10px 12px;
@@ -1352,6 +1376,17 @@ function saveState() {
   updateProgress();
 }
 
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function saveAnswer(dayId, qIdx, value) {
+  if (!state[dayId]) state[dayId] = {};
+  if (!state[dayId].answers) state[dayId].answers = {};
+  state[dayId].answers[qIdx] = value;
+  saveState();
+}
+
 function updateProgress() {
   const studyDays = days.filter(d => d.type !== 'rest' && d.type !== 'exam');
   const done = studyDays.filter(d => state[d.id]?.status === 'done').length;
@@ -1411,6 +1446,8 @@ function buildDays() {
       const dayState = state[day.id] || {};
       const checks = dayState.checks || {};
       const notes = dayState.notes || '';
+      const answers = dayState.answers || {};
+      const feedbacks = dayState.feedbacks || {};
 
       let sectionsHtml = (day.sections || []).map(s => `
         <div class="section-card">
@@ -1431,9 +1468,14 @@ function buildDays() {
             <div class="q-type">${q.type}</div>
           </div>
           <div class="q-answer-area">
-            <textarea class="q-answer-input" id="answer-${day.id}-${i}" placeholder="Scrivi qui la tua risposta..."></textarea>
-            <button class="q-verify-btn" onclick="verifyAnswer('${day.id}', ${i}, '${q.text.replace(/'/g, "\\'")}', '${q.type}')">Verifica risposta →</button>
-            <div class="q-feedback" id="feedback-${day.id}-${i}"></div>
+            <textarea class="q-answer-input" id="answer-${day.id}-${i}" placeholder="Scrivi qui la tua risposta..." oninput="saveAnswer('${day.id}', ${i}, this.value)">${escHtml(answers[i] || '')}</textarea>
+            <div class="q-answer-bar">
+              <button class="q-verify-btn" onclick="verifyAnswer('${day.id}', ${i}, '${q.text.replace(/'/g, "\\'")}', '${q.type}')">Verifica risposta →</button>
+              <button class="q-mic-btn" id="mic-${day.id}-${i}" onclick="startVoiceDictation('${day.id}', ${i})" title="Trascrivi con voce">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </button>
+            </div>
+            <div class="q-feedback${feedbacks[i] ? ' '+feedbacks[i].grade+' visible' : ''}" id="feedback-${day.id}-${i}">${feedbacks[i] ? feedbacks[i].html : ''}</div>
           </div>
         </li>`).join('');
 
@@ -1724,6 +1766,11 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
     feedbackEl.className = 'q-feedback ' + grade + ' visible';
     feedbackEl.innerHTML = '<div class="q-feedback-label ' + gradeClass + '">' + gradeLabel + '</div>' + rest.replace(/\n/g, '<br>');
 
+    if (!state[dayId]) state[dayId] = {};
+    if (!state[dayId].feedbacks) state[dayId].feedbacks = {};
+    state[dayId].feedbacks[qIdx] = { grade: grade, html: feedbackEl.innerHTML };
+    saveState();
+
     if (grade === 'good' && !state[dayId]?.checks?.[qIdx]) {
       const checkEl = document.querySelector('#block-' + dayId + ' .question-item:nth-child(' + (qIdx+1) + ') .q-check');
       if (checkEl) toggleCheck(dayId, qIdx, checkEl);
@@ -1741,6 +1788,95 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
     btn.disabled = false;
     btn.textContent = 'Verifica risposta →';
   }
+}
+
+// ── Voice Dictation ────────────────────────────────────────
+const _micSessions = {};
+
+function startVoiceDictation(dayId, qIdx) {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert('Il tuo browser non supporta la trascrizione vocale.\nUsa Chrome o Edge per questa funzione.');
+    return;
+  }
+
+  const key = dayId + '-' + qIdx;
+  const micBtn = document.getElementById('mic-' + key);
+  const textarea = document.getElementById('answer-' + key);
+
+  // Se già in registrazione → ferma
+  if (_micSessions[key]) {
+    _micSessions[key].stop();
+    return;
+  }
+
+  const recognition = new SpeechRec();
+  recognition.lang = 'it-IT';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+  recognition.maxAlternatives = 1;
+
+  _micSessions[key] = recognition;
+  micBtn.classList.add('recording');
+  micBtn.title = 'Clicca per fermare';
+
+  // Testo già presente prima di iniziare a dettare
+  const baseText = textarea.value;
+  // Traccia il testo finale aggiunto in questa sessione
+  let finalAdded = '';
+
+  recognition.onresult = (event) => {
+    let interimChunk = '';
+    let finalChunk = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalChunk += t;
+      } else {
+        interimChunk += t;
+      }
+    }
+    if (finalChunk) {
+      finalAdded += (finalAdded || baseText ? ' ' : '') + finalChunk.trim();
+      textarea.value = baseText + (baseText && finalAdded ? ' ' : '') + finalAdded.trim();
+    } else {
+      // Mostra testo interimedio in tempo reale senza modificare la base
+      const sep = (baseText || finalAdded) ? ' ' : '';
+      textarea.value = baseText + (finalAdded ? ' ' + finalAdded : '') + sep + interimChunk;
+    }
+    textarea.dispatchEvent(new Event('input'));
+  };
+
+  recognition.onerror = (event) => {
+    if (event.error === 'not-allowed') {
+      alert('Permesso microfono negato.\nAbilita il microfono nelle impostazioni del browser e riprova.');
+    } else if (event.error === 'no-speech') {
+      // nessuna voce rilevata — semplicemente chiudi
+    } else if (event.error !== 'aborted') {
+      console.warn('[VoiceDictation] errore:', event.error);
+    }
+    _cleanup();
+  };
+
+  recognition.onend = _cleanup;
+
+  function _cleanup() {
+    delete _micSessions[key];
+    if (micBtn) {
+      micBtn.classList.remove('recording');
+      micBtn.title = 'Trascrivi con voce';
+    }
+    // Assicura che il testo finale sia quello corretto (rimuove eventuale interim rimasto)
+    if (textarea && baseText !== undefined) {
+      const current = textarea.value;
+      const combined = (baseText + (finalAdded ? (baseText ? ' ' : '') + finalAdded.trim() : '')).trim();
+      if (current !== combined && finalAdded !== undefined) {
+        textarea.value = combined;
+      }
+    }
+  }
+
+  recognition.start();
 }
 
 // ── Theme ──────────────────────────────────────────────────
