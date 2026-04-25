@@ -241,9 +241,41 @@
     transition: all 0.15s;
   }
 
+  .day-nav-item { align-items: flex-start; }
   .day-nav-item:hover { background: var(--surface); color: var(--text); }
   .day-nav-item.active { background: var(--surface2); color: var(--accent); }
-  .nav-day-label { flex: 1; }
+  .day-dot { margin-top: 4px; }
+  .nav-day-content { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .nav-day-name { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-type-tag { margin-top: 2px; }
+
+  /* Day readiness indicator */
+  .day-readiness {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .day-prep-bars {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 10px; flex-shrink: 0;
+  }
+  .day-prep-bar {
+    width: 3px; border-radius: 1.5px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .day-prep-bar:nth-child(1) { height: 3px; }
+  .day-prep-bar:nth-child(2) { height: 5px; }
+  .day-prep-bar:nth-child(3) { height: 7px; }
+  .day-prep-bar:nth-child(4) { height: 10px; }
+  .day-readiness.prep-1 .day-prep-bar.lit { background: var(--skip-text); }
+  .day-readiness.prep-2 .day-prep-bar.lit { background: var(--partial-text); }
+  .day-readiness.prep-3 .day-prep-bar.lit { background: var(--accent); }
+  .day-readiness.prep-4 .day-prep-bar.lit { background: var(--done-border); }
+  .day-completion-text {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-3);
+    letter-spacing: -0.02em;
+  }
   .day-nav-item.status-done { border-left: 2px solid var(--done-border); }
   .day-nav-item.status-partial { border-left: 2px solid var(--partial-border); }
   .day-nav-item.status-skip { border-left: 2px solid var(--skip-border); }
@@ -1830,6 +1862,43 @@ function saveAnswer(dayId, qIdx, value) {
   if (!state[dayId].answers) state[dayId].answers = {};
   state[dayId].answers[qIdx] = value;
   saveState();
+  renderDayReadiness(dayId);
+}
+
+function calcDayReadiness(dayId) {
+  const day = days.find(d => d.id === dayId);
+  if (!day || !day.questions || !day.questions.length) return null;
+  const nTotal = day.questions.length;
+  const dayState = state[dayId] || {};
+  const answers  = dayState.answers  || {};
+  const feedbacks = dayState.feedbacks || {};
+
+  const answered = Object.values(answers).filter(v => v && v.trim()).length;
+
+  // Weighted score: good=4, partial=2, poor=1 → normalised over max (nTotal*4)
+  const gradeMap = { good: 4, partial: 2, poor: 1 };
+  const totalPts = Object.values(feedbacks)
+    .reduce((sum, f) => sum + (gradeMap[f.grade] || 0), 0);
+  const rawLevel = totalPts / (nTotal * 4) * 4;        // 0..4 continuous
+  const prepLevel = Math.min(4, Math.floor(rawLevel + 0.05)); // 0..4 int
+
+  return { answered, total: nTotal, prepLevel };
+}
+
+function renderDayReadiness(dayId) {
+  const el = document.getElementById('readiness-' + dayId);
+  if (!el) return;
+  const r = calcDayReadiness(dayId);
+  if (!r) return;
+
+  const bars = [1,2,3,4].map(i =>
+    `<span class="day-prep-bar${i <= r.prepLevel ? ' lit' : ''}"></span>`
+  ).join('');
+
+  el.className = 'day-readiness' + (r.prepLevel > 0 ? ' prep-' + r.prepLevel : '');
+  el.innerHTML =
+    `<span class="day-prep-bars">${bars}</span>` +
+    `<span class="day-completion-text">${r.answered}/${r.total}</span>`;
 }
 
 function updateProgress() {
@@ -1865,9 +1934,17 @@ function buildNav() {
     const status = state[day.id]?.status || '';
     if (status) item.classList.add('status-' + status);
     const tag = typeTag[day.type] || { cls: '', label: day.type };
-    item.innerHTML = `<div class="day-dot"></div><span class="nav-day-label">${day.label}</span><span class="nav-type-tag ${tag.cls}">${tag.label}</span>`;
+    const hasQ = day.questions && day.questions.length > 0;
+    item.innerHTML = `
+      <div class="day-dot"></div>
+      <div class="nav-day-content">
+        <span class="nav-day-name">${day.label}</span>
+        ${hasQ ? `<div class="day-readiness" id="readiness-${day.id}"></div>` : ''}
+      </div>
+      <span class="nav-type-tag ${tag.cls}">${tag.label}</span>`;
     item.onclick = () => showDay(day.id);
     nav.appendChild(item);
+    if (hasQ) renderDayReadiness(day.id);
   });
 }
 
@@ -2244,6 +2321,7 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
     if (!state[dayId].feedbacks) state[dayId].feedbacks = {};
     state[dayId].feedbacks[qIdx] = { grade: grade, html: feedbackEl.innerHTML };
     saveState();
+    renderDayReadiness(dayId);
 
   } catch(err) {
     feedbackEl.className = 'q-feedback poor visible';
