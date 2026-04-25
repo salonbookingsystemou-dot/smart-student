@@ -1868,20 +1868,34 @@ function saveAnswer(dayId, qIdx, value) {
 function calcDayReadiness(dayId) {
   const day = days.find(d => d.id === dayId);
   if (!day || !day.questions || !day.questions.length) return null;
-  const nTotal = day.questions.length;
-  const dayState = state[dayId] || {};
-  const answers  = dayState.answers  || {};
+  const nTotal    = day.questions.length;
+  const dayState  = state[dayId] || {};
+  const answers   = dayState.answers   || {};
   const feedbacks = dayState.feedbacks || {};
 
   const answered = Object.values(answers).filter(v => v && v.trim()).length;
 
-  // Weighted score: good=4, partial=2, poor=1 → normalised over max (nTotal*4)
+  // Segnale 1 — feedback risposte aperte (0..4)
   const gradeMap = { good: 4, partial: 2, poor: 1 };
   const totalPts = Object.values(feedbacks)
     .reduce((sum, f) => sum + (gradeMap[f.grade] || 0), 0);
-  const rawLevel = totalPts / (nTotal * 4) * 4;        // 0..4 continuous
-  const prepLevel = Math.min(4, Math.floor(rawLevel + 0.05)); // 0..4 int
+  const feedbackLevel = totalPts / (nTotal * 4) * 4;   // 0..4
 
+  // Segnale 2 — miglior punteggio quiz (0..4)
+  // Normalizzato su 60 pt (6 domande × 10 pt senza bonus velocità)
+  const QUIZ_MAX  = 60;
+  const quizBest  = dayState.quizBestScore;
+  const quizLevel = quizBest ? Math.min(4, (quizBest.score / QUIZ_MAX) * 4) : null;
+
+  // Combinazione: 60% feedback aperto + 40% quiz
+  const hasFB  = Object.values(feedbacks).length > 0;
+  const hasQZ  = quizLevel !== null;
+  let rawLevel = 0;
+  if      (hasFB && hasQZ) rawLevel = feedbackLevel * 0.6 + quizLevel * 0.4;
+  else if (hasFB)           rawLevel = feedbackLevel;
+  else if (hasQZ)           rawLevel = quizLevel;
+
+  const prepLevel = Math.min(4, Math.floor(rawLevel + 0.05));
   return { answered, total: nTotal, prepLevel };
 }
 
@@ -2836,6 +2850,9 @@ function _showQuizResults() {
     bestText = score + ' pt — oggi 🏆';
   }
   document.getElementById('quizBestScore').textContent = bestText;
+
+  // Aggiorna l'indicatore di preparazione nella sidebar
+  renderDayReadiness(dayId);
 }
 
 function retryQuiz() {
