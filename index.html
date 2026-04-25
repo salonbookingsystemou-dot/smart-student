@@ -771,23 +771,14 @@
     width: 4px;
     border-radius: 2px;
     background: var(--accent);
-    animation: mic-wave 1s ease-in-out infinite;
-  }
-  .mic-indicator span:nth-child(1) { animation-duration: 0.85s; animation-delay: 0.0s; }
-  .mic-indicator span:nth-child(2) { animation-duration: 1.10s; animation-delay: 0.1s; }
-  .mic-indicator span:nth-child(3) { animation-duration: 0.78s; animation-delay: 0.2s; }
-  .mic-indicator span:nth-child(4) { animation-duration: 1.00s; animation-delay: 0.1s; }
-  .mic-indicator span:nth-child(5) { animation-duration: 0.92s; animation-delay: 0.3s; }
-  .mic-indicator span:nth-child(6) { animation-duration: 1.10s; animation-delay: 0.1s; }
-  .mic-indicator span:nth-child(7) { animation-duration: 0.85s; animation-delay: 0.0s; }
-  @keyframes mic-wave {
-    0%, 100% { height: 5px;  opacity: 0.35; }
-    50%       { height: 40px; opacity: 1;    }
+    height: 5px;
+    opacity: 0.3;
+    will-change: height, opacity;
   }
   .mic-indicator.paused span {
-    animation-play-state: paused;
     height: 5px !important;
-    opacity: 0.25 !important;
+    opacity: 0.2 !important;
+    transition: height 0.2s ease, opacity 0.2s ease;
   }
   .mic-modal-timer {
     font-family: 'Inter', monospace;
@@ -2021,14 +2012,91 @@ function startVoiceDictation(dayId, qIdx) {
     timerInterval,
     textarea,
     baseText,
-    build:       buildRecognition,
-    getFinal:    () => finalAdded,
-    getIsPaused: () => isPaused,
-    setIsPaused: (v) => { isPaused = v; },
-    close:       () => { closing = true; }
+    build:        buildRecognition,
+    getFinal:     () => finalAdded,
+    getIsPaused:  () => isPaused,
+    setIsPaused:  (v) => { isPaused = v; },
+    close:        () => { closing = true; },
+    // Audio visualizer (riempito da setupAudioVisualizer)
+    animFrameId:  null,
+    audioStream:  null,
+    audioCtx:     null,
+    stopViz:      null,
+    resumeViz:    null,
   };
 
   _mic.rec.start();
+  _setupAudioVisualizer();
+}
+
+async function _setupAudioVisualizer() {
+  if (!_mic) return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    if (!_mic) { stream.getTracks().forEach(t => t.stop()); return; }
+
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx      = new AudioCtx();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 256;           // 128 bin
+    analyser.smoothingTimeConstant = 0.75;
+
+    const source = ctx.createMediaStreamSource(stream);
+    source.connect(analyser);
+
+    const bufferLen  = analyser.frequencyBinCount; // 128
+    const dataArray  = new Uint8Array(bufferLen);
+    const bars       = document.querySelectorAll('#micWave span');
+    const numBars    = bars.length; // 7
+    const MAX_H      = 44;
+    const MIN_H      = 4;
+
+    // Mappa logaritmica: enfatizza frequenze vocali (100-3500 Hz)
+    // Con fftSize=256 e SR~44100: bin_size ≈ 172 Hz
+    // Bin 1-20 copre ~172-3440 Hz
+    const bandEdges = [1, 2, 4, 6, 9, 13, 18, 24]; // bin start per ogni barra
+
+    let rafId = null;
+
+    function draw() {
+      if (!_mic || _mic.getIsPaused()) return;
+      rafId = requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(dataArray);
+
+      bars.forEach((bar, i) => {
+        const lo = bandEdges[i];
+        const hi = bandEdges[i + 1] || lo + 6;
+        let sum  = 0;
+        for (let b = lo; b < hi; b++) sum += dataArray[b];
+        const avg    = sum / (hi - lo);
+        const ratio  = avg / 255;
+        const height = MIN_H + ratio * (MAX_H - MIN_H);
+        bar.style.height  = height.toFixed(1) + 'px';
+        bar.style.opacity = (0.25 + ratio * 0.75).toFixed(2);
+      });
+    }
+
+    _mic.audioStream = stream;
+    _mic.audioCtx    = ctx;
+    _mic.animFrameId = rafId;
+
+    _mic.stopViz = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+      bars.forEach(b => { b.style.height = MIN_H + 'px'; b.style.opacity = '0.2'; });
+    };
+
+    _mic.resumeViz = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      draw();
+    };
+
+    draw();
+
+  } catch(e) {
+    // Fallback: nessun visualizer, le barre rimangono statiche
+    console.warn('[AudioVisualizer]', e.message);
+  }
 }
 
 function pauseVoiceDictation() {
@@ -2039,6 +2107,7 @@ function pauseVoiceDictation() {
   if (!_mic.getIsPaused()) {
     _mic.setIsPaused(true);
     try { _mic.rec.stop(); } catch(e) {}
+    if (_mic.stopViz) _mic.stopViz();
     waveEl.classList.add('paused');
     pauseBtn.classList.add('paused');
     pauseBtn.title = 'Riprendi';
@@ -2047,6 +2116,7 @@ function pauseVoiceDictation() {
     _mic.setIsPaused(false);
     _mic.rec = _mic.build();
     _mic.rec.start();
+    if (_mic.resumeViz) _mic.resumeViz();
     waveEl.classList.remove('paused');
     pauseBtn.classList.remove('paused');
     pauseBtn.title = 'Pausa';
@@ -2064,6 +2134,10 @@ function _closeMicModal(apply) {
   _mic.close();
   clearInterval(_mic.timerInterval);
   try { _mic.rec.abort(); } catch(e) {}
+  // Ferma visualizer e rilascia microfono
+  if (_mic.stopViz) _mic.stopViz();
+  if (_mic.audioStream) _mic.audioStream.getTracks().forEach(t => t.stop());
+  if (_mic.audioCtx)   _mic.audioCtx.close().catch(() => {});
 
   if (apply) {
     const final = _mic.getFinal().trim();
