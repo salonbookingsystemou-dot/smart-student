@@ -1044,22 +1044,22 @@
 
   /* Launch button inside day block */
   .quiz-launch-btn {
-    display: inline-flex; align-items: center; gap: 7px;
-    margin-top: 14px;
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid var(--accent);
-    border-radius: 7px;
-    color: var(--accent);
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-left: auto; flex-shrink: 0;
+    padding: 5px 12px;
+    background: var(--accent);
+    border: none;
+    border-radius: 5px;
+    color: var(--bg);
     font-family: 'Inter', sans-serif;
-    font-size: 12px; font-weight: 500;
+    font-size: 11px; font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    letter-spacing: 0.01em;
+    transition: opacity 0.15s, transform 0.1s;
   }
   .quiz-launch-btn:hover {
-    background: var(--accent-bg);
+    opacity: 0.88;
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   }
 
   /* ── Voice Dictation Modal ─────────────────────────────── */
@@ -2050,13 +2050,13 @@ function buildDays() {
           <div class="section-head">
             <span class="section-tag tag-retrieval">retrieval practice</span>
             <span class="section-title">Domande per questa giornata</span>
+            <button class="quiz-launch-btn" onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Genera Quiz
+            </button>
           </div>
           <div class="section-body">
             <ul class="questions-list">${questionsHtml}</ul>
-            <button class="quiz-launch-btn" onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              Genera Quiz sull'argomento
-            </button>
             <div class="notes-area" style="margin-top:14px;">
               <label>Note e punti deboli emersi</label>
               <textarea placeholder="Scrivi qui cosa non ricordavi, cosa devi ripassare, concetti da approfondire..." onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
