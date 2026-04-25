@@ -2729,8 +2729,12 @@ Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 3500,
+        temperature: 1,
         system: systemPrompt,
-        messages: [{ role: 'user', content: 'Argomento: ' + topic }]
+        messages: [{
+          role: 'user',
+          content: `Argomento: ${topic}\n\n[Sessione #${Date.now()}-${Math.random().toString(36).slice(2,7)}] Genera un set di domande COMPLETAMENTE NUOVO e DIVERSO rispetto a qualsiasi sessione precedente. Varia i concetti scelti, le formulazioni e i distrattori.`
+        }]
       })
     });
 
