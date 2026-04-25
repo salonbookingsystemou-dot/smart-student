@@ -878,8 +878,35 @@
   }
   /* Spinner in drawer */
   .sources-extracting {
-    font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-3);
-    text-align: center; padding: 12px 0; display: none;
+    display: none;
+    position: absolute; inset: 0;
+    background: var(--surface2);
+    backdrop-filter: blur(2px);
+    z-index: 10;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    border-radius: 12px;
+  }
+  .sources-extracting.active {
+    display: flex;
+  }
+  .sources-extract-title {
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--text-1); letter-spacing: -0.01em;
+  }
+  .sources-extract-msg {
+    font-family: 'Inter', sans-serif; font-size: 12px;
+    color: var(--text-3); text-align: center; max-width: 220px; line-height: 1.5;
+  }
+  .sources-extract-bar-wrap {
+    width: 180px; height: 4px; background: var(--border);
+    border-radius: 2px; overflow: hidden;
+  }
+  .sources-extract-bar {
+    height: 100%; width: 0%; background: var(--accent);
+    border-radius: 2px; transition: width 0.4s ease;
   }
   /* Free text input section */
   .sources-text-section {
@@ -3341,19 +3368,26 @@ async function _extractPdfText(arrayBuffer) {
   return { text: text.trim(), pdf };
 }
 
-async function _extractPdfTextOCR(pdf, onProgress) {
+async function _extractPdfTextOCR(pdf, onStatus) {
   if (typeof Tesseract === 'undefined') throw new Error('Tesseract.js non disponibile');
-  const worker = await Tesseract.createWorker('ita+eng', 1, {
-    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/worker.min.js',
-    corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core.wasm.js',
-    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-    logger: () => {}
-  });
   const maxPages = Math.min(OCR_MAX_PAGES, pdf.numPages);
+
+  if (onStatus) onStatus('init', 0, maxPages, 'Caricamento motore OCR…');
+  const worker = await Tesseract.createWorker('ita', 1, {
+    logger: m => {
+      if (!onStatus) return;
+      if (m.status === 'loading tesseract core')    onStatus('init', 0, maxPages, 'Caricamento motore OCR…');
+      if (m.status === 'loading language traineddata') onStatus('init', Math.round((m.progress||0)*30), maxPages, 'Download dizionario OCR…');
+      if (m.status === 'initializing tesseract')    onStatus('init', 30, maxPages, 'Inizializzazione OCR…');
+      if (m.status === 'recognizing text')          onStatus('init', 35, maxPages, 'Riconoscimento in corso…');
+    }
+  });
+
   let text = '';
   try {
     for (let i = 1; i <= maxPages; i++) {
-      if (onProgress) onProgress(i, maxPages);
+      const pct = 35 + Math.round((i / maxPages) * 65);
+      if (onStatus) onStatus('page', pct, maxPages, `Pagina ${i} di ${maxPages}…`);
       const page     = await pdf.getPage(i);
       const viewport = page.getViewport({ scale: 1.2 });
       const canvas   = document.createElement('canvas');
@@ -3370,37 +3404,54 @@ async function _extractPdfTextOCR(pdf, onProgress) {
   return text.trim();
 }
 
+function _setExtractUI(title, msg, pct) {
+  const el    = document.getElementById('sourcesExtracting');
+  const tEl   = document.getElementById('sourcesExtractTitle');
+  const mEl   = document.getElementById('sourcesExtractingMsg');
+  const barEl = document.getElementById('sourcesExtractBar');
+  if (el)    { el.classList.add('active'); }
+  if (tEl)   tEl.textContent = title;
+  if (mEl)   mEl.textContent = msg;
+  if (barEl) barEl.style.width = pct + '%';
+}
+
 async function _processPdfFile(file) {
   const extractEl  = document.getElementById('sourcesExtracting');
-  const extractMsg = document.getElementById('sourcesExtractingMsg');
   const uploadArea = document.getElementById('sourcesUploadArea');
-  extractEl.style.display = '';
-  uploadArea.style.opacity = '0.4';
-  uploadArea.style.pointerEvents = 'none';
+
+  // Show overlay
+  if (extractEl) extractEl.classList.add('active');
+  if (uploadArea) { uploadArea.style.opacity = '0.3'; uploadArea.style.pointerEvents = 'none'; }
+  _setExtractUI('Lettura PDF…', `${file.name} — caricamento in corso…`, 5);
+
   try {
     const buffer = await file.arrayBuffer();
-    if (extractMsg) extractMsg.textContent = 'Estrazione testo in corso…';
+    _setExtractUI('Analisi testo…', 'Estrazione layer testo…', 15);
     const { text: directText, pdf } = await _extractPdfText(buffer);
 
     let finalText = directText;
     if (directText.length < 100) {
       // Image-based PDF → fallback to OCR
-      if (extractMsg) extractMsg.textContent = 'PDF con immagini — avvio OCR…';
-      finalText = await _extractPdfTextOCR(pdf, (page, total) => {
-        if (extractMsg) extractMsg.textContent = `OCR pagina ${page} / ${total}…`;
+      _setExtractUI('OCR attivo', `PDF con immagini — avvio OCR (prime ${OCR_MAX_PAGES} pagine)…`, 20);
+      finalText = await _extractPdfTextOCR(pdf, (phase, pct, total, msg) => {
+        const title = phase === 'init' ? 'Preparazione OCR…' : `OCR — ${Math.round(pct)}%`;
+        _setExtractUI(title, msg, pct);
       });
+    } else {
+      _setExtractUI('Quasi pronto…', 'Salvataggio fonte…', 95);
     }
 
     if (!finalText || finalText.length < 20) {
-      throw new Error('Nessun testo estraibile dal PDF. Il file potrebbe essere criptato o danneggiato.');
+      throw new Error('Nessun testo estraibile dal PDF. Il file potrebbe essere criptato o non contenere testo.');
     }
+    _setExtractUI('Completato ✓', 'Fonte aggiunta con successo!', 100);
+    await new Promise(r => setTimeout(r, 600));
     addSource(file.name.replace(/\.pdf$/i, ''), finalText, file.size);
   } catch(e) {
     alert('Errore nell\'estrazione del PDF:\n' + e.message);
   } finally {
-    extractEl.style.display = 'none';
-    uploadArea.style.opacity = '';
-    uploadArea.style.pointerEvents = '';
+    if (extractEl) extractEl.classList.remove('active');
+    if (uploadArea) { uploadArea.style.opacity = ''; uploadArea.style.pointerEvents = ''; }
   }
 }
 
@@ -3572,8 +3623,12 @@ updateSourcesBtn();
       </div>
       <input type="file" id="pdfFileInput" accept=".pdf" style="display:none" onchange="handlePdfFileInput(this)">
       <div class="sources-extracting" id="sourcesExtracting">
-        <div class="quiz-spinner" style="width:22px;height:22px;margin:0 auto 8px;border-width:2px;"></div>
-        <span id="sourcesExtractingMsg">Estrazione testo in corso…</span>
+        <div class="quiz-spinner" style="width:28px;height:28px;border-width:3px;"></div>
+        <div class="sources-extract-title" id="sourcesExtractTitle">Lettura PDF…</div>
+        <div class="sources-extract-bar-wrap">
+          <div class="sources-extract-bar" id="sourcesExtractBar"></div>
+        </div>
+        <div class="sources-extract-msg" id="sourcesExtractingMsg">Analisi in corso…</div>
       </div>
 
       <!-- Free text input -->
