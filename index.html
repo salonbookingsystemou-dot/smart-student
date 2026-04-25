@@ -437,13 +437,12 @@
   }
 
   .q-type {
-    font-family: 'Inter', monospace;
-    font-size: 10px;
-    color: var(--text-3);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
     flex-shrink: 0;
-    margin-top: 3px;
-    min-width: 60px;
-    text-align: right;
+    margin-top: 2px;
   }
 
   .notes-area {
@@ -2025,6 +2024,20 @@ function showDay(id) {
   document.querySelector(`[data-id="${id}"]`)?.classList.add('active');
 }
 
+// Mappa tipo-domanda → Tassonomia di Bloom + difficoltà
+const Q_TYPE_META = {
+  definizione: { bloom: 'Ricordo',      diff: 'base',       icon: '🔵' },
+  meccanismo:  { bloom: 'Comprensione', diff: 'intermedio', icon: '🟡' },
+  connessione: { bloom: 'Applicazione', diff: 'avanzato',   icon: '🔴' },
+  simulazione: { bloom: 'Simulazione',  diff: 'avanzato',   icon: '🔴' }
+};
+
+function _qTypeBadge(type) {
+  const m = Q_TYPE_META[type] || { bloom: type, diff: 'base', icon: '⚪' };
+  const diffLabel = { base: 'Base', intermedio: 'Intermedio', avanzato: 'Avanzato' }[m.diff] || m.diff;
+  return `<span class="quiz-diff-badge diff-${m.diff}">${diffLabel}</span><span class="quiz-bloom-tag">${m.icon} ${m.bloom}</span>`;
+}
+
 function buildDays() {
   const main = document.getElementById('mainContent');
   days.forEach(day => {
@@ -2073,7 +2086,7 @@ function buildDays() {
         <li class="question-item">
           <div class="q-top">
             <div class="q-text">${q.text}</div>
-            <div class="q-type">${q.type}</div>
+            <div class="q-type">${_qTypeBadge(q.type)}</div>
           </div>
           <div class="q-answer-area">
             <textarea class="q-answer-input" id="answer-${day.id}-${i}" placeholder="Scrivi qui la tua risposta..." oninput="saveAnswer('${day.id}', ${i}, this.value)">${escHtml(answers[i] || '')}</textarea>
