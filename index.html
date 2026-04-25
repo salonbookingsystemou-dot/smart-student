@@ -2157,7 +2157,7 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-6',
         max_tokens: 400,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
@@ -2509,7 +2509,7 @@ Le domande devono essere varie, stimolanti e pertinenti al corso universitario. 
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1800,
         system: systemPrompt,
         messages: [{ role: 'user', content: 'Argomento: ' + topic }]
