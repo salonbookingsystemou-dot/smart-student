@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Psicologia Cognitiva — Piano di Studio</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Styrene+A:wght@300;400;500&family=Tiempos+Text:ital,wght@0,400;1,400&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
@@ -3325,6 +3326,8 @@ function _initPdfJs() {
   return true;
 }
 
+const OCR_MAX_PAGES = 30; // limit OCR to first N pages to keep it fast
+
 async function _extractPdfText(arrayBuffer) {
   if (!_initPdfJs()) throw new Error('PDF.js non disponibile');
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -3333,22 +3336,65 @@ async function _extractPdfText(arrayBuffer) {
     const page    = await pdf.getPage(i);
     const content = await page.getTextContent();
     text += content.items.map(item => item.str).join(' ') + '\n';
-    if (text.length > SOURCE_MAX_CHARS * 2) break; // no need to read beyond budget
+    if (text.length > SOURCE_MAX_CHARS * 2) break;
+  }
+  return { text: text.trim(), pdf };
+}
+
+async function _extractPdfTextOCR(pdf, onProgress) {
+  if (typeof Tesseract === 'undefined') throw new Error('Tesseract.js non disponibile');
+  const worker = await Tesseract.createWorker('ita+eng', 1, {
+    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/worker.min.js',
+    corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.0/tesseract-core.wasm.js',
+    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+    logger: () => {}
+  });
+  const maxPages = Math.min(OCR_MAX_PAGES, pdf.numPages);
+  let text = '';
+  try {
+    for (let i = 1; i <= maxPages; i++) {
+      if (onProgress) onProgress(i, maxPages);
+      const page     = await pdf.getPage(i);
+      const viewport = page.getViewport({ scale: 1.2 });
+      const canvas   = document.createElement('canvas');
+      canvas.width   = viewport.width;
+      canvas.height  = viewport.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      const { data: { text: pageText } } = await worker.recognize(canvas);
+      text += pageText + '\n';
+      if (text.length > SOURCE_MAX_CHARS * 2) break;
+    }
+  } finally {
+    await worker.terminate();
   }
   return text.trim();
 }
 
 async function _processPdfFile(file) {
-  const extractEl = document.getElementById('sourcesExtracting');
+  const extractEl  = document.getElementById('sourcesExtracting');
+  const extractMsg = document.getElementById('sourcesExtractingMsg');
   const uploadArea = document.getElementById('sourcesUploadArea');
   extractEl.style.display = '';
   uploadArea.style.opacity = '0.4';
   uploadArea.style.pointerEvents = 'none';
   try {
     const buffer = await file.arrayBuffer();
-    const text   = await _extractPdfText(buffer);
-    if (!text || text.length < 20) throw new Error('Nessun testo estraibile dal PDF (potrebbe essere un file scansionato)');
-    addSource(file.name.replace(/\.pdf$/i, ''), text, file.size);
+    if (extractMsg) extractMsg.textContent = 'Estrazione testo in corso…';
+    const { text: directText, pdf } = await _extractPdfText(buffer);
+
+    let finalText = directText;
+    if (directText.length < 100) {
+      // Image-based PDF → fallback to OCR
+      if (extractMsg) extractMsg.textContent = 'PDF con immagini — avvio OCR…';
+      finalText = await _extractPdfTextOCR(pdf, (page, total) => {
+        if (extractMsg) extractMsg.textContent = `OCR pagina ${page} / ${total}…`;
+      });
+    }
+
+    if (!finalText || finalText.length < 20) {
+      throw new Error('Nessun testo estraibile dal PDF. Il file potrebbe essere criptato o danneggiato.');
+    }
+    addSource(file.name.replace(/\.pdf$/i, ''), finalText, file.size);
   } catch(e) {
     alert('Errore nell\'estrazione del PDF:\n' + e.message);
   } finally {
@@ -3527,7 +3573,7 @@ updateSourcesBtn();
       <input type="file" id="pdfFileInput" accept=".pdf" style="display:none" onchange="handlePdfFileInput(this)">
       <div class="sources-extracting" id="sourcesExtracting">
         <div class="quiz-spinner" style="width:22px;height:22px;margin:0 auto 8px;border-width:2px;"></div>
-        Estrazione testo in corso…
+        <span id="sourcesExtractingMsg">Estrazione testo in corso…</span>
       </div>
 
       <!-- Free text input -->
