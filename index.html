@@ -890,6 +890,59 @@
     transition: opacity 0.15s;
   }
 
+  /* Quality meta badges (diff + bloom) */
+  .quiz-q-meta {
+    display: flex; gap: 6px; align-items: center;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .quiz-diff-badge {
+    font-size: 10px; font-family: 'Inter', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 600; padding: 2px 9px; border-radius: 20px;
+    border: 1px solid;
+  }
+  .quiz-diff-badge.diff-base        { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  .quiz-diff-badge.diff-intermedio  { background: rgba(212,160,23,0.12); color: #c9921a; border-color: #c9921a; }
+  .quiz-diff-badge.diff-avanzato    { background: rgba(220,80,80,0.12); color: var(--skip-text); border-color: var(--skip-text); }
+  .quiz-bloom-tag {
+    font-size: 10px; font-family: 'Inter', sans-serif;
+    color: var(--text-3); padding: 2px 9px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  /* Bloom distribution on results */
+  .quiz-bloom-dist {
+    margin-top: 18px; padding-top: 14px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .quiz-bloom-dist-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-3); margin-bottom: 10px;
+    font-family: 'Inter', sans-serif;
+  }
+  .quiz-bloom-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 7px;
+    font-size: 12px; font-family: 'Inter', sans-serif;
+  }
+  .quiz-bloom-row-label { color: var(--text-2); width: 114px; white-space: nowrap; }
+  .quiz-bloom-row-bar {
+    flex: 1; height: 5px; border-radius: 3px;
+    background: var(--border-subtle); overflow: hidden;
+  }
+  .quiz-bloom-row-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  .bloom-ricordo-fill      { background: var(--accent); }
+  .bloom-comprensione-fill { background: #c9921a; }
+  .bloom-applicazione-fill { background: var(--skip-text); }
+  .quiz-bloom-row-count {
+    color: var(--text-3); font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; width: 30px; text-align: right;
+  }
+
   /* Options */
   .quiz-options {
     display: flex; flex-direction: column;
@@ -2626,12 +2679,30 @@ async function startQuiz(dayId, topic) {
   rView.style.display   = 'none';
   modal.classList.add('open');
 
-  const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra).
-Genera esattamente 6 domande a risposta multipla sull'argomento fornito.
-Rispondi ESCLUSIVAMENTE con un array JSON valido, senza altro testo prima o dopo, nel formato:
-[{"q":"testo domanda","opts":["opzione A","opzione B","opzione C","opzione D"],"ans":0,"exp":"spiegazione breve della risposta corretta in 1-2 frasi"}]
-Dove "ans" è l'indice 0-3 dell'opzione corretta.
-Le domande devono essere varie, stimolanti e pertinenti al corso universitario. Usa solo italiano.`;
+  const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.
+
+STANDARD DI QUALITÀ — ogni domanda DEVE rispettare tutti questi criteri:
+1. Rilevanza: testa un concetto chiave del programma (non dettagli marginali o aneddoti)
+2. Chiarezza: formulazione inequivocabile, una sola interpretazione possibile
+3. Distrattori plausibili: le opzioni errate devono sembrare credibili a chi non ha studiato bene — mai opzioni assurde o palesemente errate
+4. Unicità: esattamente una risposta corretta, senza ambiguità
+5. Livello accademico: richiede comprensione e ragionamento, non sola memorizzazione meccanica
+
+DISTRIBUZIONE COGNITIVA (Tassonomia di Bloom) — distribuisci le 6 domande così:
+• 2 domande "ricordo": definizioni precise, autori chiave, nomenclatura tecnica
+• 2 domande "comprensione": spiegare meccanismi, distinguere concetti simili, inferire conseguenze
+• 2 domande "applicazione": applicare un modello teorico a un caso concreto, riconoscere un fenomeno in un esempio
+
+AUTO-VALIDAZIONE — prima di finalizzare ogni domanda, verifica internamente:
+✓ La domanda è chiara e non ambigua?
+✓ C'è esattamente una risposta corretta, inequivocabilmente?
+✓ I 3 distrattori sono plausibili ma sbagliati se si conosce la materia?
+✓ Il livello è adeguato per un esame universitario scritto?
+Se una domanda non supera la validazione, riscrivila prima di includerla.
+
+Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo prima o dopo) nel formato:
+[{"q":"testo domanda","opts":["opzione A","opzione B","opzione C","opzione D"],"ans":0,"exp":"spiegazione della risposta corretta (1-2 frasi, spiega perché è giusta e perché le altre sono errate)","diff":"base|intermedio|avanzato","bloom":"ricordo|comprensione|applicazione"}]
+Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2703,6 +2774,20 @@ function _showQuizQuestion(idx) {
   qtEl.style.opacity = '0';
   qtEl.textContent = q.q;
   requestAnimationFrame(() => { qtEl.style.opacity = '1'; });
+
+  // Quality meta badges (diff + bloom level)
+  const bloomLabels = { ricordo: '🔵 Ricordo', comprensione: '🟡 Comprensione', applicazione: '🔴 Applicazione' };
+  const diffLabels  = { base: 'Base', intermedio: 'Intermedio', avanzato: 'Avanzato' };
+  const metaEl = document.getElementById('quizQMeta');
+  if (metaEl) {
+    const diff  = q.diff  || '';
+    const bloom = q.bloom || '';
+    metaEl.innerHTML = [
+      diff  ? `<span class="quiz-diff-badge diff-${diff}">${diffLabels[diff] || diff}</span>` : '',
+      bloom ? `<span class="quiz-bloom-tag">${bloomLabels[bloom] || bloom}</span>` : ''
+    ].join('');
+    metaEl.style.display = (diff || bloom) ? '' : 'none';
+  }
 
   const expEl  = document.getElementById('quizExplanation');
   const nextBtn = document.getElementById('quizNextBtn');
@@ -2854,6 +2939,36 @@ function _showQuizResults() {
   }
   document.getElementById('quizBestScore').textContent = bestText;
 
+  // Distribuzione cognitiva (Bloom)
+  const bloomDist = { ricordo: [], comprensione: [], applicazione: [] };
+  _quiz.questions.forEach((q, i) => {
+    const lvl = q.bloom;
+    if (bloomDist[lvl]) bloomDist[lvl].push(_quiz.results[i]);
+  });
+  const distEl = document.getElementById('quizBloomDist');
+  if (distEl) {
+    const bloomMeta = [
+      { key: 'ricordo',       label: '🔵 Ricordo',        cls: 'bloom-ricordo-fill' },
+      { key: 'comprensione',  label: '🟡 Comprensione',   cls: 'bloom-comprensione-fill' },
+      { key: 'applicazione',  label: '🔴 Applicazione',   cls: 'bloom-applicazione-fill' }
+    ];
+    distEl.innerHTML = `
+      <div class="quiz-bloom-dist-label">Distribuzione cognitiva</div>
+      ${bloomMeta.map(({ key, label, cls }) => {
+        const arr  = bloomDist[key];
+        const tot  = arr.length;
+        const ok   = arr.filter(Boolean).length;
+        const pct  = tot > 0 ? Math.round(ok / tot * 100) : 0;
+        return tot === 0 ? '' : `
+        <div class="quiz-bloom-row">
+          <span class="quiz-bloom-row-label">${label}</span>
+          <span class="quiz-bloom-row-bar"><span class="quiz-bloom-row-fill ${cls}" style="width:${pct}%"></span></span>
+          <span class="quiz-bloom-row-count">${ok}/${tot}</span>
+        </div>`;
+      }).join('')}`;
+    distEl.style.display = '';
+  }
+
   // Aggiorna l'indicatore di preparazione nella sidebar
   renderDayReadiness(dayId);
 }
@@ -2919,6 +3034,7 @@ showDay('apr25');
       <div class="quiz-dots" id="quizDots"></div>
       <div class="quiz-question-num" id="quizQuestionNum">1 / 6</div>
       <div class="quiz-question-text" id="quizQuestionText"></div>
+      <div class="quiz-q-meta" id="quizQMeta" style="display:none"></div>
       <div class="quiz-options" id="quizOptions"></div>
       <div class="quiz-explanation" id="quizExplanation" style="display:none"></div>
       <button class="quiz-next-btn" id="quizNextBtn" onclick="nextQuizQuestion()" style="display:none">Prossima →</button>
@@ -2937,6 +3053,7 @@ showDay('apr25');
         <div class="quiz-best-label">Miglior punteggio</div>
         <div class="quiz-best-val" id="quizBestScore">—</div>
       </div>
+      <div class="quiz-bloom-dist" id="quizBloomDist" style="display:none"></div>
       <div class="quiz-result-btns">
         <button class="quiz-retry-btn" onclick="retryQuiz()">↺ Nuovo quiz</button>
         <button class="quiz-close-btn" onclick="closeQuiz()">Chiudi</button>
