@@ -826,6 +826,81 @@
   }
   .sources-close-btn:hover { color: var(--text); background: var(--border-subtle); }
   .sources-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  /* Exam info + generate plan section */
+  .sources-exam-section {
+    border-top: 1px solid var(--border-subtle);
+    padding: 16px 0 4px;
+    margin-top: 8px;
+  }
+  .sources-exam-label {
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3);
+    margin-bottom: 10px;
+  }
+  .sources-exam-fields {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;
+  }
+  .sources-exam-input {
+    font-family: 'Inter', sans-serif; font-size: 12px;
+    padding: 8px 10px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text-1); outline: none; width: 100%; box-sizing: border-box;
+  }
+  .sources-exam-input:focus { border-color: var(--accent); }
+  .sources-exam-input.full-width { grid-column: 1 / -1; }
+  .gen-plan-btn {
+    width: 100%; padding: 12px; margin-top: 4px;
+    border-radius: 9px; border: none; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    letter-spacing: -0.01em;
+    background: var(--accent); color: #fff;
+    transition: opacity 0.15s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .gen-plan-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+  .gen-plan-btn:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }
+  .gen-plan-status {
+    font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-3);
+    text-align: center; margin-top: 8px; line-height: 1.5;
+  }
+  .gen-plan-status.has-plan { color: var(--accent); }
+  .gen-plan-reset {
+    font-family: 'Inter', sans-serif; font-size: 10px; color: var(--text-3);
+    text-align: center; cursor: pointer; text-decoration: underline;
+    margin-top: 4px; display: block;
+  }
+  .gen-plan-reset:hover { color: var(--text-2); }
+  /* Plan generation overlay */
+  .plan-gen-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.55); align-items: center; justify-content: center;
+  }
+  .plan-gen-overlay.active { display: flex; }
+  .plan-gen-box {
+    background: var(--surface2); border-radius: 16px;
+    padding: 36px 40px; max-width: 380px; width: 90%;
+    text-align: center; border: 1px solid var(--border);
+  }
+  .plan-gen-title {
+    font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700;
+    color: var(--text-1); margin-bottom: 10px; letter-spacing: -0.02em;
+  }
+  .plan-gen-msg {
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-3);
+    line-height: 1.6; margin-bottom: 20px;
+  }
+  .plan-gen-bar-wrap {
+    width: 100%; height: 5px; background: var(--border);
+    border-radius: 3px; overflow: hidden; margin-bottom: 10px;
+  }
+  .plan-gen-bar {
+    height: 100%; width: 0%; background: var(--accent);
+    border-radius: 3px; transition: width 0.5s ease;
+  }
+  .plan-gen-step {
+    font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-3);
+  }
+
   .sources-footer {
     padding: 14px 20px; border-top: 1px solid var(--border-subtle);
     flex-shrink: 0;
@@ -2179,15 +2254,18 @@ function renderDayReadiness(dayId) {
 }
 
 function updateProgress() {
-  const studyDays = days.filter(d => d.type !== 'rest' && d.type !== 'exam');
+  const activeDays = getActiveDays();
+  const studyDays = activeDays.filter(d => d.type !== 'rest' && d.type !== 'exam');
   const done = studyDays.filter(d => state[d.id]?.status === 'done').length;
-  const pct = Math.round((done / studyDays.length) * 100);
+  const total = studyDays.length || 1;
+  const pct = Math.round((done / total) * 100);
   document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent = done + ' / ' + studyDays.length + ' giorni';
+  document.getElementById('progressLabel').textContent = done + ' / ' + total + ' giorni';
 }
 
 function buildNav() {
   const nav = document.getElementById('dayNav');
+  nav.innerHTML = ''; // reset
 
   const typeTag = {
     studio:    { cls: 'nav-tag-studio',    label: 'Studio' },
@@ -2196,12 +2274,18 @@ function buildNav() {
     exam:      { cls: 'nav-tag-exam',      label: 'Esame' },
   };
 
-  days.forEach(day => {
-    if (day.phaseStart) {
+  const activeDays = getActiveDays();
+  let currentWeek = null;
+
+  activeDays.forEach(day => {
+    // Week divider from hardcoded phaseStart OR AI plan weekStart
+    const wStart = day.phaseStart || (day.weekStart ? { num: day.weekStart, desc: '' } : null);
+    if (wStart && wStart.num !== currentWeek) {
+      currentWeek = wStart.num;
       const div = document.createElement('div');
       div.className = 'week-divider';
-      div.innerHTML = `<div class="week-divider-num">${day.phaseStart.num}</div>
-        <div class="week-divider-desc">${day.phaseStart.desc}</div>`;
+      div.innerHTML = `<div class="week-divider-num">${wStart.num}</div>
+        ${wStart.desc ? `<div class="week-divider-desc">${wStart.desc}</div>` : ''}`;
       nav.appendChild(div);
     }
 
@@ -2211,7 +2295,7 @@ function buildNav() {
     const status = state[day.id]?.status || '';
     if (status) item.classList.add('status-' + status);
     const tag = typeTag[day.type] || { cls: '', label: day.type };
-    const hasQ = day.questions && day.questions.length > 0;
+    const hasQ = (day.questions && day.questions.length > 0) || !!state[day.id]?.aiQuestions;
     item.innerHTML = `
       <div class="day-dot"></div>
       <div class="nav-day-content">
@@ -2248,7 +2332,9 @@ function _qTypeBadge(type) {
 
 function buildDays() {
   const main = document.getElementById('mainContent');
-  days.forEach(day => {
+  main.innerHTML = ''; // reset
+  const activeDays = getActiveDays();
+  activeDays.forEach(day => {
     const block = document.createElement('div');
     block.className = 'day-block';
     block.id = 'block-' + day.id;
@@ -3251,7 +3337,12 @@ buildDays();
 updateProgress();
 updateTotalHours();
 updateApiIndicator();
-showDay('apr25');
+// Show first day of active plan (hardcoded or AI-generated)
+(function() {
+  const active = getActiveDays();
+  const first = active[0];
+  if (first) showDay(first.id);
+})();
 
 // ── Sources (PDF fonti) ────────────────────────────────────
 const SOURCES_KEY  = 'psico_sources';
@@ -3306,6 +3397,8 @@ function updateSourcesBtn() {
     btn.classList.remove('has-sources');
     cnt.style.display = 'none';
   }
+  updateGenPlanBtn();
+  updateGenPlanStatus();
 }
 
 function renderSourcesList() {
@@ -3340,6 +3433,8 @@ function renderSourcesList() {
 function openSourcesPanel() {
   renderSourcesList();
   document.getElementById('sourcesOverlay').classList.add('open');
+  // Load exam info into fields + update button state
+  loadExamInfoUI();
 }
 function closeSourcesPanel() {
   document.getElementById('sourcesOverlay').classList.remove('open');
@@ -3594,6 +3689,270 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
   }
 }
 
+// ── Exam info persistence ────────────────────────────────────
+function getExamInfo() {
+  return JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
+}
+function saveExamInfo() {
+  const info = {
+    subject:   (document.getElementById('examSubject')?.value   || '').trim(),
+    professor: (document.getElementById('examProfessor')?.value || '').trim(),
+    date:      (document.getElementById('examDate')?.value      || '').trim()
+  };
+  localStorage.setItem('psico_exam_info', JSON.stringify(info));
+  updateGenPlanBtn();
+}
+function loadExamInfoUI() {
+  const info = getExamInfo();
+  const s = document.getElementById('examSubject');
+  const p = document.getElementById('examProfessor');
+  const d = document.getElementById('examDate');
+  if (s && info.subject)   s.value = info.subject;
+  if (p && info.professor) p.value = info.professor;
+  if (d && info.date)      d.value = info.date;
+  updateGenPlanBtn();
+  updateGenPlanStatus();
+}
+
+function updateGenPlanBtn() {
+  const btn  = document.getElementById('genPlanBtn');
+  if (!btn) return;
+  const info = getExamInfo();
+  const hasSources = getSources().length > 0;
+  const hasDate    = !!info.date;
+  btn.disabled = !(hasSources && hasDate);
+  const hint = !hasSources ? 'Aggiungi almeno una fonte per abilitare la generazione'
+             : !hasDate    ? 'Inserisci la data dell\'esame per continuare'
+             : '';
+  btn.title = hint;
+}
+
+function updateGenPlanStatus() {
+  const statusEl = document.getElementById('genPlanStatus');
+  const resetEl  = document.getElementById('genPlanReset');
+  if (!statusEl) return;
+  const existing = localStorage.getItem('psico_ai_plan');
+  if (existing) {
+    const plan = JSON.parse(existing);
+    const d = new Date(plan.generatedAt).toLocaleDateString('it-IT');
+    statusEl.textContent = `✓ Piano per "${plan.subject || 'la materia'}" generato il ${d}`;
+    statusEl.className = 'gen-plan-status has-plan';
+    if (resetEl) resetEl.style.display = 'block';
+  } else {
+    statusEl.textContent = getSources().length > 0
+      ? 'Inserisci la data dell\'esame e clicca "Sviluppa piano di studio"'
+      : '';
+    statusEl.className = 'gen-plan-status';
+    if (resetEl) resetEl.style.display = 'none';
+  }
+}
+
+function resetAiPlan() {
+  if (!confirm('Ripristinare il piano predefinito? Il piano generato dall\'AI verrà cancellato (le risposte date restano).')) return;
+  localStorage.removeItem('psico_ai_plan');
+  buildDays();
+  buildNav();
+  updateGenPlanStatus();
+  const first = getActiveDays()[0];
+  if (first) showDay(first.id);
+}
+
+// ── Generate study plan ──────────────────────────────────────
+function _setPlanGenUI(title, msg, pct, step) {
+  const overlay = document.getElementById('planGenOverlay');
+  if (overlay) overlay.classList.add('active');
+  const t = document.getElementById('planGenTitle');
+  const m = document.getElementById('planGenMsg');
+  const b = document.getElementById('planGenBar');
+  const s = document.getElementById('planGenStep');
+  if (t) t.textContent = title;
+  if (m) m.textContent = msg;
+  if (b) b.style.width = pct + '%';
+  if (s) s.textContent = step;
+}
+function _hidePlanGenUI() {
+  const overlay = document.getElementById('planGenOverlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function _dateRange(startDate, endDate) {
+  // Return array of {date, dayOfWeek} between start and end (inclusive)
+  const dates = [];
+  const cur = new Date(startDate);
+  const end = new Date(endDate);
+  while (cur <= end) {
+    dates.push(new Date(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
+}
+
+function _formatDateLabel(d) {
+  const days = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  const months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+}
+function _shortLabel(d) {
+  return `${d.getDate()}/${d.getMonth()+1}`;
+}
+function _isoDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+async function generateStudyPlan() {
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) { showApiModal(); return; }
+
+  const info = getExamInfo();
+  if (!info.date) { alert('Inserisci prima la data dell\'esame.'); return; }
+
+  const sourceCtx = getAllSourcesContext();
+  if (!sourceCtx) { alert('Carica almeno una fonte prima di generare il piano.'); return; }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const examDate = new Date(info.date);
+  if (examDate <= today) { alert('La data dell\'esame deve essere nel futuro.'); return; }
+
+  const totalDays = Math.round((examDate - today) / (1000 * 60 * 60 * 24));
+  const subject   = info.subject   || 'la materia';
+  const professor = info.professor || '';
+
+  if (totalDays < 3) { alert('La data dell\'esame è troppo vicina. Inserisci una data ad almeno 3 giorni di distanza.'); return; }
+
+  _setPlanGenUI('Analisi fonti…', `Claude sta studiando il tuo materiale e costruendo un piano ottimale per ${subject}…`, 10, 'Lettura fonti…');
+
+  // Build a date skeleton so Claude knows which dates to assign
+  const allDates = _dateRange(today, examDate);
+  const skeleton = allDates.map((d, i) => {
+    const dow = d.getDay(); // 0=Sun,6=Sat
+    const isLast = i === allDates.length - 1;
+    const defaultType = isLast ? 'exam' : (dow === 0 ? 'rest' : 'studio');
+    return { idx: i, date: _isoDate(d), dow, label: _formatDateLabel(d) };
+  });
+
+  const systemPrompt = `Sei un pedagogista esperto di pianificazione universitaria. Il tuo compito è costruire un piano di studio ottimale per uno studente universitario che deve prepararsi a un esame.
+
+MATERIA: ${subject}${professor ? ' — Prof. ' + professor : ''}
+DATA ESAME: ${info.date} (tra ${totalDays} giorni)
+OGGI: ${_isoDate(today)}
+
+FONTI DEL CORSO (usa queste per costruire i contenuti delle giornate):
+--- INIZIO FONTI ---
+${sourceCtx.slice(0, 22000)}
+--- FINE FONTI ---
+
+ISTRUZIONI PER LA PIANIFICAZIONE:
+1. Distribuisci i contenuti del corso in modo progressivo: prima le basi, poi gli approfondimenti
+2. Inserisci almeno 1 giorno di riposo ogni 6 giorni di studio (preferibilmente la domenica)
+3. Gli ultimi 2-3 giorni prima dell'esame devono essere di revisione + simulazione
+4. Il giorno prima dell'esame deve essere riposo
+5. Ogni giornata di studio deve avere 4-6 domande a risposta aperta pertinenti al materiale
+
+DISTRIBUZIONE DOMANDE (Tassonomia di Bloom per ogni giornata di studio):
+- 1-2 "definizione" (ricordo): definizioni, autori, concetti-chiave
+- 1-2 "meccanismo" (comprensione): processi, meccanismi, distinzioni  
+- 1 "connessione" (analisi): collegamenti, confronti tra teorie
+- Se è giornata di revisione: preferisci "simulazione" (livello esame)
+
+SCHEMA DATE DISPONIBILI:
+${skeleton.map(d => `${d.date} (${d.label})`).join(', ')}
+
+Rispondi ESCLUSIVAMENTE con un array JSON valido di oggetti "day" (nessun altro testo, nessun markdown).
+Ogni oggetto "day" deve avere ESATTAMENTE questi campi:
+
+{
+  "date": "YYYY-MM-DD",           // data ISO dalla lista sopra
+  "label": "Sab 25 apr",          // es. "Sab 25 apr"  
+  "shortLabel": "25/4",           // es. "25/4"
+  "type": "studio|rest|revisione|exam", // tipo giornata
+  "title": "Titolo giornata",     // es. "Lezioni 1-3 — Fondamenti"
+  "subtitle": "Sottotitolo",      // breve descrizione
+  "weekStart": null,              // null oppure "Settimana N · descrizione" per la prima giornata di ogni settimana
+  "questions": [                  // solo per studio/revisione, array vuoto per rest/exam
+    {"text": "testo domanda", "type": "definizione|meccanismo|connessione|simulazione"}
+  ]
+}
+
+IMPORTANTE:
+- Includi TUTTE le date da ${_isoDate(today)} a ${info.date} inclusa
+- La data ${info.date} deve avere type "exam"
+- Basa le domande ESCLUSIVAMENTE sul materiale delle fonti fornite
+- Genera domande di qualità universitaria, specifiche, non generiche`;
+
+  _setPlanGenUI('Generazione piano…', 'Claude sta costruendo il calendario e le domande…', 30, 'Chiamata API…');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 12000,
+        temperature: 0.7,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Genera il piano di studio completo per ${subject}, da oggi (${_isoDate(today)}) al giorno dell'esame (${info.date}). Rispondi solo con il JSON.` }]
+      })
+    });
+
+    _setPlanGenUI('Elaborazione risposta…', 'Analisi e validazione del piano generato…', 70, 'Parsing JSON…');
+
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
+    const data = await res.json();
+    let raw = data.content[0].text.trim();
+    raw = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+
+    const planDays = JSON.parse(raw);
+    if (!Array.isArray(planDays) || planDays.length === 0) throw new Error('Piano non valido ricevuto dall\'AI');
+
+    _setPlanGenUI('Salvataggio…', 'Costruzione del calendario…', 90, 'Quasi pronto…');
+
+    // Normalize and add id fields
+    const normalizedDays = planDays.map((d, i) => ({
+      ...d,
+      id: 'ai-' + (d.date || i).toString().replace(/-/g, ''),
+      questions: d.questions || [],
+      notes: d.type !== 'rest' && d.type !== 'exam'
+    }));
+
+    const plan = {
+      subject,
+      professor,
+      examDate: info.date,
+      generatedAt: new Date().toISOString(),
+      days: normalizedDays
+    };
+    localStorage.setItem('psico_ai_plan', JSON.stringify(plan));
+
+    _setPlanGenUI('Piano completato ✓', `${normalizedDays.length} giorni pianificati fino all\'esame.`, 100, 'Caricamento…');
+    await new Promise(r => setTimeout(r, 800));
+
+    // Rebuild UI
+    buildDays();
+    buildNav();
+    updateGenPlanStatus();
+    const first = getActiveDays()[0];
+    if (first) showDay(first.id);
+    closeSourcesPanel();
+
+  } catch(e) {
+    alert('Errore nella generazione del piano:\n' + e.message);
+  } finally {
+    _hidePlanGenUI();
+  }
+}
+
+// ── Patch: getActiveDays helper ──────────────────────────────
+function getActiveDays() {
+  const aiPlan = localStorage.getItem('psico_ai_plan');
+  return aiPlan ? JSON.parse(aiPlan).days : days;
+}
+
 // Init sources
 updateSourcesBtn();
 </script>
@@ -3648,6 +4007,28 @@ updateSourcesBtn();
 
       <!-- List of sources -->
       <div id="sourcesList"></div>
+
+      <!-- Exam info + Generate Plan -->
+      <div class="sources-exam-section" id="examSection">
+        <div class="sources-exam-label">📅 Dati esame</div>
+        <div class="sources-exam-fields">
+          <input class="sources-exam-input" type="text" id="examSubject"
+                 placeholder="Materia (es. Psicologia Cognitiva)"
+                 oninput="saveExamInfo()" maxlength="60">
+          <input class="sources-exam-input" type="text" id="examProfessor"
+                 placeholder="Prof. (es. Serra)"
+                 oninput="saveExamInfo()" maxlength="40">
+          <input class="sources-exam-input full-width" type="date" id="examDate"
+                 oninput="saveExamInfo()">
+        </div>
+        <button class="gen-plan-btn" id="genPlanBtn" onclick="generateStudyPlan()" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Sviluppa piano di studio
+        </button>
+        <div class="gen-plan-status" id="genPlanStatus"></div>
+        <span class="gen-plan-reset" id="genPlanReset" style="display:none"
+              onclick="resetAiPlan()">↩ Ripristina piano predefinito</span>
+      </div>
     </div>
     <div class="sources-footer">
       <div style="font-family:'Inter',sans-serif;font-size:10px;color:var(--text-3);line-height:1.5;">
@@ -3655,6 +4036,19 @@ updateSourcesBtn();
         Il testo resta nel tuo browser (localStorage) e non viene mai trasmesso al di fuori delle chiamate API.
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Plan Generation Overlay -->
+<div class="plan-gen-overlay" id="planGenOverlay">
+  <div class="plan-gen-box">
+    <div class="quiz-spinner" style="width:30px;height:30px;border-width:3px;margin:0 auto 16px;"></div>
+    <div class="plan-gen-title" id="planGenTitle">Generazione piano…</div>
+    <div class="plan-gen-msg" id="planGenMsg">Claude sta analizzando le tue fonti e costruendo il calendario di studio…</div>
+    <div class="plan-gen-bar-wrap">
+      <div class="plan-gen-bar" id="planGenBar"></div>
+    </div>
+    <div class="plan-gen-step" id="planGenStep">Avvio…</div>
   </div>
 </div>
 
