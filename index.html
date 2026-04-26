@@ -1910,6 +1910,54 @@
 
   .timer-saved span { color: var(--accent); }
 
+  /* ── Focus mode ────────────────────────────────────────────── */
+  /* Visual indicator in header */
+  .focus-indicator {
+    display: none;
+    align-items: center; gap: 6px;
+    font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 20px; padding: 4px 12px;
+    white-space: nowrap;
+    animation: focus-pulse 2.4s ease-in-out infinite;
+  }
+  .focus-indicator .focus-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0;
+  }
+  body.focus-mode .focus-indicator { display: flex; }
+
+  @keyframes focus-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.55; }
+  }
+
+  /* Lock navigation elements during focus */
+  body.focus-mode .day-nav-item:not(.active) {
+    pointer-events: none;
+    opacity: 0.22;
+    filter: grayscale(1);
+    transition: opacity 0.3s, filter 0.3s;
+  }
+  body.focus-mode .readiness-panel {
+    pointer-events: none; opacity: 0.3;
+  }
+  body.focus-mode .hamburger-btn {
+    pointer-events: none; opacity: 0.3;
+  }
+  body.focus-mode .api-indicator,
+  body.focus-mode .sources-btn {
+    pointer-events: none; opacity: 0.3;
+    cursor: not-allowed;
+  }
+  body.focus-mode .mobile-day-nav {
+    pointer-events: none; opacity: 0.2;
+  }
+  /* Keep timer controls interactive */
+  body.focus-mode .timer-block { pointer-events: auto !important; }
+
   /* Hours badge shown in pre-session prompt */
   .session-hours-badge {
     display: inline-flex; align-items: center; gap: 6px;
@@ -2435,6 +2483,7 @@
 
   <!-- Action buttons -->
   <div class="header-actions">
+    <div class="focus-indicator" id="focusIndicator" title="Sessione di studio in corso — metti in pausa per navigare"><span class="focus-dot"></span>Focus</div>
     <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ <span class="api-label" id="apiLabel">API</span></button>
     <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 <span class="sources-label">Fonti</span><span id="sourcesCount" style="display:none"></span></button>
     <div class="theme-switch" onclick="toggleTheme()" title="Cambia tema">
@@ -4035,6 +4084,14 @@ function formatHoursMinutes(secs) {
 
 const timerState = {};
 
+// ── Focus mode helpers ─────────────────────────────────────────
+function _focusModeOn() {
+  document.body.classList.add('focus-mode');
+}
+function _focusModeOff() {
+  document.body.classList.remove('focus-mode');
+}
+
 function timerStart(dayId) {
   if (timerState[dayId] && timerState[dayId].running) return;
   if (!timerState[dayId]) timerState[dayId] = { elapsed: 0 };
@@ -4048,6 +4105,7 @@ function timerStart(dayId) {
   if (resumeBtn) resumeBtn.style.display = 'none';
   document.getElementById('timerPauseBtn-' + dayId).style.display = '';
   document.getElementById('timerStopBtn-' + dayId).style.display = '';
+  _focusModeOn();
 }
 
 function timerTick(dayId) {
@@ -4068,6 +4126,7 @@ function timerPause(dayId) {
   document.getElementById('timerPauseBtn-' + dayId).style.display = 'none';
   var resumeBtn = document.getElementById('timerResumeBtn-' + dayId);
   if (resumeBtn) { resumeBtn.style.display = ''; resumeBtn.textContent = '▶ Riprendi'; }
+  _focusModeOff();
 }
 
 function timerResume(dayId) {
@@ -4086,6 +4145,7 @@ function timerResume(dayId) {
   if (pauseBtn) pauseBtn.style.display = '';
   var stopBtn = document.getElementById('timerStopBtn-' + dayId);
   if (stopBtn) stopBtn.style.display = '';
+  _focusModeOn();
 }
 
 function timerStop(dayId) {
@@ -4116,6 +4176,7 @@ function timerStop(dayId) {
       if (resumeBtn) resumeBtn.style.display = '';
     }
   }
+  _focusModeOff();
   saveState();
   updateTotalHours();
 }
