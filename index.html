@@ -182,11 +182,10 @@
     white-space: nowrap; flex-shrink: 0;
   }
   .header-app-name-img {
-    /* "Affiancato" wordmark logo – sized to fit comfortably in the 48px header */
     height: 28px; width: auto; object-fit: contain;
-    filter: invert(1); flex-shrink: 0; /* dark mode: black JPEG → white */
+    filter: invert(1); flex-shrink: 0; /* dark mode: invert black logo → white */
   }
-  [data-theme="light"] .header-app-name-img { filter: none; mix-blend-mode: multiply; }
+  [data-theme="light"] .header-app-name-img { filter: none; }
   .header-app-name-text { display: none; } /* text hidden; logo image already contains it */
 
   /* Sources count badge */
@@ -2381,16 +2380,12 @@
     text-align: center;
   }
   .login-logo-img {
-    /* Horizontal wordmark logo — black on transparent (JPEG-encoded).
-       Dark mode: invert so black becomes white on dark card.
-       Light mode: black logo is naturally visible; multiply blends
-       JPEG background into the light surface. */
     width: 200px; height: auto; object-fit: contain;
+    /* Real PNG with alpha: invert black logo to white for dark mode */
     filter: invert(1);
   }
   [data-theme="light"] .login-logo-img {
-    filter: none;
-    mix-blend-mode: multiply;
+    filter: none; /* black logo is naturally visible on light background */
   }
   .login-sub {
     font-family: 'Inter', sans-serif; font-size: 12px;
@@ -2504,7 +2499,7 @@
     width: 28px; height: 28px; object-fit: contain;
     filter: invert(1); /* dark mode: black→white */
   }
-  [data-theme="light"] .ob-logo-img { filter: none; mix-blend-mode: multiply; }
+  [data-theme="light"] .ob-logo-img { filter: none; }
   .ob-logo-text {
     font-family: 'Inter', sans-serif; font-size: 15px;
     font-weight: 700; letter-spacing: -0.03em; color: var(--text-1);
