@@ -134,9 +134,9 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   html {
-    /* Prevent horizontal scroll caused by any overflowing element */
-    overflow-x: hidden;
-    max-width: 100%;
+    /* overflow-x: clip prevents Safari from expanding the viewport to fit content */
+    overflow-x: clip;
+    width: 100%;
   }
 
   body {
@@ -145,10 +145,9 @@
     color: var(--text);
     font-size: 14px;
     line-height: 1.6;
-    overflow-x: hidden;
-    max-width: 100%;
-    /* Ensure viewport meta is always respected */
+    overflow-x: clip;
     width: 100%;
+    max-width: 100%;
   }
 
   /* ── Header redesign ────────────────────────────────────────── */
@@ -2892,9 +2891,9 @@
   </div>
 
   <!-- Divider -->
-  <div class="header-vdiv"></div>
+  <div class="header-vdiv header-hide-mobile"></div>
 
-  <!-- Row break (mobile only: forces actions onto a second row) -->
+  <!-- Row break: hidden now (single-row mobile layout) -->
   <div class="header-row-break"></div>
 
   <!-- Action buttons -->
