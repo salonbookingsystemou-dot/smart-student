@@ -4956,6 +4956,26 @@ function isDayUnlocked(dayId) {
   return true;
 }
 
+// Stricter than isDayUnlocked: a day is navigable only if it's done/skip/rest
+// OR it's the first incomplete (currently active) study day.
+function isDayNavigable(dayId) {
+  const activeDays = getActiveDays();
+  const day = activeDays.find(d => d.id === dayId);
+  if (!day) return false;
+  if (day.type === 'rest' || day.type === 'exam') return isDayUnlocked(dayId);
+  const s = state[dayId]?.status;
+  if (s === 'done' || s === 'skip') return true;
+  // Allow the first unlocked-but-incomplete day (the one currently being worked on)
+  for (const d of activeDays) {
+    if (d.type === 'rest' || d.type === 'exam') continue;
+    const ds = state[d.id]?.status;
+    if (ds === 'done' || ds === 'skip') continue;
+    // First study day that is not done/skip → current working day
+    return d.id === dayId && isDayUnlocked(dayId);
+  }
+  return false;
+}
+
 function buildNav() {
   const nav = document.getElementById('dayNav');
   nav.innerHTML = ''; // reset
@@ -5009,7 +5029,7 @@ function buildNav() {
 }
 
 function showDay(id) {
-  if (!isDayUnlocked(id)) return; // guard: locked days are inaccessible
+  if (!isDayNavigable(id)) return; // guard: only done/skip/rest + current working day
   document.querySelectorAll('.day-block').forEach(el => el.classList.remove('visible'));
   document.querySelectorAll('.day-nav-item').forEach(el => el.classList.remove('active'));
   document.getElementById('block-' + id)?.classList.add('visible');
@@ -5508,7 +5528,7 @@ function _refreshNavLocks() {
   activeDays.forEach(d => {
     const el = document.querySelector(`[data-id="${d.id}"]`);
     if (!el) return;
-    const locked = !isDayUnlocked(d.id);
+    const locked = !isDayNavigable(d.id);
     // Toggle locked class
     el.classList.toggle('locked', locked);
     // Update/insert lock icon
@@ -7382,8 +7402,12 @@ function updateMobileDayNav(currentId) {
   const prevBtn = document.getElementById('mobilePrevBtn');
   const nextBtn = document.getElementById('mobileNextBtn');
   if (labelEl) labelEl.textContent = day.label || day.title || '—';
-  if (prevBtn) prevBtn.disabled = idx === 0;
-  if (nextBtn) nextBtn.disabled = idx === active.length - 1;
+  // Disable Prec. if no navigable day exists before current
+  const hasPrev = active.slice(0, idx).some(d => isDayNavigable(d.id));
+  if (prevBtn) prevBtn.disabled = !hasPrev;
+  // Disable Succ. if no navigable day exists after current
+  const hasNext = active.slice(idx + 1).some(d => isDayNavigable(d.id));
+  if (nextBtn) nextBtn.disabled = !hasNext;
 }
 
 function _showNavTooltip(msg) {
@@ -7421,12 +7445,12 @@ function mobileNavDay(dir) {
     }
   }
 
-  // Walk in dir until we find an unlocked day
+  // Walk in dir until we find a navigable day (done/skip/rest or current working day)
   let steps = 0;
   while (steps < active.length) {
     idx += dir;
     if (idx < 0 || idx >= active.length) break;
-    if (isDayUnlocked(active[idx].id)) { showDay(active[idx].id); break; }
+    if (isDayNavigable(active[idx].id)) { showDay(active[idx].id); break; }
     steps++;
   }
 }
