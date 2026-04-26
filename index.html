@@ -183,9 +183,9 @@
   }
   .header-app-name-img {
     width: 22px; height: 22px; object-fit: contain;
-    mix-blend-mode: multiply; flex-shrink: 0;
+    filter: invert(1); flex-shrink: 0; /* dark mode: black→white */
   }
-  [data-theme="dark"] .header-app-name-img { filter: invert(1); mix-blend-mode: normal; }
+  [data-theme="light"] .header-app-name-img { filter: none; mix-blend-mode: multiply; }
   .header-app-name-text {
     font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800;
     letter-spacing: -0.04em; color: var(--text-1);
@@ -2385,13 +2385,14 @@
   }
   .login-logo-img {
     width: 72px; height: 72px; object-fit: contain;
-    /* Black logo on white/light bg: multiply makes transparent areas disappear */
-    mix-blend-mode: multiply;
-  }
-  [data-theme="dark"] .login-logo-img {
-    /* On dark bg: invert so black logo becomes white */
+    /* Dark mode default: invert black logo to white */
     filter: invert(1);
-    mix-blend-mode: normal;
+  }
+  [data-theme="light"] .login-logo-img {
+    /* Light mode: black logo is visible as-is, use multiply to
+       blend away any dark JPEG background */
+    filter: none;
+    mix-blend-mode: multiply;
   }
   .login-logo-wordmark {
     font-family: 'Inter', sans-serif; font-size: 26px;
@@ -2516,9 +2517,9 @@
   }
   .ob-logo-img {
     width: 28px; height: 28px; object-fit: contain;
-    mix-blend-mode: multiply;
+    filter: invert(1); /* dark mode: black→white */
   }
-  [data-theme="dark"] .ob-logo-img { filter: invert(1); mix-blend-mode: normal; }
+  [data-theme="light"] .ob-logo-img { filter: none; mix-blend-mode: multiply; }
   .ob-logo-text {
     font-family: 'Inter', sans-serif; font-size: 15px;
     font-weight: 700; letter-spacing: -0.03em; color: var(--text-1);
