@@ -3609,7 +3609,55 @@
 
 })();
 // ── App reinit after cloud data load ─────────────────────────
+// Self-healing: fix plan exam date if it doesn't match psico_exam_info
+function _healPlanExamDate() {
+  try {
+    const info = JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
+    if (!info.date) return;
+    const planRaw = localStorage.getItem('psico_ai_plan');
+    if (!planRaw) return;
+    const plan = JSON.parse(planRaw);
+    if (!plan || !Array.isArray(plan.days)) return;
+
+    const examIso = info.date;
+    const examInPlan = plan.days.find(d => d.date === examIso);
+    const wrongExam  = plan.days.find(d => d.type === 'exam' && d.date !== examIso);
+
+    // Nothing to fix
+    if (examInPlan && examInPlan.type === 'exam' && !wrongExam) return;
+
+    let changed = false;
+
+    // Fix the wrongly-placed exam day
+    if (wrongExam) {
+      wrongExam.type = 'rest';
+      wrongExam.questions = [];
+      changed = true;
+    }
+
+    // Set the correct exam day
+    if (examInPlan && examInPlan.type !== 'exam') {
+      examInPlan.type = 'exam';
+      examInPlan.questions = [];
+      changed = true;
+    }
+
+    // Remove days that fall after the exam date
+    const before = plan.days.length;
+    plan.days = plan.days.filter(d => !d.date || d.date <= examIso);
+    if (plan.days.length !== before) changed = true;
+
+    if (changed) {
+      console.info('[heal] Fixed exam date in plan:', examIso);
+      _safeLSSet('psico_ai_plan', JSON.stringify(plan));
+    }
+  } catch(e) { console.warn('[heal] Failed to heal plan exam date', e); }
+}
+
 window._reinitApp = function() {
+  // Fix plan exam date if mismatched (self-heal)
+  _healPlanExamDate();
+
   // Repopulate in-memory state from localStorage (written by _loadFromSupabase)
   try {
     const remote = JSON.parse(localStorage.getItem('psico_state') || '{}');
@@ -7287,9 +7335,11 @@ Ogni oggetto "day" deve avere ESATTAMENTE questi campi:
   ]
 }
 
-IMPORTANTE:
-- Includi TUTTE le date da ${_isoDate(today)} a ${info.date} inclusa
-- La data ${info.date} deve avere type "exam"
+REGOLE ASSOLUTE (non derogabili):
+- Includi TUTTE le date da ${_isoDate(today)} a ${info.date} inclusa, senza aggiungere date successive
+- La data ESATTA ${info.date} DEVE avere type "exam" — non un giorno prima, non un giorno dopo
+- Il giorno prima dell'esame (${_isoDate(new Date(new Date(info.date).getTime() - 86400000))}) deve avere type "rest"
+- Non includere MAI date successive al ${info.date}
 - Basa le domande ESCLUSIVAMENTE sul materiale delle fonti fornite
 - Genera domande di qualità universitaria, specifiche, non generiche`;
 
@@ -7324,6 +7374,42 @@ IMPORTANTE:
     if (!Array.isArray(planDays) || planDays.length === 0) throw new Error('Piano non valido ricevuto dall\'AI');
 
     _setPlanGenUI('Salvataggio…', 'Costruzione del calendario…', 90, 'Quasi pronto…');
+
+    // ── Hard-validate exam date placement ──────────────────────
+    // Ensure the day matching info.date is type "exam". If the AI
+    // placed the exam on a different date, correct it in place.
+    const examIso = info.date; // e.g. "2026-05-12"
+    const examInPlan = planDays.find(d => d.date === examIso);
+    if (examInPlan) {
+      // Force exam day to type "exam" regardless of what AI returned
+      examInPlan.type = 'exam';
+      examInPlan.questions = [];
+      // If there's a stray extra "exam" on another date, demote it to rest
+      planDays.forEach(d => { if (d.date !== examIso && d.type === 'exam') d.type = 'rest'; });
+    } else {
+      // Exam date not present — strip any AI-added extra days beyond info.date
+      // and push the correct exam day at the end
+      const lastAllowed = new Date(examIso);
+      const filtered = planDays.filter(d => !d.date || new Date(d.date) <= lastAllowed);
+      if (filtered.length > 0) {
+        // Ensure last day IS the exam date
+        const lastDay = filtered[filtered.length - 1];
+        if (lastDay.date !== examIso) {
+          filtered.push({ date: examIso, label: _formatDateLabel(new Date(examIso)),
+            shortLabel: '', type: 'exam', title: 'Giorno dell\'esame',
+            subtitle: 'In bocca al lupo!', weekStart: null, questions: [] });
+        } else {
+          lastDay.type = 'exam'; lastDay.questions = [];
+        }
+      }
+      planDays.length = 0; filtered.forEach(d => planDays.push(d));
+    }
+    // Also ensure the day immediately before the exam is "rest" (if it exists and isn't already rest)
+    const examIdx = planDays.findIndex(d => d.date === examIso);
+    if (examIdx > 0) {
+      const dayBefore = planDays[examIdx - 1];
+      if (dayBefore.type !== 'rest') { dayBefore.type = 'rest'; dayBefore.questions = []; }
+    }
 
     // Normalize and add id fields
     const normalizedDays = planDays.map((d, i) => ({
@@ -7474,6 +7560,9 @@ function mobileNavDay(dir) {
     if (startX < 20 && dx > 50) openMobileSidebar();
   }, { passive: true });
 })();
+
+// Self-heal plan exam date on startup (in case of AI off-by-one)
+_healPlanExamDate();
 
 // Init mobile nav on first load
 (function() {
