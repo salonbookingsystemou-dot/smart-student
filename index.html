@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Psicologia Cognitiva — Piano di Studio</title>
+<title>Mnesti — Piano di Studio</title>
 <!-- Anti-FOUC: everything hidden until auth is resolved -->
 <style>body { visibility: hidden; }</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -154,6 +154,12 @@
   }
 
   /* Brand zone */
+  .header-app-name {
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800;
+    letter-spacing: -0.04em; color: var(--text-1); line-height: 1;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .header-app-name span { color: var(--accent); }
   .header-brand {
     display: flex; align-items: center; gap: 10px;
     flex-shrink: 0; margin-right: auto;
@@ -2769,8 +2775,8 @@
 <!-- Login Screen -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">Smart<span>Student</span></div>
-    <div class="login-sub" id="loginSub">Piano di studio personalizzato<br>Accedi o crea il tuo account</div>
+    <div class="login-logo">Mne<span>sti</span></div>
+    <div class="login-sub" id="loginSub">Il tuo piano di studio personalizzato<br>Accedi o crea il tuo account</div>
 
     <div class="login-field">
       <div class="login-label">Email</div>
@@ -2809,6 +2815,7 @@
 
   <!-- Brand -->
   <div class="header-brand">
+    <div class="header-app-name">Mne<span>sti</span></div>
     <h1 id="headerTitle">Psicologia Cognitiva — Prof. Serra</h1>
   </div>
 
@@ -2863,7 +2870,7 @@
 <!-- ── Onboarding overlay (new users without a study plan) ── -->
 <div class="ob-overlay" id="obOverlay">
   <div class="ob-box">
-    <div class="ob-logo">Smart<span>Student</span></div>
+    <div class="ob-logo">Mne<span>sti</span></div>
 
     <div class="ob-hero">
       <h2>Configuriamo il tuo piano di studio</h2>
@@ -3112,7 +3119,7 @@
     if (_loginMode === 'register') {
       btn.textContent    = 'Crea account →';
       toggle.innerHTML   = 'Hai già un account? <a href="#" onclick="toggleLoginMode();return false;">Accedi</a>';
-      sub.innerHTML      = 'Crea il tuo account SmartStudent<br>sincronizzato su tutti i dispositivi';
+      sub.innerHTML      = 'Crea il tuo account Mnesti<br>sincronizzato su tutti i dispositivi';
       if (passEl) passEl.setAttribute('autocomplete', 'new-password');
     } else {
       btn.textContent    = 'Accedi →';
@@ -6150,7 +6157,7 @@ function exportAllData() {
     if (v !== null) data[k] = v;
   });
   data._exportedAt  = new Date().toISOString();
-  data._exportedFrom = 'smart-student';
+  data._exportedFrom = 'mnesti';
   const json = JSON.stringify(data, null, 2);
 
   // Try file download (desktop); fall back to copy on mobile
@@ -6158,7 +6165,7 @@ function exportAllData() {
     const blob = new Blob([json], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href = url; a.download = 'smart-student-backup.json';
+    a.href = url; a.download = 'mnesti-backup.json';
     a.click();
     URL.revokeObjectURL(url);
   } catch(e) {
