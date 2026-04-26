@@ -259,6 +259,121 @@
     display: flex; align-items: center; gap: 6px; flex-shrink: 0;
   }
 
+  /* ── Setup button ───────────────────────────────────────────── */
+  .setup-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    padding: 5px 11px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: none;
+    color: var(--text-2); cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+    letter-spacing: 0.02em; white-space: nowrap;
+  }
+  .setup-btn:hover { border-color: var(--accent); color: var(--accent); }
+  body.focus-mode .setup-btn { opacity: 0.3; pointer-events: none; }
+
+  /* ── Setup Drawer ───────────────────────────────────────────── */
+  .setup-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+    display: none; align-items: stretch; justify-content: flex-end;
+  }
+  .setup-overlay.open { display: flex; }
+  .setup-drawer {
+    width: min(420px, 96vw);
+    background: var(--surface1);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    animation: setupSlideIn 0.24s ease;
+  }
+  @keyframes setupSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  .setup-drawer-top {
+    display: flex; align-items: center;
+    padding: 12px 16px 0; gap: 4px; flex-shrink: 0;
+  }
+  .setup-tabs {
+    display: flex; gap: 0; flex: 1; overflow-x: auto;
+  }
+  .setup-tab {
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    padding: 8px 14px 10px;
+    border: none; border-bottom: 2px solid transparent;
+    background: none; cursor: pointer;
+    color: var(--text-3); letter-spacing: 0.03em;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .setup-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .setup-tab:hover:not(.active) { color: var(--text-1); }
+  .setup-close-btn {
+    font-size: 20px; line-height: 1; background: none; border: none;
+    color: var(--text-3); cursor: pointer; padding: 2px 6px; flex-shrink: 0;
+  }
+  .setup-close-btn:hover { color: var(--text-1); }
+  .setup-tab-border {
+    height: 1px; background: var(--border); flex-shrink: 0;
+  }
+  .setup-body { flex: 1; overflow-y: auto; }
+  .setup-pane { display: none; padding: 20px 16px; flex-direction: column; gap: 16px; }
+  .setup-pane.active { display: flex; }
+
+  /* API pane */
+  .setup-section-title {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-3);
+    margin-bottom: 4px;
+  }
+  .setup-api-desc {
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-3); line-height: 1.6;
+  }
+  .setup-api-status {
+    font-family: 'Inter', sans-serif; font-size: 11px; padding: 6px 10px;
+    border-radius: 7px; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-3); margin-top: 4px;
+  }
+
+  /* Tema pane */
+  .setup-tema-block { display: flex; flex-direction: column; gap: 10px; }
+  .setup-tema-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .setup-tema-label { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-1); }
+  .setup-tema-sub  { font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-3); margin-top: 2px; }
+  .color-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .color-preset {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid transparent; cursor: pointer;
+    transition: transform 0.1s, border-color 0.15s; flex-shrink: 0;
+  }
+  .color-preset:hover { transform: scale(1.18); }
+  .color-preset.active { border-color: var(--text-1); box-shadow: 0 0 0 2px var(--bg); }
+  .color-custom-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .color-custom-swatch {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 2px solid var(--border); cursor: pointer;
+    flex-shrink: 0; overflow: hidden; padding: 0; background: none;
+  }
+  .color-custom-swatch::-webkit-color-swatch-wrapper { padding: 0; }
+  .color-custom-swatch::-webkit-color-swatch { border: none; border-radius: 50%; }
+  .color-custom-hex {
+    font-family: 'Inter', monospace; font-size: 12px; color: var(--text-2);
+    padding: 6px 10px; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--surface2); width: 90px; text-transform: uppercase;
+  }
+  .color-custom-hex:focus { outline: none; border-color: var(--accent); }
+  .color-reset-btn {
+    font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-3);
+    background: none; border: none; cursor: pointer; padding: 4px 0; text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .color-reset-btn:hover { color: var(--text-1); }
+  .setup-sync-status {
+    font-family: 'Inter', sans-serif; font-size: 11px; color: var(--text-3);
+    display: flex; align-items: center; gap: 5px; padding: 8px 0;
+    border-top: 1px solid var(--border); margin-top: 8px;
+  }
+
   .layout {
     display: grid;
     grid-template-columns: 260px 1fr;
@@ -2253,12 +2368,7 @@
   body.focus-mode .hamburger-btn {
     pointer-events: none; opacity: 0.3;
   }
-  body.focus-mode .api-indicator,
-  body.focus-mode .sync-chip { display: none; }
-  body.focus-mode .sources-btn {
-    pointer-events: none; opacity: 0.3;
-    cursor: not-allowed;
-  }
+  body.focus-mode .setup-btn { pointer-events: none; opacity: 0.3; }
   body.focus-mode .mobile-day-nav {
     pointer-events: none; opacity: 0.2;
   }
@@ -3092,16 +3202,15 @@
   <!-- Action buttons -->
   <div class="header-actions">
     <div class="focus-indicator" id="focusIndicator" title="Sessione di studio in corso — metti in pausa per navigare"><span class="focus-dot"></span>Focus</div>
-    <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ <span class="api-label" id="apiLabel">API</span></button>
-    <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 <span class="sources-label">Fonti</span><span id="sourcesCount" class="sources-count-badge" style="display:none"></span></button>
-    <div class="sync-chip" id="syncChip" title="Sincronizzazione cloud">
-      <span class="sync-status-dot" id="syncStatusDot"></span>
-      <span class="sync-chip-label" id="syncChipLabel">Sync</span>
-    </div>
+    <!-- Hidden elements kept for JS compatibility -->
+    <span id="sourcesCount" style="display:none"></span>
+    <div id="syncChip" style="display:none"><span class="sync-status-dot" id="syncStatusDot"></span><span id="syncChipLabel"></span></div>
+    <span id="apiLabel" style="display:none"></span>
+    <button class="setup-btn" id="setupBtn" onclick="openSetupDrawer('fonti')" title="Impostazioni">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Setup
+    </button>
     <button class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;">Esci</button>
-    <div class="theme-switch" onclick="toggleTheme()" title="Cambia tema">
-      <div class="theme-track"><div class="theme-thumb"></div></div>
-    </div>
   </div>
 </div>
 
@@ -3697,6 +3806,8 @@ function _healPlanExamDate() {
 window._reinitApp = function() {
   // Fix plan exam date if mismatched (self-heal)
   _healPlanExamDate();
+  // Apply saved accent color
+  if (typeof _loadAccentColor === 'function') _loadAccentColor();
 
   // Repopulate in-memory state from localStorage (written by _loadFromSupabase)
   try {
@@ -5646,11 +5757,7 @@ function saveNotes(dayId, value) {
   saveState();
 }
 
-function showApiModal() {
-  const current = localStorage.getItem('anthropic_api_key') || '';
-  document.getElementById('apiKeyInput').value = current;
-  document.getElementById('apiModal').style.display = 'flex';
-}
+function showApiModal() { openSetupDrawer('api'); }
 
 function saveApiKey() {
   const key = document.getElementById('apiKeyInput').value.trim();
@@ -5659,9 +5766,9 @@ function saveApiKey() {
     return;
   }
   _safeLSSet('anthropic_api_key', key);
-  document.getElementById('apiModal').style.display = 'none';
+  const statusEl = document.getElementById('setupApiStatus');
+  if (statusEl) { statusEl.style.display = ''; statusEl.textContent = '✓ Chiave salvata e connessa'; }
   updateApiIndicator();
-  // Refresh onboarding validation if it's visible
   if (typeof _obCheckApiRow === 'function') _obCheckApiRow();
 }
 
@@ -6931,14 +7038,103 @@ function renderSourcesList() {
   }).join('');
 }
 
-function openSourcesPanel() {
-  renderSourcesList();
-  document.getElementById('sourcesOverlay').classList.add('open');
-  // Load exam info into fields + update button state
-  loadExamInfoUI();
+function openSourcesPanel() { openSetupDrawer('fonti'); }
+function closeSourcesPanel() { closeSetupDrawer(); }
+
+// ── Setup Drawer ──────────────────────────────────────────────
+function openSetupDrawer(tab) {
+  tab = tab || 'fonti';
+  const overlay = document.getElementById('setupOverlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
+  switchSetupTab(tab);
+  // populate fields
+  if (tab === 'fonti') { renderSourcesList(); loadExamInfoUI(); }
+  if (tab === 'api') {
+    const inp = document.getElementById('apiKeyInput');
+    if (inp) inp.value = localStorage.getItem('anthropic_api_key') || '';
+    const statusEl = document.getElementById('setupApiStatus');
+    if (statusEl) statusEl.style.display = 'none';
+  }
+  if (tab === 'tema') _renderColorPresets();
 }
-function closeSourcesPanel() {
-  document.getElementById('sourcesOverlay').classList.remove('open');
+
+function closeSetupDrawer() {
+  const overlay = document.getElementById('setupOverlay');
+  if (overlay) overlay.classList.remove('open');
+}
+
+function switchSetupTab(tab) {
+  ['fonti','api','tema'].forEach(t => {
+    const btn  = document.getElementById('setupTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    const pane = document.getElementById('setupPane' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn)  btn.classList.toggle('active',  t === tab);
+    if (pane) pane.classList.toggle('active', t === tab);
+  });
+  if (tab === 'tema') _renderColorPresets();
+}
+
+// ── Accent color system ───────────────────────────────────────
+const _ACCENT_DEFAULT = '#d97757';
+const _ACCENT_PRESETS = [
+  '#d97757', // terracotta (default)
+  '#e05c5c', // red
+  '#e07b2f', // amber
+  '#c0a030', // gold
+  '#3ea06c', // green
+  '#3b82f6', // blue
+  '#6366f1', // indigo
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#0ea5e9', // sky
+];
+
+function _hexToRgb(hex) {
+  const h = hex.replace('#','');
+  return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+}
+
+function applyAccentColor(hex) {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  const {r,g,b} = _hexToRgb(hex);
+  const root = document.documentElement;
+  root.style.setProperty('--accent',        hex);
+  root.style.setProperty('--accent-bg',     `rgba(${r},${g},${b},0.10)`);
+  root.style.setProperty('--accent-border', `rgba(${r},${g},${b},0.25)`);
+  _safeLSSet('psico_accent_color', hex);
+  // Update picker UI if open
+  const picker = document.getElementById('accentColorPicker');
+  const hexInp = document.getElementById('accentHexInput');
+  if (picker) picker.value = hex;
+  if (hexInp) hexInp.value = hex.toUpperCase();
+  _renderColorPresets();
+}
+
+function _loadAccentColor() {
+  const saved = localStorage.getItem('psico_accent_color');
+  if (saved) applyAccentColor(saved);
+}
+
+function _resetAccentColor() {
+  applyAccentColor(_ACCENT_DEFAULT);
+}
+
+function _onAccentPickerChange(hex) { applyAccentColor(hex); }
+
+function _onAccentHexChange(val) {
+  val = val.trim();
+  if (!val.startsWith('#')) val = '#' + val;
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) applyAccentColor(val);
+}
+
+function _renderColorPresets() {
+  const wrap = document.getElementById('colorPresets');
+  if (!wrap) return;
+  const current = (localStorage.getItem('psico_accent_color') || _ACCENT_DEFAULT).toLowerCase();
+  wrap.innerHTML = _ACCENT_PRESETS.map(c =>
+    `<button class="color-preset${c.toLowerCase()===current?' active':''}"
+      style="background:${c}" onclick="applyAccentColor('${c}')" title="${c}"></button>`
+  ).join('');
 }
 
 // PDF.js extraction
@@ -7604,6 +7800,9 @@ function mobileNavDay(dir) {
 // Self-heal plan exam date on startup (in case of AI off-by-one)
 _healPlanExamDate();
 
+// Apply saved accent color
+_loadAccentColor();
+
 // Init mobile nav on first load
 (function() {
   const active = getActiveDays();
@@ -7615,16 +7814,26 @@ updateSourcesBtn();
 </script>
 
 <!-- Sources Panel -->
-<div id="sourcesOverlay" class="sources-overlay" onclick="if(event.target===this)closeSourcesPanel()">
-  <div class="sources-drawer">
-    <div class="sources-header">
-      <div>
-        <div class="sources-header-title">📚 Fonti di Studio</div>
-        <div class="sources-header-sub">Carica le dispense PDF — le domande saranno generate dal tuo materiale</div>
+<!-- ── Setup Drawer ──────────────────────────────────────────── -->
+<div id="setupOverlay" class="setup-overlay" onclick="if(event.target===this)closeSetupDrawer()">
+  <div class="setup-drawer">
+
+    <div class="setup-drawer-top">
+      <div class="setup-tabs">
+        <button class="setup-tab active" id="setupTabFonti"  onclick="switchSetupTab('fonti')">📚 Fonti</button>
+        <button class="setup-tab"        id="setupTabApi"    onclick="switchSetupTab('api')">🔑 Chiave API</button>
+        <button class="setup-tab"        id="setupTabTema"   onclick="switchSetupTab('tema')">🎨 Tema</button>
       </div>
-      <button class="sources-close-btn" onclick="closeSourcesPanel()">×</button>
+      <button class="setup-close-btn" onclick="closeSetupDrawer()">×</button>
     </div>
-    <div class="sources-body">
+    <div class="setup-tab-border"></div>
+
+    <div class="setup-body">
+
+      <!-- ── FONTI ───────────────────────────────────── -->
+      <div class="setup-pane active" id="setupPaneFonti">
+        <div class="sources-header-sub" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text-3);margin-bottom:4px;">Carica le dispense PDF — le domande saranno generate dal tuo materiale</div>
+        <div class="sources-body" style="padding:0">
       <!-- Upload area -->
       <div class="sources-upload-area" id="sourcesUploadArea"
            onclick="document.getElementById('pdfFileInput').click()"
@@ -7687,34 +7896,82 @@ updateSourcesBtn();
               onclick="resetAiPlan()">↩ Ripristina piano predefinito</span>
       </div>
     </div>
-    <div class="sources-footer">
-      <div style="font-family:'Inter',sans-serif;font-size:10px;color:var(--text-3);line-height:1.5;">
-        Le fonti vengono usate automaticamente nella generazione dei quiz e delle domande.<br>
-        Il testo resta nel tuo browser (localStorage) e non viene mai trasmesso al di fuori delle chiamate API.
-      </div>
-      <div id="storageUsageBar" style="margin-top:10px"></div>
+        <div class="sources-footer" style="padding:0;border-top:1px solid var(--border);margin-top:16px;padding-top:14px;">
+          <div style="font-family:'Inter',sans-serif;font-size:10px;color:var(--text-3);line-height:1.5;">
+            Le fonti vengono usate automaticamente nella generazione dei quiz e delle domande.<br>
+            Il testo resta nel tuo browser e non viene mai trasmesso al di fuori delle chiamate API.
+          </div>
+          <div id="storageUsageBar" style="margin-top:10px"></div>
+          <div class="sync-section">
+            <div class="sync-title">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+              Sincronizza dispositivi
+            </div>
+            <div class="sync-desc">Esporta il backup per usare l'app anche dal telefono.</div>
+            <div class="sync-btns">
+              <button class="sync-btn" onclick="exportAllData()">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Esporta backup
+              </button>
+              <button class="sync-btn primary" onclick="openImportModal()">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Importa backup
+              </button>
+            </div>
+          </div>
+        </div>
+        </div><!-- /sources-body -->
+      </div><!-- /setupPaneFonti -->
 
-      <!-- Device sync -->
-      <div class="sync-section">
-        <div class="sync-title">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-          Sincronizza dispositivi
-        </div>
-        <div class="sync-desc">I dati (API key, fonti, progressi) sono salvati solo su questo browser. Esporta il backup per usare l'app anche dal telefono.</div>
-        <div class="sync-btns">
-          <button class="sync-btn" onclick="exportAllData()">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Esporta backup
-          </button>
-          <button class="sync-btn primary" onclick="openImportModal()">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Importa backup
-          </button>
-        </div>
+      <!-- ── CHIAVE API ────────────────────────────────── -->
+      <div class="setup-pane" id="setupPaneApi">
+        <div class="setup-section-title">Chiave API Anthropic</div>
+        <p class="setup-api-desc">Inserisci la tua API key di Anthropic per abilitare la verifica delle risposte e la generazione quiz in tempo reale. La chiave viene salvata nel tuo browser e non trasmessa altrove.</p>
+        <input class="modal-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" style="margin-top:4px"/>
+        <button class="modal-btn setup-api-save" onclick="saveApiKey()">Salva e connetti</button>
+        <div id="setupApiStatus" class="setup-api-status" style="display:none"></div>
+        <p class="setup-api-desc" style="margin-top:8px;">⚠️ Non condividere mai la tua API key con nessuno.</p>
       </div>
-    </div>
-  </div>
-</div>
+
+      <!-- ── TEMA ──────────────────────────────────────── -->
+      <div class="setup-pane" id="setupPaneTema">
+
+        <!-- Dark / Light -->
+        <div class="setup-tema-block">
+          <div class="setup-tema-row">
+            <div>
+              <div class="setup-tema-label">Modalità schermo</div>
+              <div class="setup-tema-sub">Chiaro / Scuro</div>
+            </div>
+            <div class="theme-switch" onclick="toggleTheme()" title="Cambia tema" style="flex-shrink:0">
+              <div class="theme-track"><div class="theme-thumb"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setup-tab-border"></div>
+
+        <!-- Accent color -->
+        <div class="setup-tema-block">
+          <div class="setup-tema-label">Colore primario</div>
+          <div class="setup-tema-sub">Scegli il colore che definisce l'intera palette dell'interfaccia</div>
+          <div class="color-presets" id="colorPresets">
+            <!-- rendered by JS -->
+          </div>
+          <div class="color-custom-row">
+            <input type="color" class="color-custom-swatch" id="accentColorPicker" title="Colore personalizzato"
+                   onchange="_onAccentPickerChange(this.value)" oninput="_onAccentPickerChange(this.value)">
+            <input type="text" class="color-custom-hex" id="accentHexInput" maxlength="7"
+                   placeholder="#d97757" onchange="_onAccentHexChange(this.value)" oninput="_onAccentHexChange(this.value)">
+            <button class="color-reset-btn" onclick="_resetAccentColor()">Ripristina</button>
+          </div>
+        </div>
+
+      </div><!-- /setupPaneTema -->
+
+    </div><!-- /setup-body -->
+  </div><!-- /setup-drawer -->
+</div><!-- /setupOverlay -->
 
 <!-- Import backup modal -->
 <div class="import-modal-overlay" id="importModalOverlay">
