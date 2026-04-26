@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Psicologia Cognitiva — Piano di Studio</title>
+<!-- Anti-FOUC: everything hidden until auth is resolved -->
+<style>body { visibility: hidden; }</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -3106,8 +3108,14 @@
               : '';
   }
 
+  /* ── Reveal body (removes anti-FOUC visibility:hidden) ── */
+  function _showBody() {
+    document.body.style.visibility = 'visible';
+  }
+
   /* ── Hide login screen ── */
   function _hideLogin() {
+    _showBody(); // ensure body is visible before fade starts
     const screen = document.getElementById('loginScreen');
     if (!screen || screen.style.display === 'none') return;
     screen.classList.add('fade-out');
@@ -3313,10 +3321,7 @@
 
   /* ── Check existing session on load ── */
   window.addEventListener('DOMContentLoaded', async () => {
-    const loginEmail = document.getElementById('loginEmail');
-    if (loginEmail) loginEmail.focus();
-
-    if (!_sb) return;
+    if (!_sb) { _showBody(); return; }
 
     try {
       const { data: { session } } = await _sb.auth.getSession();
@@ -3327,10 +3332,15 @@
           window._reinitApp();
         }
         _bootstrap(session, false);
+      } else {
+        // No session — show login screen
+        _showBody();
+        const loginEmail = document.getElementById('loginEmail');
+        if (loginEmail) loginEmail.focus();
       }
-      // else: stay on login screen
     } catch(e) {
       console.warn('[Supabase] Session check failed:', e);
+      _showBody(); // fallback: always show something
     }
 
     // Listen for auth state changes (token refresh, logout, email confirmation)
