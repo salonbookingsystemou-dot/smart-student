@@ -3116,27 +3116,32 @@
 
   /* ── Load data from Supabase into localStorage ── */
   async function _loadFromSupabase(userId) {
-    if (!_sb) return;
+    if (!_sb) return false;
     try {
       const { data, error } = await _sb
         .from('user_data')
-        .select('psico_state,psico_sources,psico_exam_info,psico_ai_plan,psico_objective')
+        .select('psico_state,psico_sources,psico_exam_info,psico_ai_plan,psico_objective,api_key')
         .eq('user_id', userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      if (error && error.code !== 'PGRST116') {
         console.warn('[Supabase] Load error:', error.message);
-        return;
+        return false;
       }
-      if (!data) return; // new user — nothing to restore yet
+      if (!data) return false; // new user
 
-      if (data.psico_state)     localStorage.setItem('psico_state',     JSON.stringify(data.psico_state));
-      if (data.psico_sources)   localStorage.setItem('psico_sources',   JSON.stringify(data.psico_sources));
-      if (data.psico_exam_info) localStorage.setItem('psico_exam_info', JSON.stringify(data.psico_exam_info));
-      if (data.psico_ai_plan)   localStorage.setItem('psico_ai_plan',   JSON.stringify(data.psico_ai_plan));
-      if (data.psico_objective) localStorage.setItem('psico_objective', data.psico_objective);
+      let loaded = false;
+      if (data.psico_state)     { localStorage.setItem('psico_state',     JSON.stringify(data.psico_state));     loaded = true; }
+      if (data.psico_sources)   { localStorage.setItem('psico_sources',   JSON.stringify(data.psico_sources));   loaded = true; }
+      if (data.psico_exam_info) { localStorage.setItem('psico_exam_info', JSON.stringify(data.psico_exam_info)); loaded = true; }
+      if (data.psico_ai_plan)   { localStorage.setItem('psico_ai_plan',   JSON.stringify(data.psico_ai_plan));   loaded = true; }
+      if (data.psico_objective) { localStorage.setItem('psico_objective', data.psico_objective);                 loaded = true; }
+      if (data.api_key)         { localStorage.setItem('anthropic_api_key', data.api_key);                       loaded = true; }
+
+      return loaded;
     } catch(e) {
       console.warn('[Supabase] Load exception:', e);
+      return false;
     }
   }
 
@@ -3159,6 +3164,7 @@
       psico_exam_info: _parseLS('psico_exam_info') || {},
       psico_ai_plan:   _parseLS('psico_ai_plan'),
       psico_objective: localStorage.getItem('psico_objective') || 'pass',
+      api_key:         localStorage.getItem('anthropic_api_key') || null,
       updated_at:      new Date().toISOString()
     };
 
@@ -3260,7 +3266,8 @@
         btn.disabled = false;
         btn.textContent = _loginMode === 'register' ? 'Crea account →' : 'Accedi →';
       } else {
-        await _loadFromSupabase(result.data.user.id);
+        const loaded = await _loadFromSupabase(result.data.user.id);
+        if (loaded && typeof window._reinitApp === 'function') window._reinitApp();
         _bootstrap(result.data.session, true);
       }
     } catch(e) {
@@ -3288,8 +3295,11 @@
     try {
       const { data: { session } } = await _sb.auth.getSession();
       if (session) {
-        // Valid session found — load remote data then enter app
-        await _loadFromSupabase(session.user.id);
+        const loaded = await _loadFromSupabase(session.user.id);
+        if (loaded) {
+          // Remote data populated localStorage — reinit the whole UI
+          window._reinitApp();
+        }
         _bootstrap(session, false);
       }
       // else: stay on login screen
@@ -3302,8 +3312,10 @@
       if (event === 'SIGNED_OUT') {
         location.reload();
       } else if (event === 'SIGNED_IN' && session && !_bootstrapped) {
-        // Fires when user lands on the page after clicking confirmation email link
-        _loadFromSupabase(session.user.id).then(() => _bootstrap(session, true));
+        _loadFromSupabase(session.user.id).then(loaded => {
+          if (loaded && typeof window._reinitApp === 'function') window._reinitApp();
+          _bootstrap(session, true);
+        });
       } else if (event === 'TOKEN_REFRESHED' && session) {
         window._syncToSupabase();
       }
@@ -3311,6 +3323,38 @@
   });
 
 })();
+// ── App reinit after cloud data load ─────────────────────────
+window._reinitApp = function() {
+  // Repopulate in-memory state from localStorage (written by _loadFromSupabase)
+  try {
+    const remote = JSON.parse(localStorage.getItem('psico_state') || '{}');
+    // Clear and re-assign keys so existing references to `state` still work
+    Object.keys(state).forEach(k => delete state[k]);
+    Object.assign(state, remote);
+  } catch(e) { console.warn('[reinit] state parse failed', e); }
+
+  // Rebuild all UI components from fresh localStorage
+  applyTheme(localStorage.getItem('psico_theme') || 'dark');
+  if (typeof buildNav  === 'function') buildNav();
+  if (typeof buildDays === 'function') buildDays();
+  if (typeof updateProgress     === 'function') updateProgress();
+  if (typeof updateTotalHours   === 'function') updateTotalHours();
+  if (typeof updateApiIndicator === 'function') updateApiIndicator();
+  if (typeof renderReadinessPanel === 'function') renderReadinessPanel();
+  if (typeof updateSourcesBtn   === 'function') updateSourcesBtn();
+
+  // Recompute statuses + locks
+  if (typeof getActiveDays === 'function' && typeof _autoSetStatus === 'function') {
+    getActiveDays().forEach(d => {
+      if (d.type !== 'rest' && d.type !== 'exam') _autoSetStatus(d.id);
+    });
+  }
+  if (typeof _refreshNavLocks === 'function') _refreshNavLocks();
+
+  // Navigate to first day
+  const first = typeof getActiveDays === 'function' ? getActiveDays()[0] : null;
+  if (first && typeof showDay === 'function') showDay(first.id);
+};
 // ── End Supabase Auth ─────────────────────────────────────────
 
 // ── Onboarding (new users) ────────────────────────────────────
