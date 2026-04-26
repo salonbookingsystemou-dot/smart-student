@@ -160,6 +160,15 @@
     white-space: nowrap; flex-shrink: 0;
   }
   .header-app-name span { color: var(--accent); }
+
+  /* Sources count badge */
+  .sources-count-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 16px; height: 16px; padding: 0 4px;
+    background: var(--accent); color: #fff;
+    border-radius: 8px; font-size: 9px; font-weight: 700;
+    margin-left: 4px; line-height: 1;
+  }
   .header-brand {
     display: flex; align-items: center; gap: 10px;
     flex-shrink: 0; margin-right: auto;
@@ -2563,7 +2572,8 @@
     .api-indicator { padding: 5px 10px; font-size: 12px; flex-shrink: 0; }
     .sources-btn { padding: 5px 10px; font-size: 12px; flex-shrink: 0; }
     .theme-switch { scale: 0.9; flex-shrink: 0; margin-left: auto; }
-    .sync-chip { display: none; } /* hidden on mobile — saves space */
+    .sync-chip { display: none; }       /* hidden on mobile — saves space */
+    .header-app-name { display: none; } /* hidden on mobile — saves space */
 
     /* ── Layout: single column ── */
     .layout {
@@ -2851,12 +2861,12 @@
   <div class="header-actions">
     <div class="focus-indicator" id="focusIndicator" title="Sessione di studio in corso — metti in pausa per navigare"><span class="focus-dot"></span>Focus</div>
     <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ <span class="api-label" id="apiLabel">API</span></button>
-    <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 <span class="sources-label">Fonti</span><span id="sourcesCount" style="display:none"></span></button>
+    <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 <span class="sources-label">Fonti</span><span id="sourcesCount" class="sources-count-badge" style="display:none"></span></button>
     <div class="sync-chip" id="syncChip" title="Sincronizzazione cloud">
       <span class="sync-status-dot" id="syncStatusDot"></span>
       <span class="sync-chip-label" id="syncChipLabel">Sync</span>
     </div>
-    <button class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;">↪ Esci</button>
+    <button class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;">Esci</button>
     <div class="theme-switch" onclick="toggleTheme()" title="Cambia tema">
       <div class="theme-track"><div class="theme-thumb"></div></div>
     </div>
