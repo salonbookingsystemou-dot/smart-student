@@ -2144,6 +2144,58 @@
 
   .timer-saved span { color: var(--accent); }
 
+  /* ── "Sei ancora lì?" inactivity modal ─────────────────────── */
+  .st-overlay {
+    position: fixed; inset: 0; z-index: 9100;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .st-overlay.open { opacity: 1; pointer-events: all; }
+  .st-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px 28px 22px;
+    max-width: 340px; width: 90%;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
+  .st-icon { font-size: 32px; margin-bottom: 4px; }
+  .st-title {
+    font-size: 17px; font-weight: 700;
+    color: var(--text-1); font-family: 'Inter', sans-serif;
+  }
+  .st-body {
+    font-size: 13px; color: var(--text-2);
+    font-family: 'Inter', sans-serif; line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .st-countdown {
+    font-size: 11px; color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace; min-height: 16px;
+  }
+  .st-btns {
+    display: flex; flex-direction: column; gap: 8px;
+    width: 100%; margin-top: 10px;
+  }
+  .st-resume-btn {
+    padding: 11px 0; font-size: 13px; font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    background: var(--accent); color: var(--bg);
+    border: none; border-radius: 9px; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .st-resume-btn:hover { opacity: 0.88; }
+  .st-stop-btn {
+    padding: 8px 0; font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    background: none; border: 1px solid var(--border);
+    border-radius: 9px; color: var(--text-2); cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .st-stop-btn:hover { border-color: var(--skip-text); color: var(--skip-text); }
+
   /* ── Focus mode ────────────────────────────────────────────── */
   /* Visual indicator in header */
   .focus-indicator {
@@ -5120,6 +5172,126 @@ function _focusModeOff() {
   document.body.classList.remove('focus-mode');
 }
 
+// ── Anti-ghost-timer: inactivity + page-visibility guard ─────
+const INACTIVITY_MS  = 20 * 60 * 1000; // 20 min no interaction → pause
+const HIDDEN_GRACE_MS = 45 * 1000;      // <45 s hidden → silent resume
+const ST_AUTO_STOP_MS = 2 * 60 * 1000; // "still there?" auto-stop after 2 min
+
+let _activeTimerDayId = null;   // dayId whose timer is currently running
+let _inactivityTimer  = null;   // setTimeout handle
+let _hiddenAt         = null;   // Date.now() when tab went hidden
+let _stAutoStopTimer  = null;   // auto-stop countdown for the "still there" modal
+let _stCountdownInterval = null;
+
+function _timerIsRunning() {
+  return _activeTimerDayId !== null && !!(timerState[_activeTimerDayId]?.running);
+}
+
+function _resetInactivity() {
+  if (!_timerIsRunning()) return;
+  clearTimeout(_inactivityTimer);
+  _inactivityTimer = setTimeout(_onTimerInactive, INACTIVITY_MS);
+}
+
+function _clearInactivity() {
+  clearTimeout(_inactivityTimer);
+  _inactivityTimer = null;
+}
+
+function _onTimerInactive() {
+  if (!_timerIsRunning()) return;
+  timerPause(_activeTimerDayId);
+  _showStillThereModal('inactivity', 0);
+}
+
+// Page Visibility API
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') {
+    if (_timerIsRunning()) {
+      _hiddenAt = Date.now();
+      timerPause(_activeTimerDayId);
+    }
+  } else {
+    // Tab visible again
+    if (_hiddenAt !== null && _activeTimerDayId) {
+      const awayMs = Date.now() - _hiddenAt;
+      _hiddenAt = null;
+      if (awayMs < HIDDEN_GRACE_MS) {
+        // Brief switch — resume silently
+        timerResume(_activeTimerDayId);
+      } else {
+        _showStillThereModal('hidden', awayMs);
+      }
+    }
+  }
+});
+
+// Track user interactions to reset inactivity timer
+['mousemove','keydown','click','touchstart','scroll'].forEach(function(evt) {
+  document.addEventListener(evt, _resetInactivity, { passive: true });
+});
+
+function _showStillThereModal(reason, awayMs) {
+  const modal    = document.getElementById('stillThereModal');
+  const bodyEl   = document.getElementById('stBody');
+  const iconEl   = document.getElementById('stIcon');
+  const countEl  = document.getElementById('stCountdown');
+  if (!modal) return;
+
+  if (reason === 'hidden') {
+    const awayMin = Math.round(awayMs / 60000);
+    iconEl.textContent  = '🌙';
+    bodyEl.textContent  = awayMin >= 1
+      ? `Il timer è stato messo in pausa mentre eri via (${awayMin} min). Vuoi riprendere la sessione?`
+      : 'Il timer è stato messo in pausa mentre eri via. Vuoi riprendere?';
+  } else {
+    iconEl.textContent  = '💤';
+    bodyEl.textContent  = 'Nessuna attività da 20 minuti. Il timer è in pausa — stavi ancora studiando?';
+  }
+
+  // Auto-stop countdown
+  let secsLeft = Math.round(ST_AUTO_STOP_MS / 1000);
+  countEl.textContent = `La sessione si chiuderà automaticamente tra ${secsLeft}s`;
+  _stAutoStopTimer = setTimeout(function() {
+    _stillThereStop();
+  }, ST_AUTO_STOP_MS);
+  _stCountdownInterval = setInterval(function() {
+    secsLeft--;
+    if (secsLeft > 0) {
+      countEl.textContent = `La sessione si chiuderà automaticamente tra ${secsLeft}s`;
+    } else {
+      clearInterval(_stCountdownInterval);
+      countEl.textContent = 'Chiusura in corso…';
+    }
+  }, 1000);
+
+  modal.classList.add('open');
+}
+
+function _hideStillThereModal() {
+  const modal = document.getElementById('stillThereModal');
+  if (modal) modal.classList.remove('open');
+  clearTimeout(_stAutoStopTimer);
+  clearInterval(_stCountdownInterval);
+  _stAutoStopTimer = null;
+  _stCountdownInterval = null;
+}
+
+function _stillThereResume() {
+  _hideStillThereModal();
+  if (_activeTimerDayId) {
+    timerResume(_activeTimerDayId);
+    _resetInactivity();
+  }
+}
+
+function _stillThereStop() {
+  _hideStillThereModal();
+  if (_activeTimerDayId) {
+    timerStop(_activeTimerDayId);
+  }
+}
+
 function timerStart(dayId) {
   if (timerState[dayId] && timerState[dayId].running) return;
   if (!timerState[dayId]) timerState[dayId] = { elapsed: 0 };
@@ -5135,6 +5307,8 @@ function timerStart(dayId) {
   document.getElementById('timerStopBtn-' + dayId).style.display = '';
   _focusModeOn();
   _autoSetStatus(dayId);
+  _activeTimerDayId = dayId;
+  _resetInactivity();
 }
 
 function timerTick(dayId) {
@@ -5156,6 +5330,7 @@ function timerPause(dayId) {
   var resumeBtn = document.getElementById('timerResumeBtn-' + dayId);
   if (resumeBtn) { resumeBtn.style.display = ''; resumeBtn.textContent = '▶ Riprendi'; }
   _focusModeOff();
+  _clearInactivity();
 }
 
 function timerResume(dayId) {
@@ -5175,6 +5350,8 @@ function timerResume(dayId) {
   var stopBtn = document.getElementById('timerStopBtn-' + dayId);
   if (stopBtn) stopBtn.style.display = '';
   _focusModeOn();
+  _activeTimerDayId = dayId;
+  _resetInactivity();
 }
 
 function timerStop(dayId) {
@@ -5211,6 +5388,9 @@ function timerStop(dayId) {
   if (gw) gw.style.display = 'none';
 
   _focusModeOff();
+  _clearInactivity();
+  _activeTimerDayId = null;
+  _hiddenAt = null;
   saveState();
   updateTotalHours();
   // Rebuild questions panel back to pre-session prompt
@@ -7459,6 +7639,20 @@ updateSourcesBtn();
         <button class="quiz-retry-btn" onclick="retryQuiz()">↺ Nuovo quiz</button>
         <button class="quiz-close-btn" onclick="closeQuiz()">Chiudi</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Still-there / inactivity modal -->
+<div id="stillThereModal" class="st-overlay">
+  <div class="st-box">
+    <div class="st-icon" id="stIcon">⏸</div>
+    <div class="st-title">Sei ancora lì?</div>
+    <div class="st-body" id="stBody">Il timer è stato messo in pausa.</div>
+    <div class="st-countdown" id="stCountdown"></div>
+    <div class="st-btns">
+      <button class="st-resume-btn" onclick="_stillThereResume()">▶ Sì, riprendo</button>
+      <button class="st-stop-btn"   onclick="_stillThereStop()">Chiudi sessione</button>
     </div>
   </div>
 </div>
