@@ -3142,7 +3142,6 @@ function saveAnswer(dayId, qIdx, value) {
   renderDayReadiness(dayId);
 }
 
-const MIN_ANSWER_CHARS = 40;
 function _syncVerifyBtn(dayId, qIdx, value) {
   const btn = document.getElementById(`verify-${dayId}-${qIdx}`);
   if (!btn) return;
