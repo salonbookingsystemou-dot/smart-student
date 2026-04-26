@@ -1820,93 +1820,119 @@
   .welcome-overlay {
     display: none; position: fixed; inset: 0; z-index: 9000;
     background: rgba(0,0,0,0.60); backdrop-filter: blur(6px);
-    align-items: center; justify-content: center; padding: 20px;
+    align-items: center; justify-content: center; padding: 16px;
   }
   .welcome-overlay.open { display: flex; }
+
   .welcome-box {
     background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 20px; width: min(460px, 100%);
-    padding: 36px 36px 28px; position: relative;
-    animation: welcome-in 0.35s cubic-bezier(0.34,1.26,0.64,1);
+    border-radius: 22px; width: min(420px, 100%);
+    overflow: hidden; position: relative;
+    animation: welcome-in 0.32s cubic-bezier(0.34,1.26,0.64,1);
   }
   @keyframes welcome-in {
-    from { opacity: 0; transform: scale(0.88) translateY(16px); }
+    from { opacity: 0; transform: scale(0.90) translateY(20px); }
     to   { opacity: 1; transform: none; }
   }
+
+  /* ① Greeting strip */
   .welcome-greeting {
-    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--text-3); margin-bottom: 6px;
+    padding: 18px 24px 0;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3);
   }
-  .welcome-title {
-    font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 700;
-    letter-spacing: -0.03em; color: var(--text-1);
-    line-height: 1.2; margin-bottom: 24px;
+
+  /* ② Hero — days to exam */
+  .welcome-hero {
+    padding: 12px 24px 20px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
   }
-  .welcome-title span { color: var(--accent); }
+  .welcome-hero-number {
+    font-family: 'Inter', sans-serif; font-size: 80px; font-weight: 900;
+    letter-spacing: -0.06em; line-height: 1;
+    color: var(--text-1);
+    transition: color 0.3s;
+  }
+  .welcome-hero-number.urgent { color: #c0392b; }
+  .welcome-hero-number.soon   { color: #d35400; }
+  .welcome-hero-number.good   { color: var(--text-1); }
+  .welcome-hero-label {
+    font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 500;
+    letter-spacing: -0.02em; color: var(--text-2); margin-top: 2px;
+  }
+  .welcome-hero-label strong { color: var(--accent); }
+
+  /* ③ Stats row */
   .welcome-stats {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-    margin-bottom: 24px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border);
   }
   .welcome-stat {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 12px; padding: 16px;
+    padding: 16px 20px;
   }
-  .welcome-stat-num {
-    font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 800;
-    letter-spacing: -0.04em; line-height: 1;
-    margin-bottom: 4px;
+  .welcome-stat + .welcome-stat {
+    border-left: 1px solid var(--border);
   }
-  .welcome-stat-num.accent { color: var(--accent); }
-  .welcome-stat-num.green  { color: #27ae60; }
-  .welcome-stat-num.orange { color: #d35400; }
-  .welcome-stat-num.red    { color: #c0392b; }
-  .welcome-stat-num.blue   { color: #2980b9; }
   .welcome-stat-label {
-    font-family: 'Inter', sans-serif; font-size: 11px;
-    color: var(--text-3); line-height: 1.4;
-  }
-  .welcome-progress-section {
-    margin-bottom: 20px;
-  }
-  .welcome-progress-label {
-    display: flex; justify-content: space-between;
-    font-family: 'Inter', sans-serif; font-size: 11px;
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
     color: var(--text-3); margin-bottom: 6px;
   }
-  .welcome-progress-track {
-    height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
-    margin-bottom: 10px;
+  .welcome-stat-value {
+    font-family: 'Inter', sans-serif; font-size: 26px; font-weight: 800;
+    letter-spacing: -0.04em; line-height: 1; margin-bottom: 8px;
+    color: var(--text-1);
   }
-  .welcome-progress-fill {
-    height: 100%; border-radius: 3px;
-    background: var(--accent); transition: width 0.8s ease 0.3s;
+  .welcome-stat-value.accent { color: var(--accent); }
+  .welcome-stat-value.green  { color: #27ae60; }
+  .welcome-stat-value.orange { color: #d35400; }
+  .welcome-stat-value.red    { color: #c0392b; }
+  .welcome-stat-value.blue   { color: #2980b9; }
+  .welcome-mini-track {
+    height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .welcome-mini-fill {
+    height: 100%; border-radius: 2px;
+    background: var(--accent); transition: width 0.7s ease 0.2s;
+  }
+  .welcome-mini-fill.green  { background: #27ae60; }
+  .welcome-mini-fill.orange { background: #d35400; }
+  .welcome-mini-fill.red    { background: #c0392b; }
+  .welcome-mini-fill.blue   { background: #2980b9; }
+
+  /* ④ Footer — message + CTA */
+  .welcome-footer {
+    padding: 16px 20px 20px;
   }
   .welcome-message {
-    font-family: 'Inter', sans-serif; font-size: 13px;
-    color: var(--text-2); line-height: 1.6;
-    background: rgba(127,127,127,0.07); border-radius: 10px;
-    padding: 12px 14px; margin-bottom: 20px;
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-3);
+    line-height: 1.6; margin-bottom: 14px;
   }
   .welcome-close-btn {
-    width: 100%; padding: 13px;
+    width: 100%; padding: 14px;
     border-radius: 10px; border: none; cursor: pointer;
-    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
     background: var(--accent); color: #fff;
     transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.01em; min-height: 48px;
   }
   .welcome-close-btn:hover { opacity: 0.88; transform: translateY(-1px); }
   .welcome-exam-badge {
-    display: inline-flex; align-items: center; gap: 6px;
+    display: none; align-items: center; gap: 5px; justify-content: center;
     font-family: 'Inter', sans-serif; font-size: 11px;
-    color: var(--text-3); margin-top: 12px;
+    color: var(--text-3); margin-top: 10px;
   }
+  .welcome-exam-badge.show { display: flex; }
+
   @media (max-width: 480px) {
-    .welcome-box { padding: 24px 18px 20px; }
-    .welcome-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
-    .welcome-stat-num { font-size: 26px; }
-    .welcome-title { font-size: 18px; }
+    .welcome-hero-number { font-size: 64px; }
+    .welcome-hero-label  { font-size: 16px; }
+    .welcome-stat-value  { font-size: 22px; }
+    .welcome-stat        { padding: 12px 14px; }
+    .welcome-greeting    { padding: 14px 16px 0; }
+    .welcome-hero        { padding: 8px 16px 16px; }
+    .welcome-footer      { padding: 12px 16px 16px; }
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -2197,39 +2223,46 @@
 <!-- Welcome Modal -->
 <div class="welcome-overlay" id="welcomeOverlay">
   <div class="welcome-box">
-    <div class="welcome-greeting" id="welcomeGreeting">Bentornato</div>
-    <div class="welcome-title" id="welcomeTitle">Hai <span id="welcomeDays">—</span> giorni all'esame</div>
 
+    <!-- ① Greeting -->
+    <div class="welcome-greeting" id="welcomeGreeting">Bentornato</div>
+
+    <!-- ② Hero: days to exam -->
+    <div class="welcome-hero">
+      <div class="welcome-hero-number good" id="welcomeHeroNumber">—</div>
+      <div class="welcome-hero-label" id="welcomeHeroLabel">giorni al tuo esame</div>
+    </div>
+
+    <!-- ③ Stats: readiness + plan progress -->
     <div class="welcome-stats">
       <div class="welcome-stat">
-        <div class="welcome-stat-num accent" id="welcomeReadiness">—</div>
-        <div class="welcome-stat-label">Livello di preparazione</div>
+        <div class="welcome-stat-label">Preparazione</div>
+        <div class="welcome-stat-value accent" id="welcomeReadiness">—</div>
+        <div class="welcome-mini-track">
+          <div class="welcome-mini-fill" id="welcomeReadinessBar" style="width:0%"></div>
+        </div>
       </div>
       <div class="welcome-stat">
-        <div class="welcome-stat-num" id="welcomeProgress" style="color:var(--text-2)">—</div>
-        <div class="welcome-stat-label">Giornate di studio completate</div>
+        <div class="welcome-stat-label">Piano di studio</div>
+        <div class="welcome-stat-value" id="welcomeProgress" style="color:var(--text-2)">—</div>
+        <div class="welcome-mini-track">
+          <div class="welcome-mini-fill" id="welcomeProgressFill" style="width:0%"></div>
+        </div>
       </div>
     </div>
 
-    <div class="welcome-progress-section">
-      <div class="welcome-progress-label">
-        <span>Avanzamento piano</span>
-        <span id="welcomeProgressPct">0%</span>
+    <!-- ④ Footer: message + CTA -->
+    <div class="welcome-footer">
+      <div class="welcome-message" id="welcomeMessage">
+        Carica le tue fonti e configura l'API key per iniziare la preparazione.
       </div>
-      <div class="welcome-progress-track">
-        <div class="welcome-progress-fill" id="welcomeProgressFill" style="width:0%"></div>
+      <button class="welcome-close-btn" onclick="closeWelcomeModal()">Inizia a studiare →</button>
+      <div class="welcome-exam-badge" id="welcomeExamBadge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="welcomeExamDate"></span>
       </div>
     </div>
 
-    <div class="welcome-message" id="welcomeMessage">
-      Carica le tue fonti e configura l'API key per iniziare la preparazione.
-    </div>
-
-    <button class="welcome-close-btn" onclick="closeWelcomeModal()">Inizia a studiare →</button>
-    <div class="welcome-exam-badge" id="welcomeExamBadge" style="display:none">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span id="welcomeExamDate"></span>
-    </div>
   </div>
 </div>
 
@@ -3229,7 +3262,7 @@ function showWelcomeModal() {
   const overlay = document.getElementById('welcomeOverlay');
   if (!overlay) return;
 
-  // Exam days calculation
+  // ── Exam days calculation ────────────────────────────────────
   const info = getExamInfo();
   let daysLeft = null;
   let examDateStr = '';
@@ -3238,10 +3271,9 @@ function showWelcomeModal() {
     const today = new Date(); today.setHours(0,0,0,0);
     daysLeft = Math.ceil((exam - today) / 86400000);
     const months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
-    examDateStr = `Esame: ${exam.getDate()} ${months[exam.getMonth()]} ${exam.getFullYear()}`;
+    examDateStr = `${exam.getDate()} ${months[exam.getMonth()]} ${exam.getFullYear()}`;
     if (info.subject) examDateStr = `${info.subject} · ` + examDateStr;
   } else {
-    // Try to infer from active plan exam day
     const examDay = getActiveDays().find(d => d.type === 'exam');
     if (examDay?.date) {
       const exam = new Date(examDay.date);
@@ -3250,62 +3282,82 @@ function showWelcomeModal() {
     }
   }
 
-  // Readiness
+  // ── Readiness + progress ──────────────────────────────────────
   const r = calculateGlobalReadiness();
   const readiness = r?.score ?? 0;
   const obj = getObjective();
 
-  // Progress
   const activeDays = getActiveDays();
-  const studyDays = activeDays.filter(d => d.type !== 'rest' && d.type !== 'exam');
-  const done = studyDays.filter(d => state[d.id]?.status === 'done').length;
+  const studyDays  = activeDays.filter(d => d.type !== 'rest' && d.type !== 'exam');
+  const done  = studyDays.filter(d => state[d.id]?.status === 'done').length;
   const total = studyDays.length || 1;
   const progressPct = Math.round((done / total) * 100);
 
-  // Greeting & title
+  // ── ① Greeting ────────────────────────────────────────────────
   document.getElementById('welcomeGreeting').textContent = _greeting();
 
-  const titleEl = document.getElementById('welcomeTitle');
-  const daysEl  = document.getElementById('welcomeDays');
+  // ── ② Hero: days number ───────────────────────────────────────
+  const heroNum   = document.getElementById('welcomeHeroNumber');
+  const heroLabel = document.getElementById('welcomeHeroLabel');
   if (daysLeft === null) {
-    titleEl.innerHTML = 'Bentornato nel tuo <span>piano di studio</span>';
+    heroNum.textContent = '—';
+    heroNum.className   = 'welcome-hero-number good';
+    heroLabel.innerHTML = 'giorni al tuo esame';
   } else if (daysLeft <= 0) {
-    titleEl.innerHTML = 'Oggi è <span>il giorno dell\'esame</span>';
+    heroNum.textContent = '!';
+    heroNum.className   = 'welcome-hero-number urgent';
+    heroLabel.innerHTML = '<strong>Oggi è il giorno dell\'esame</strong>';
   } else if (daysLeft === 1) {
-    titleEl.innerHTML = 'Domani è <span>l\'esame</span>';
+    heroNum.textContent = '1';
+    heroNum.className   = 'welcome-hero-number urgent';
+    heroLabel.innerHTML = '<strong>giorno</strong> al tuo esame';
   } else {
-    titleEl.innerHTML = `Hai <span id="welcomeDays">${daysLeft}</span> giorn${daysLeft === 1 ? 'o' : 'i'} all'esame`;
+    heroNum.textContent = daysLeft;
+    const cls = daysLeft <= 3 ? 'urgent' : daysLeft <= 7 ? 'soon' : 'good';
+    heroNum.className   = `welcome-hero-number ${cls}`;
+    heroLabel.innerHTML = `giorni al tuo esame`;
   }
 
-  // Readiness badge color
-  const readinessEl = document.getElementById('welcomeReadiness');
+  // ── ③ Stats: readiness ────────────────────────────────────────
+  const readinessEl  = document.getElementById('welcomeReadiness');
+  const readinessBar = document.getElementById('welcomeReadinessBar');
   if (readinessEl) {
     readinessEl.textContent = readiness + '%';
     const lv = readiness < 20 ? 'red' : readiness < 45 ? 'orange' : readiness < 75 ? 'accent' : readiness < 88 ? 'green' : 'blue';
-    readinessEl.className = `welcome-stat-num ${lv}`;
+    readinessEl.className = `welcome-stat-value ${lv}`;
+    if (readinessBar) {
+      readinessBar.className = `welcome-mini-fill ${lv === 'accent' ? '' : lv}`.trim();
+      setTimeout(() => { readinessBar.style.width = readiness + '%'; }, 100);
+    }
   }
 
-  // Progress
-  const progEl = document.getElementById('welcomeProgress');
+  // ── ③ Stats: plan progress ────────────────────────────────────
+  const progEl  = document.getElementById('welcomeProgress');
+  const progBar = document.getElementById('welcomeProgressFill');
   if (progEl) {
     progEl.textContent = `${done}/${total}`;
-    progEl.className = `welcome-stat-num ${done === 0 ? 'red' : done === total ? 'green' : 'accent'}`;
+    const lv2 = done === 0 ? 'red' : done === total ? 'green' : 'accent';
+    progEl.className = `welcome-stat-value ${lv2}`;
+    if (progBar) {
+      progBar.className = `welcome-mini-fill ${lv2 === 'accent' ? '' : lv2}`.trim();
+      setTimeout(() => { progBar.style.width = progressPct + '%'; }, 150);
+    }
   }
-  const pctEl  = document.getElementById('welcomeProgressPct');
-  const fillEl = document.getElementById('welcomeProgressFill');
-  if (pctEl)  pctEl.textContent  = progressPct + '%';
-  if (fillEl) setTimeout(() => { fillEl.style.width = progressPct + '%'; }, 80);
 
-  // Message
+  // ── ④ Message ─────────────────────────────────────────────────
   const msgEl = document.getElementById('welcomeMessage');
   if (msgEl) msgEl.textContent = _motivationalMsg(daysLeft, readiness, obj);
 
-  // Exam badge
+  // ── Exam badge ────────────────────────────────────────────────
   const badgeEl   = document.getElementById('welcomeExamBadge');
   const dateLabel = document.getElementById('welcomeExamDate');
-  if (badgeEl && examDateStr) {
-    badgeEl.style.display = 'inline-flex';
-    if (dateLabel) dateLabel.textContent = examDateStr;
+  if (badgeEl) {
+    if (examDateStr) {
+      badgeEl.classList.add('show');
+      if (dateLabel) dateLabel.textContent = examDateStr;
+    } else {
+      badgeEl.classList.remove('show');
+    }
   }
 
   overlay.classList.add('open');
