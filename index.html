@@ -929,14 +929,15 @@
     text-align: center;
     padding: 22px 20px 20px;
   }
-  /* Progress dots */
+  /* Progress segments (looks like a progress bar, not carousel) */
   .session-progress-dots {
     display: flex; align-items: center; justify-content: center;
-    gap: 5px; margin-bottom: 14px; flex-wrap: wrap;
-    max-width: 320px; margin-left: auto; margin-right: auto;
+    gap: 3px; margin-bottom: 8px; flex-wrap: wrap;
+    max-width: 340px; margin-left: auto; margin-right: auto;
   }
   .session-dot {
-    width: 8px; height: 8px; border-radius: 50%;
+    height: 5px; flex: 1 1 18px; max-width: 32px;
+    border-radius: 3px;
     background: var(--border); flex-shrink: 0;
     transition: background 0.3s;
   }
@@ -3588,8 +3589,13 @@ function startDaySession(dayId) {
   const wasStarted = !!state[dayId].sessionStarted;
   state[dayId].sessionStarted = true;
   saveState();
-  timerStart(dayId); // also start/continue timer
-  if (!wasStarted) _renderQsPanel(dayId); // first time: reveal questions
+  timerStart(dayId);
+  // Reveal quiz + gen-q buttons (hidden until session starts)
+  const qzBtn = document.getElementById('quiz-btn-' + dayId);
+  if (qzBtn) qzBtn.style.display = '';
+  const gqWrap = document.getElementById('genq-wrap-' + dayId);
+  if (gqWrap) gqWrap.style.display = '';
+  if (!wasStarted) _renderQsPanel(dayId);
 }
 
 function advanceQuestion(dayId) {
@@ -3880,14 +3886,16 @@ function buildDays() {
           <div class="section-head">
             <span class="section-tag tag-retrieval">retrieval practice</span>
             <span class="section-title">Domande per questa giornata</span>
-            <button class="quiz-launch-btn" onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
+            <button class="quiz-launch-btn" id="quiz-btn-${day.id}"
+              style="${dayState.sessionStarted ? '' : 'display:none'}"
+              onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
               Genera Quiz
             </button>
           </div>
           <div class="section-body">
             <div id="qs-panel-${day.id}"></div>
-            ${genQBtn}
+            <div id="genq-wrap-${day.id}" style="${dayState.sessionStarted ? '' : 'display:none'}">${genQBtn}</div>
             <div class="notes-area" style="margin-top:14px;">
               <label>Note e punti deboli emersi</label>
               <textarea placeholder="Scrivi qui cosa non ricordavi, cosa devi ripassare, concetti da approfondire..." onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
