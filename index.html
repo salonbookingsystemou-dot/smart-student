@@ -4508,9 +4508,9 @@ function startDaySession(dayId) {
   const wasStarted = !!state[dayId].sessionStarted;
   state[dayId].sessionStarted = true;
   saveState();
-  // Show full timer block
+  // Show full timer block (remove any inline display:none set by timerStop)
   const tb = document.getElementById('timer-' + dayId);
-  if (tb) { tb.classList.remove('timer-idle'); tb.classList.add('timer-active'); }
+  if (tb) { tb.style.display = ''; tb.classList.remove('timer-idle'); tb.classList.add('timer-active'); }
   timerStart(dayId);
   // Reveal quiz + gen-q buttons (hidden until session starts)
   const qzBtn = document.getElementById('quiz-btn-' + dayId);
@@ -4946,19 +4946,26 @@ function timerStop(dayId) {
   document.getElementById('timerStopBtn-' + dayId).style.display = 'none';
   var savedEl = document.getElementById('timerSaved-' + dayId);
   if (savedEl) savedEl.textContent = formatSeconds(state[dayId].totalSeconds);
-  // Switch to compact idle bar (shows hours + resume button)
+  // Reset session: go back to pre-session state
+  state[dayId].sessionStarted = false;
+
   var tb = document.getElementById('timer-' + dayId);
   if (tb) {
-    tb.classList.remove('timer-active');
-    if (state[dayId]?.sessionStarted) {
-      tb.classList.add('timer-idle');
-      var resumeBtn = document.getElementById('timerResumeBtn-' + dayId);
-      if (resumeBtn) resumeBtn.style.display = '';
-    }
+    tb.classList.remove('timer-active', 'timer-idle');
+    // Hide timer block entirely — pre-session view has its own hours badge
+    tb.style.display = 'none';
   }
+  // Hide quiz / gen-q buttons (only visible during session)
+  var ql = document.querySelector('#day-' + dayId + ' .quiz-launch-btn');
+  if (ql) ql.style.display = 'none';
+  var gw = document.getElementById('genq-wrap-' + dayId);
+  if (gw) gw.style.display = 'none';
+
   _focusModeOff();
   saveState();
   updateTotalHours();
+  // Rebuild questions panel back to pre-session prompt
+  if (typeof _renderQsPanel === 'function') _renderQsPanel(dayId);
 }
 
 function updateTotalHours() {
