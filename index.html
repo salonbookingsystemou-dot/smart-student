@@ -183,8 +183,8 @@
     white-space: nowrap; flex-shrink: 0;
   }
   .header-app-name-img {
-    /* icon-only PNG; size to match header row */
-    height: 26px; width: auto; object-fit: contain;
+    /* logo-mark.png cropped to 284×152 — icon fills the canvas now */
+    height: 22px; width: auto; object-fit: contain;
     filter: invert(1); flex-shrink: 0;
   }
   [data-theme="light"] .header-app-name-img { filter: none; }
@@ -2386,12 +2386,11 @@
     text-align: center; margin-bottom: 2px;
   }
   .login-logo-img {
-    height: 140px; width: auto; max-width: 280px; object-fit: contain;
-    filter: invert(1); /* dark mode: black logo → white */
+    /* logo-login.png cropped to 509×306 — realistic proportions now */
+    height: 90px; width: auto; max-width: 280px; object-fit: contain;
+    filter: invert(1);
   }
-  [data-theme="light"] .login-logo-img {
-    filter: none;
-  }
+  [data-theme="light"] .login-logo-img { filter: none; }
   .login-sub {
     font-family: 'Inter', sans-serif; font-size: 12px;
     color: var(--text-3); text-align: center; margin-top: -6px;
@@ -2501,7 +2500,8 @@
     display: flex; align-items: center; gap: 8px;
   }
   .ob-logo-img {
-    width: 28px; height: 28px; object-fit: contain;
+    /* logo-mark.png now cropped to 284×152 ratio */
+    height: 20px; width: auto; object-fit: contain;
     filter: invert(1); /* dark mode: black→white */
   }
   [data-theme="light"] .ob-logo-img { filter: none; }
@@ -2986,7 +2986,7 @@
 
     /* Login */
     .login-box { padding: 24px 18px 20px; gap: 12px; }
-    .login-logo-img { height: 110px; }
+    .login-logo-img { height: 72px; }
     .login-input { font-size: 16px; } /* prevents iOS zoom on focus */
 
     /* ── Bigger tap targets for key buttons ── */
