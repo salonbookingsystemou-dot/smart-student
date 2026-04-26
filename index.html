@@ -1997,6 +1997,88 @@
   /* legacy total-hours kept for JS references */
   .total-hours-value { font-family: 'Inter', monospace; font-size: 13px; color: var(--text-1); }
 
+  /* ── Coach feedback modal ─────────────────────────────────── */
+  .coach-overlay {
+    position: fixed; inset: 0; z-index: 8500;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding: 0 16px 90px; /* above mobile bottom nav */
+    pointer-events: none;
+  }
+  .coach-modal {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 22px 16px;
+    max-width: 420px; width: 100%;
+    box-shadow: 0 16px 56px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08);
+    pointer-events: auto;
+    transform: translateY(28px);
+    opacity: 0;
+    transition: opacity 0.32s cubic-bezier(.22,1,.36,1), transform 0.32s cubic-bezier(.22,1,.36,1);
+    position: relative; overflow: hidden;
+  }
+  .coach-modal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Grade color accents */
+  .coach-modal.grade-ottimo  { border-color: var(--done-border); }
+  .coach-modal.grade-buono   { border-color: #7dcea0; }
+  .coach-modal.grade-parziale{ border-color: #d4ac0d; }
+  .coach-modal.grade-insuff  { border-color: #85929e; }
+
+  .coach-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .coach-dots { display: flex; gap: 5px; align-items: center; }
+  .coach-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--border); transition: background 0.2s;
+  }
+  .coach-dot.ottimo  { background: var(--done-text); }
+  .coach-dot.buono   { background: #27ae60; }
+  .coach-dot.parziale{ background: #d4ac0d; }
+  .coach-dot.insuff  { background: #85929e; }
+
+  .coach-grade-label {
+    font-family: 'Inter', monospace; font-size: 9px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;
+    padding: 3px 9px; border-radius: 20px;
+  }
+  .coach-grade-label.ottimo  { background: var(--done-bg);    color: var(--done-text); }
+  .coach-grade-label.buono   { background: #eafaf1;           color: #1e8449; }
+  .coach-grade-label.parziale{ background: #fef9e7;           color: #d4ac0d; }
+  .coach-grade-label.insuff  { background: var(--surface2);   color: #85929e; }
+  [data-theme="dark"] .coach-grade-label.buono    { background: #1a3d2b; color: #7dcea0; }
+  [data-theme="dark"] .coach-grade-label.parziale { background: #3d3100; color: #f4d03f; }
+
+  .coach-headline {
+    font-size: 1.25rem; font-weight: 700;
+    color: var(--text); line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .coach-body {
+    font-size: 13px; color: var(--text-2);
+    line-height: 1.65; margin-bottom: 16px;
+  }
+  .coach-cta {
+    width: 100%; padding: 12px; border: none; border-radius: 10px;
+    background: var(--accent); color: #fff;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    font-family: 'Inter', sans-serif; letter-spacing: -0.01em;
+    transition: opacity 0.15s;
+  }
+  .coach-cta:hover { opacity: 0.88; }
+
+  /* Countdown progress bar at the very bottom of the modal */
+  .coach-timer-bar {
+    position: absolute; bottom: 0; left: 0;
+    height: 3px; border-radius: 0 0 18px 18px;
+    background: var(--accent); opacity: 0.35;
+    width: 100%;
+    transition: width 5s linear;
+  }
+  .coach-timer-bar.run { width: 0%; }
+
   /* ── Login screen ─────────────────────────────────────────── */
   #loginScreen {
     position: fixed; inset: 0; z-index: 99999;
@@ -4420,6 +4502,115 @@ function updateApiIndicator() {
   }
 }
 
+// ── Coach feedback modal ───────────────────────────────────────
+const _COACH_MSGS = {
+  ottimo: [
+    { headline: 'Eccellente', body: 'Risposta precisa e completa. Hai dimostrato comprensione profonda, non semplice memorizzazione — è esattamente questo che l\'esaminatore percepisce.' },
+    { headline: 'Questo è il livello', body: 'Memorizza questa sensazione: è quello che vuoi replicare il giorno dell\'esame. Avanti con la stessa chiarezza.' },
+    { headline: 'Hai davvero capito', body: 'Non stai ripetendo concetti — li stai applicando. Questa è la differenza tra chi supera l\'esame e chi lo eccelle.' },
+  ],
+  buono: [
+    { headline: 'Bene fatto', body: 'Hai colto l\'essenziale. Qualche dettaglio in più separa questa risposta da una perfetta. Rileggi il feedback per affinare.' },
+    { headline: 'Solida', body: 'La struttura è corretta. Concentrati sulle sfumature evidenziate — poi questo argomento è completamente tuo.' },
+    { headline: 'Quasi perfetta', body: 'Ottima base. Piccoli affinamenti e la porti al livello successivo. Sei esattamente sulla strada giusta.' },
+  ],
+  parziale: [
+    { headline: 'Quasi — ma non ancora', body: 'Sai di cosa si tratta, ma la risposta manca di completezza. Dieci minuti di ripasso stasera chiuderanno questo gap.' },
+    { headline: 'Direzione giusta, precisione da migliorare', body: 'Identifica esattamente cosa ti è mancato e aggiungi quel dettaglio specifico al prossimo studio. Il percorso è corretto.' },
+    { headline: 'Non basta per l\'esame', body: 'Serve più precisione. Hai i concetti base — affina la terminologia e la struttura. Non scoraggiarti: è un lavoro di calibrazione.' },
+  ],
+  insuff: [
+    { headline: 'Gap identificato', body: 'Hai trovato un punto debole — è esattamente a questo che servono questi esercizi. Meglio ora che il 12 maggio. Torna su questo materiale.' },
+    { headline: 'Questo argomento richiede lavoro', body: 'Informazione preziosa: segnalo nelle note e affrontalo prima di procedere. La preparazione seria parte da qui.' },
+    { headline: 'Ogni gap di oggi è un punto guadagnato domani', body: 'Non ci sei ancora su questo punto. Rileggi il materiale specifico — non tutto, solo questo argomento. Poi rifai la domanda.' },
+  ],
+};
+
+let _coachDismissTimer = null;
+let _coachAdvanceFn   = null;
+
+function _showCoachModal(grade, score, advanceFn) {
+  // Resolve message pool
+  const key = score === 5 ? 'ottimo' : score === 4 ? 'buono' : score <= 1 ? 'insuff' : 'parziale';
+  const msgs = _COACH_MSGS[key];
+  const msg  = msgs[Math.floor(Math.random() * msgs.length)];
+
+  // Grade display config
+  const cfg = {
+    ottimo:  { label: 'OTTIMO',        cls: 'ottimo',   cta: 'Avanti →' },
+    buono:   { label: 'BUONO',         cls: 'buono',    cta: 'Avanti →' },
+    parziale:{ label: 'PARZIALE',      cls: 'parziale', cta: 'Continua →' },
+    insuff:  { label: 'INSUFFICIENTE', cls: 'insuff',   cta: 'Ho capito →' },
+  }[key];
+
+  const dots = Array.from({length: 5}, (_, i) =>
+    `<span class="coach-dot${i < score ? ' ' + cfg.cls : ''}"></span>`
+  ).join('');
+
+  // Build overlay
+  let overlay = document.getElementById('coachOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'coachOverlay';
+    overlay.className = 'coach-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  overlay.innerHTML = `
+    <div class="coach-modal grade-${cfg.cls}" id="coachModal">
+      <div class="coach-top">
+        <div class="coach-dots">${dots}</div>
+        <span class="coach-grade-label ${cfg.cls}">${cfg.label}</span>
+      </div>
+      <div class="coach-headline">${msg.headline}</div>
+      <div class="coach-body">${msg.body}</div>
+      <button class="coach-cta" onclick="_coachCtaClick()">${cfg.cta}</button>
+      <div class="coach-timer-bar" id="coachTimerBar"></div>
+    </div>`;
+
+  _coachAdvanceFn = advanceFn || null;
+
+  // Animate in
+  requestAnimationFrame(() => {
+    const m = document.getElementById('coachModal');
+    if (m) {
+      m.classList.add('visible');
+      // Trigger countdown bar
+      setTimeout(() => {
+        const bar = document.getElementById('coachTimerBar');
+        if (bar) bar.classList.add('run');
+      }, 80);
+    }
+  });
+
+  // Auto-dismiss after 5s (without advancing)
+  clearTimeout(_coachDismissTimer);
+  _coachDismissTimer = setTimeout(() => _dismissCoachModal(false), 5000);
+}
+
+function _coachCtaClick() {
+  _dismissCoachModal(true); // true = also advance
+}
+
+function _dismissCoachModal(advance) {
+  clearTimeout(_coachDismissTimer);
+  const modal = document.getElementById('coachModal');
+  if (modal) {
+    modal.classList.remove('visible');
+    setTimeout(() => {
+      const overlay = document.getElementById('coachOverlay');
+      if (overlay) overlay.innerHTML = '';
+    }, 350);
+  }
+  if (advance && _coachAdvanceFn) {
+    const fn = _coachAdvanceFn;
+    _coachAdvanceFn = null;
+    setTimeout(fn, 120); // slight delay so modal exit animates first
+  } else {
+    _coachAdvanceFn = null;
+  }
+}
+
 async function verifyAnswer(dayId, qIdx, questionText, qType) {
   const apiKey = localStorage.getItem('anthropic_api_key');
   if (!apiKey) {
@@ -4442,15 +4633,23 @@ async function verifyAnswer(dayId, qIdx, questionText, qType) {
   feedbackEl.className = 'q-feedback loading visible';
   feedbackEl.innerHTML = '<div class="q-feedback-label">Claude sta valutando...</div>';
 
-  const systemPrompt = `Sei un tutor universitario esperto di psicologia cognitiva che valuta le risposte degli studenti. 
+  const systemPrompt = `Sei un coach universitario esperto di Psicologia Cognitiva. Il tuo ruolo non è solo valutare — è far crescere lo studente.
 Il corso è "Psicologia Cognitiva" della Prof. Laura Serra (UNINETTUNO).
-Valuta la risposta dello studente in modo critico ma costruttivo.
 Rispondi SEMPRE in italiano.
-Struttura la tua risposta così:
-1. Una riga con SOLO il giudizio: OTTIMO / BUONO / PARZIALE / INSUFFICIENTE
-2. Poi 2-4 frasi di feedback specifico: cosa è corretto, cosa manca, cosa è impreciso.
-3. Se mancano concetti chiave, elencali brevemente.
-Sii preciso e diretto. Non essere eccessivamente indulgente.`;
+
+Struttura la risposta così:
+1. Prima riga: SOLO il giudizio: OTTIMO / BUONO / PARZIALE / INSUFFICIENTE
+2. 2-4 frasi di feedback chirurgico: cosa è corretto (con precisione), cosa manca (specifica il concetto esatto), cosa è impreciso (perché è sbagliato).
+3. Se mancano concetti chiave, elencali in modo conciso.
+
+Tono da mantenere:
+- Per OTTIMO: riconosci l'eccellenza in modo specifico — non essere vago. Indica cosa rende la risposta davvero buona.
+- Per BUONO: celebra senza compiacere. Indica chiaramente il delta tra questa risposta e la perfezione.
+- Per PARZIALE: sii diretto e propositivo. Indica esattamente il gap e come colmarlo. Niente giri di parole.
+- Per INSUFFICIENTE: non demolire, ma non edulcorare. Il fallimento è informazione utile — aiuta a capire perché e cosa fare subito.
+
+Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, motivante.`;
+
 
   const userPrompt = `Domanda (tipo: ${qType}): ${questionText}\n\nRisposta dello studente: ${answer}`;
 
@@ -4524,12 +4723,11 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
     renderReadinessPanel();
     _autoSetStatus(dayId); // may promote to 'done' if all questions verified
 
-    // Determine if there are more questions to advance to
+    // Show coach modal with CTA that also advances the question
     const _qListNow = (state[dayId]?.aiQuestions) ||
       (getActiveDays().find(d => d.id === dayId)?.questions) || [];
     const _nextIdx = _nextUnverifiedIdx(dayId, _qListNow);
-    const _advLabel = _nextIdx === -1 ? 'Mostra riepilogo →' : 'Prossima domanda →';
-    feedbackEl.innerHTML += `<button class="q-advance-btn" onclick="advanceQuestion('${dayId}')">${_advLabel}</button>`;
+    _showCoachModal(grade, score, () => advanceQuestion(dayId));
 
   } catch(err) {
     feedbackEl.className = 'q-feedback poor visible';
