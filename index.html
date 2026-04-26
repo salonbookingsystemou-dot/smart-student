@@ -2038,6 +2038,7 @@
     pointer-events: none; opacity: 0.3;
   }
   body.focus-mode .api-indicator,
+  body.focus-mode .sync-chip { display: none; }
   body.focus-mode .sources-btn {
     pointer-events: none; opacity: 0.3;
     cursor: not-allowed;
@@ -2227,12 +2228,28 @@
   }
   .login-mode-toggle a:hover { text-decoration: underline; }
 
-  /* Cloud sync status dot (header) */
+  /* Cloud sync chip (header) */
+  .sync-chip {
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 9px; border-radius: 20px;
+    background: var(--surface2); border: 1px solid var(--border);
+    cursor: default; font-family: 'Inter', sans-serif;
+    transition: border-color 0.3s;
+  }
+  .sync-chip:has(.sync-status-dot.synced)  { border-color: #27ae6044; }
+  .sync-chip:has(.sync-status-dot.error)   { border-color: #e74c3c44; }
+  .sync-chip-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-3);
+    transition: color 0.3s;
+  }
+  .sync-chip:has(.sync-status-dot.synced) .sync-chip-label  { color: #27ae60; }
+  .sync-chip:has(.sync-status-dot.syncing) .sync-chip-label { color: #f39c12; }
+  .sync-chip:has(.sync-status-dot.error) .sync-chip-label   { color: #e74c3c; }
   .sync-status-dot {
-    width: 7px; height: 7px; border-radius: 50%;
+    width: 6px; height: 6px; border-radius: 50%;
     background: var(--border); flex-shrink: 0;
     transition: background 0.4s;
-    title: 'Sincronizzazione cloud';
   }
   .sync-status-dot.synced  { background: #27ae60; }
   .sync-status-dot.syncing { background: #f39c12; animation: sync-pulse 1s ease-in-out infinite; }
@@ -2540,6 +2557,7 @@
     .api-indicator { padding: 5px 10px; font-size: 12px; flex-shrink: 0; }
     .sources-btn { padding: 5px 10px; font-size: 12px; flex-shrink: 0; }
     .theme-switch { scale: 0.9; flex-shrink: 0; margin-left: auto; }
+    .sync-chip { display: none; } /* hidden on mobile — saves space */
 
     /* ── Layout: single column ── */
     .layout {
@@ -2825,9 +2843,12 @@
   <!-- Action buttons -->
   <div class="header-actions">
     <div class="focus-indicator" id="focusIndicator" title="Sessione di studio in corso — metti in pausa per navigare"><span class="focus-dot"></span>Focus</div>
-    <span class="sync-status-dot" id="syncStatusDot" title="Sincronizzazione cloud"></span>
     <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ <span class="api-label" id="apiLabel">API</span></button>
     <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 <span class="sources-label">Fonti</span><span id="sourcesCount" style="display:none"></span></button>
+    <div class="sync-chip" id="syncChip" title="Sincronizzazione cloud">
+      <span class="sync-status-dot" id="syncStatusDot"></span>
+      <span class="sync-chip-label" id="syncChipLabel">Sync</span>
+    </div>
     <button class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;">↪ Esci</button>
     <div class="theme-switch" onclick="toggleTheme()" title="Cambia tema">
       <div class="theme-track"><div class="theme-thumb"></div></div>
@@ -3101,15 +3122,17 @@
     }
   };
 
-  /* ── Sync dot helper ── */
-  function _syncDot(state) { // 'synced' | 'syncing' | 'error' | ''
-    const dot = document.getElementById('syncStatusDot');
+  /* ── Sync chip helper ── */
+  function _syncDot(st) { // 'synced' | 'syncing' | 'error' | ''
+    const dot   = document.getElementById('syncStatusDot');
+    const label = document.getElementById('syncChipLabel');
+    const chip  = document.getElementById('syncChip');
     if (!dot) return;
-    dot.className = 'sync-status-dot' + (state ? ' ' + state : '');
-    dot.title = state === 'synced'  ? 'Dati sincronizzati ✓'
-              : state === 'syncing' ? 'Sincronizzazione in corso…'
-              : state === 'error'   ? 'Errore sincronizzazione'
-              : '';
+    dot.className = 'sync-status-dot' + (st ? ' ' + st : '');
+    const titles = { synced:'Dati sincronizzati ✓', syncing:'Sincronizzazione…', error:'Errore sync' };
+    const labels = { synced:'Sync ✓', syncing:'Sync…', error:'Sync ✗' };
+    if (chip)  chip.title  = titles[st] || 'Cloud sync';
+    if (label) label.textContent = labels[st] || 'Sync';
   }
 
   /* ── Reveal body (removes anti-FOUC visibility:hidden) ── */
