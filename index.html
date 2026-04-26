@@ -3118,9 +3118,10 @@
   async function _loadFromSupabase(userId) {
     if (!_sb) return false;
     try {
+      // Only select columns guaranteed to exist in the schema
       const { data, error } = await _sb
         .from('user_data')
-        .select('psico_state,psico_sources,psico_exam_info,psico_ai_plan,psico_objective,api_key')
+        .select('psico_state,psico_sources,psico_exam_info,psico_ai_plan,psico_objective')
         .eq('user_id', userId)
         .single();
 
@@ -3128,15 +3129,36 @@
         console.warn('[Supabase] Load error:', error.message);
         return false;
       }
-      if (!data) return false; // new user
+      if (!data) return false; // new user — nothing to restore
 
       let loaded = false;
-      if (data.psico_state)     { localStorage.setItem('psico_state',     JSON.stringify(data.psico_state));     loaded = true; }
-      if (data.psico_sources)   { localStorage.setItem('psico_sources',   JSON.stringify(data.psico_sources));   loaded = true; }
-      if (data.psico_exam_info) { localStorage.setItem('psico_exam_info', JSON.stringify(data.psico_exam_info)); loaded = true; }
-      if (data.psico_ai_plan)   { localStorage.setItem('psico_ai_plan',   JSON.stringify(data.psico_ai_plan));   loaded = true; }
-      if (data.psico_objective) { localStorage.setItem('psico_objective', data.psico_objective);                 loaded = true; }
-      if (data.api_key)         { localStorage.setItem('anthropic_api_key', data.api_key);                       loaded = true; }
+
+      // API key is piggybacked inside psico_state as __apiKey
+      if (data.psico_state) {
+        const s = data.psico_state;
+        if (s.__apiKey) {
+          localStorage.setItem('anthropic_api_key', s.__apiKey);
+          delete s.__apiKey; // strip before writing to state storage
+        }
+        localStorage.setItem('psico_state', JSON.stringify(s));
+        loaded = true;
+      }
+      if (data.psico_sources && Array.isArray(data.psico_sources) && data.psico_sources.length) {
+        localStorage.setItem('psico_sources',   JSON.stringify(data.psico_sources));
+        loaded = true;
+      }
+      if (data.psico_exam_info && Object.keys(data.psico_exam_info).length) {
+        localStorage.setItem('psico_exam_info', JSON.stringify(data.psico_exam_info));
+        loaded = true;
+      }
+      if (data.psico_ai_plan) {
+        localStorage.setItem('psico_ai_plan',   JSON.stringify(data.psico_ai_plan));
+        loaded = true;
+      }
+      if (data.psico_objective) {
+        localStorage.setItem('psico_objective', data.psico_objective);
+        loaded = true;
+      }
 
       return loaded;
     } catch(e) {
@@ -3157,14 +3179,18 @@
       try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
     }
 
+    // Piggyback API key inside psico_state so no extra DB column needed
+    const statePayload = _parseLS('psico_state') || {};
+    const apiKey = localStorage.getItem('anthropic_api_key');
+    if (apiKey) statePayload.__apiKey = apiKey;
+
     const payload = {
       user_id:         session.user.id,
-      psico_state:     _parseLS('psico_state')     || {},
+      psico_state:     statePayload,
       psico_sources:   _parseLS('psico_sources')   || [],
       psico_exam_info: _parseLS('psico_exam_info') || {},
       psico_ai_plan:   _parseLS('psico_ai_plan'),
       psico_objective: localStorage.getItem('psico_objective') || 'pass',
-      api_key:         localStorage.getItem('anthropic_api_key') || null,
       updated_at:      new Date().toISOString()
     };
 
