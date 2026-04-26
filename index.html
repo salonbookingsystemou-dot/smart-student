@@ -2395,9 +2395,42 @@
       color: var(--text-2); cursor: pointer;
       display: flex; align-items: center; gap: 4px;
       flex-shrink: 0; min-height: 44px;
+      position: relative;
     }
     .mobile-nav-btn:hover { background: rgba(127,127,127,0.1); }
     .mobile-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+    /* Tooltip above the Succ. button */
+    .nav-session-tooltip {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      right: 0;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      white-space: nowrap;
+      padding: 8px 14px;
+      border-radius: 8px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      z-index: 200;
+    }
+    .nav-session-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%; right: 18px;
+      border: 6px solid transparent;
+      border-top-color: var(--text);
+    }
+    .nav-session-tooltip.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
     .mobile-day-label {
       flex: 1; text-align: center;
       font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
@@ -5805,11 +5838,41 @@ function updateMobileDayNav(currentId) {
   if (nextBtn) nextBtn.disabled = idx === active.length - 1;
 }
 
+function _showNavTooltip(msg) {
+  const btn = document.getElementById('mobileNextBtn');
+  if (!btn) return;
+  let tip = btn.querySelector('.nav-session-tooltip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.className = 'nav-session-tooltip';
+    btn.appendChild(tip);
+  }
+  tip.textContent = msg;
+  requestAnimationFrame(() => tip.classList.add('visible'));
+  clearTimeout(tip._hideTimer);
+  tip._hideTimer = setTimeout(() => {
+    tip.classList.remove('visible');
+  }, 2800);
+}
+
 function mobileNavDay(dir) {
   const active = getActiveDays();
   const cur = document.querySelector('.day-nav-item.active');
   const curId = cur?.dataset.id;
   let idx = curId ? active.findIndex(d => d.id === curId) : 0;
+
+  // Forward navigation: warn if current study day has an open (partial) session
+  if (dir === 1 && curId) {
+    const curDay   = active[idx];
+    const curState = state[curId] || {};
+    const isStudy  = curDay && curDay.type !== 'rest' && curDay.type !== 'exam';
+    const isPartial = isStudy && curState.sessionStarted && curState.status !== 'done' && curState.status !== 'skip';
+    if (isPartial) {
+      _showNavTooltip('Completa prima questa sessione');
+      return;
+    }
+  }
+
   // Walk in dir until we find an unlocked day
   let steps = 0;
   while (steps < active.length) {
