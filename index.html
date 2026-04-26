@@ -484,30 +484,33 @@
     font-weight: 500;
   }
 
-  .status-buttons {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
+  /* Auto-computed day status row */
+  .day-status-row {
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;
   }
 
-  .status-btn {
+  .day-status-badge {
     font-family: 'Inter', monospace;
-    font-size: 10px;
-    padding: 5px 10px;
-    border-radius: 3px;
-    border: 1px solid var(--border);
-    background: none;
-    color: var(--text-2);
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    transition: all 0.15s;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 4px 10px; border-radius: 3px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
   }
+  .day-status-badge.none { display: none; }
+  .day-status-badge.done    { background: var(--done-bg);    border-color: var(--done-border);    color: var(--done-text); }
+  .day-status-badge.partial { background: var(--partial-bg); border-color: var(--partial-border); color: var(--partial-text); }
+  .day-status-badge.skip    { background: var(--skip-bg);    border-color: var(--skip-border);    color: var(--skip-text); }
 
-  .status-btn:hover { border-color: var(--text-2); color: var(--text); }
-  .status-btn.done { background: var(--done-bg); border-color: var(--done-border); color: var(--done-text); }
-  .status-btn.partial { background: var(--partial-bg); border-color: var(--partial-border); color: var(--partial-text); }
-  .status-btn.skip { background: var(--skip-bg); border-color: var(--skip-border); color: var(--skip-text); }
+  .day-skip-btn {
+    font-size: 10px; font-family: 'Inter', sans-serif;
+    color: var(--text-3); background: none; border: none;
+    cursor: pointer; text-decoration: underline;
+    text-underline-offset: 2px; padding: 0;
+    letter-spacing: 0.01em; transition: color 0.15s;
+  }
+  .day-skip-btn:hover { color: var(--skip-text); }
 
   .section-card {
     background: var(--surface);
@@ -3306,6 +3309,7 @@ function saveAnswer(dayId, qIdx, value) {
   state[dayId].answers[qIdx] = value;
   saveState();
   renderDayReadiness(dayId);
+  _autoSetStatus(dayId);
 }
 
 function _syncVerifyBtn(dayId, qIdx, value) {
@@ -4010,9 +4014,9 @@ function buildDays() {
           ${isAiQ ? '✦ Rigenera domande dalle fonti' : '✦ Genera domande dalle fonti'}
         </button>` : '';
 
-      const statusDone = dayState.status === 'done' ? 'done' : '';
-      const statusPartial = dayState.status === 'partial' ? 'partial' : '';
-      const statusSkip = dayState.status === 'skip' ? 'skip' : '';
+      const _statusLabel = { done: '✓ Completata', partial: '◑ In corso', skip: '✗ Saltata' };
+      const _curStatus   = dayState.status || 'none';
+      const _skipBtnTxt  = dayState.status === 'skip' ? '↩ Annulla skip' : 'Salta giornata';
 
       block.innerHTML = `
         <div class="day-header">
@@ -4021,10 +4025,9 @@ function buildDays() {
             <div class="day-name"><span>${day.title}</span></div>
             <div class="day-subtitle">${day.subtitle}</div>
           </div>
-          <div class="status-buttons">
-            <button class="status-btn ${statusDone}" onclick="setStatus('${day.id}','done',this)">✓ Fatto</button>
-            <button class="status-btn ${statusPartial}" onclick="setStatus('${day.id}','partial',this)">◑ Parziale</button>
-            <button class="status-btn ${statusSkip}" onclick="setStatus('${day.id}','skip',this)">✗ Saltato</button>
+          <div class="day-status-row">
+            <span class="day-status-badge ${_curStatus}" id="statusBadge-${day.id}">${_statusLabel[_curStatus] || ''}</span>
+            <button class="day-skip-btn" id="skipBtn-${day.id}" onclick="toggleSkip('${day.id}')">${_skipBtnTxt}</button>
           </div>
         </div>
         <div class="timer-block" id="timer-${day.id}">
@@ -4106,6 +4109,7 @@ function timerStart(dayId) {
   document.getElementById('timerPauseBtn-' + dayId).style.display = '';
   document.getElementById('timerStopBtn-' + dayId).style.display = '';
   _focusModeOn();
+  _autoSetStatus(dayId);
 }
 
 function timerTick(dayId) {
@@ -4207,20 +4211,84 @@ function toggleCheck(dayId, idx, el) {
   saveState();
 }
 
-function setStatus(dayId, status, btn) {
-  if (!state[dayId]) state[dayId] = {};
-  state[dayId].status = status;
-  const btns = btn.parentElement.querySelectorAll('.status-btn');
-  btns.forEach(b => b.classList.remove('done','partial','skip'));
-  btn.classList.add(status);
+// ── Auto-status system ─────────────────────────────────────────
+const _STATUS_LABEL = { done: '✓ Completata', partial: '◑ In corso', skip: '✗ Saltata' };
+
+function _autoSetStatus(dayId) {
+  const day = getActiveDays().find(d => d.id === dayId);
+  if (!day || day.type === 'rest' || day.type === 'exam') return;
+  const ds = state[dayId] || {};
+  // Never override an explicit manual skip
+  if (ds.status === 'skip') return;
+
+  const qList = (ds.aiQuestions && ds.aiQuestions.length > 0)
+    ? ds.aiQuestions : (day.questions || []);
+  const qCount = qList.length;
+  const feedbacks    = ds.feedbacks || {};
+  const answers      = ds.answers   || {};
+  const verifiedCount = Object.keys(feedbacks).length;
+  const answeredCount = Object.keys(answers).filter(k => (answers[k] || '').trim().length >= 20).length;
+
+  let newStatus = ds.status || null;
+  if (qCount > 0 && verifiedCount >= qCount) {
+    newStatus = 'done';
+  } else if (verifiedCount > 0 || answeredCount > 0 || ds.sessionStarted || (ds.totalSeconds || 0) > 60) {
+    newStatus = 'partial';
+  } else {
+    newStatus = null;
+  }
+
+  if (newStatus !== (ds.status || null)) {
+    if (!state[dayId]) state[dayId] = {};
+    if (newStatus) state[dayId].status = newStatus;
+    else delete state[dayId].status;
+    _updateDayStatusDisplay(dayId);
+    _syncNavStatus(dayId, newStatus);
+  }
+}
+
+function _updateDayStatusDisplay(dayId) {
+  const ds     = state[dayId] || {};
+  const status = ds.status || 'none';
+  const badge  = document.getElementById('statusBadge-' + dayId);
+  const skipBtn = document.getElementById('skipBtn-' + dayId);
+  if (badge) {
+    badge.className = 'day-status-badge ' + status;
+    badge.textContent = _STATUS_LABEL[status] || '';
+  }
+  if (skipBtn) {
+    skipBtn.textContent = status === 'skip' ? '↩ Annulla skip' : 'Salta giornata';
+  }
+}
+
+function _syncNavStatus(dayId, status) {
   const navItem = document.querySelector('[data-id="' + dayId + '"]');
-  if (navItem) {
-    navItem.classList.remove('status-done','status-partial','status-skip');
-    navItem.classList.add('status-' + status);
+  if (!navItem) return;
+  navItem.classList.remove('status-done', 'status-partial', 'status-skip');
+  if (status) navItem.classList.add('status-' + status);
+  _refreshNavLocks();
+}
+
+function toggleSkip(dayId) {
+  if (!state[dayId]) state[dayId] = {};
+  if (state[dayId].status === 'skip') {
+    delete state[dayId].status;
+    _autoSetStatus(dayId); // recompute from actual work
+  } else {
+    state[dayId].status = 'skip';
+    _updateDayStatusDisplay(dayId);
+    _syncNavStatus(dayId, 'skip');
   }
   saveState();
-  // Refresh lock states across all nav items
-  _refreshNavLocks();
+}
+
+// Legacy internal helper (no longer tied to buttons)
+function setStatus(dayId, status) {
+  if (!state[dayId]) state[dayId] = {};
+  state[dayId].status = status;
+  _updateDayStatusDisplay(dayId);
+  _syncNavStatus(dayId, status);
+  saveState();
 }
 
 function _refreshNavLocks() {
@@ -4391,6 +4459,7 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
     saveState();
     renderDayReadiness(dayId);
     renderReadinessPanel();
+    _autoSetStatus(dayId); // may promote to 'done' if all questions verified
 
     // Determine if there are more questions to advance to
     const _qListNow = (state[dayId]?.aiQuestions) ||
@@ -5022,6 +5091,13 @@ updateProgress();
 updateTotalHours();
 updateApiIndicator();
 renderReadinessPanel();
+// Recompute auto-status for all study days based on actual work done
+(function() {
+  getActiveDays().forEach(d => {
+    if (d.type !== 'rest' && d.type !== 'exam') _autoSetStatus(d.id);
+  });
+  _refreshNavLocks();
+})();
 // Show first day of active plan (hardcoded or AI-generated)
 (function() {
   const active = getActiveDays();
