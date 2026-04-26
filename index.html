@@ -178,19 +178,16 @@
 
   /* Brand zone */
   .header-app-name {
-    display: flex; align-items: center; gap: 6px;
-    white-space: nowrap; flex-shrink: 0; line-height: 1;
+    display: flex; align-items: center;
+    white-space: nowrap; flex-shrink: 0;
   }
   .header-app-name-img {
-    width: 22px; height: 22px; object-fit: contain;
-    filter: invert(1); flex-shrink: 0; /* dark mode: black→white */
+    /* "Affiancato" wordmark logo – sized to fit comfortably in the 48px header */
+    height: 28px; width: auto; object-fit: contain;
+    filter: invert(1); flex-shrink: 0; /* dark mode: black JPEG → white */
   }
   [data-theme="light"] .header-app-name-img { filter: none; mix-blend-mode: multiply; }
-  .header-app-name-text {
-    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800;
-    letter-spacing: -0.04em; color: var(--text-1);
-  }
-  .header-app-name-text span { color: var(--accent); }
+  .header-app-name-text { display: none; } /* text hidden; logo image already contains it */
 
   /* Sources count badge */
   .sources-count-badge {
@@ -3062,8 +3059,7 @@
   <!-- Brand -->
   <div class="header-brand">
     <div class="header-app-name">
-      <img class="header-app-name-img" src="logo-mark.png" alt="" onerror="this.style.display='none'">
-      <span class="header-app-name-text">Mne<span>sti</span></span>
+      <img class="header-app-name-img" src="logo-full.png" alt="Mnesti" onerror="this.style.display='none'">
     </div>
     <h1 id="headerTitle">Psicologia Cognitiva — Prof. Serra</h1>
   </div>
