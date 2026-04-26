@@ -3062,7 +3062,13 @@
 
   /* ── Init client ── */
   const _sb = window.supabase
-    ? window.supabase.createClient(SB_URL, SB_KEY)
+    ? window.supabase.createClient(SB_URL, SB_KEY, {
+        auth: {
+          detectSessionInUrl: true,   // picks up #access_token from confirmation emails
+          persistSession: true,
+          autoRefreshToken: true
+        }
+      })
     : null;
 
   if (!_sb) {
@@ -3291,12 +3297,14 @@
       console.warn('[Supabase] Session check failed:', e);
     }
 
-    // Listen for auth state changes (e.g. token refresh, logout from another tab)
+    // Listen for auth state changes (token refresh, logout, email confirmation)
     _sb.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         location.reload();
+      } else if (event === 'SIGNED_IN' && session && !_bootstrapped) {
+        // Fires when user lands on the page after clicking confirmation email link
+        _loadFromSupabase(session.user.id).then(() => _bootstrap(session, true));
       } else if (event === 'TOKEN_REFRESHED' && session) {
-        // Silently re-sync on token refresh
         window._syncToSupabase();
       }
     });
