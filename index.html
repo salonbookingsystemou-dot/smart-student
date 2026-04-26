@@ -15,6 +15,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<!-- Favicon fallback -->
+<link rel="shortcut icon" href="logo-mark.png">
 
 <!-- Anti-FOUC: everything hidden until auth is resolved -->
 <style>body { visibility: hidden; }</style>
@@ -176,11 +178,19 @@
 
   /* Brand zone */
   .header-app-name {
-    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800;
-    letter-spacing: -0.04em; color: var(--text-1); line-height: 1;
-    white-space: nowrap; flex-shrink: 0;
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; flex-shrink: 0; line-height: 1;
   }
-  .header-app-name span { color: var(--accent); }
+  .header-app-name-img {
+    width: 22px; height: 22px; object-fit: contain;
+    mix-blend-mode: multiply; flex-shrink: 0;
+  }
+  [data-theme="dark"] .header-app-name-img { filter: invert(1); mix-blend-mode: normal; }
+  .header-app-name-text {
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 800;
+    letter-spacing: -0.04em; color: var(--text-1);
+  }
+  .header-app-name-text span { color: var(--accent); }
 
   /* Sources count badge */
   .sources-count-badge {
@@ -2370,11 +2380,32 @@
     display: flex; flex-direction: column; gap: 20px;
   }
   .login-logo {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    text-align: center;
+  }
+  .login-logo-img {
+    width: 72px; height: 72px; object-fit: contain;
+    /* Black logo on white/light bg: multiply makes transparent areas disappear */
+    mix-blend-mode: multiply;
+  }
+  [data-theme="dark"] .login-logo-img {
+    /* On dark bg: invert so black logo becomes white */
+    filter: invert(1);
+    mix-blend-mode: normal;
+  }
+  .login-logo-wordmark {
+    font-family: 'Inter', sans-serif; font-size: 26px;
+    font-weight: 800; letter-spacing: -0.04em;
+    color: var(--text-1);
+  }
+  .login-logo-wordmark span { color: var(--accent); }
+  /* Fallback text logo (shown if image fails) */
+  .login-logo-text {
     font-family: 'Inter', sans-serif; font-size: 28px;
     font-weight: 700; letter-spacing: -0.04em;
-    color: var(--text-1); text-align: center;
+    color: var(--text-1);
   }
-  .login-logo span { color: var(--accent); }
+  .login-logo-text span { color: var(--accent); }
   .login-sub {
     font-family: 'Inter', sans-serif; font-size: 12px;
     color: var(--text-3); text-align: center; margin-top: -12px;
@@ -2481,11 +2512,18 @@
   }
 
   .ob-logo {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ob-logo-img {
+    width: 28px; height: 28px; object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+  [data-theme="dark"] .ob-logo-img { filter: invert(1); mix-blend-mode: normal; }
+  .ob-logo-text {
     font-family: 'Inter', sans-serif; font-size: 15px;
     font-weight: 700; letter-spacing: -0.03em; color: var(--text-1);
-    display: flex; align-items: center; gap: 6px;
   }
-  .ob-logo span { color: var(--accent); }
+  .ob-logo-text span { color: var(--accent); }
 
   .ob-hero { display: flex; flex-direction: column; gap: 6px; }
   .ob-hero h2 {
@@ -2992,7 +3030,10 @@
 <!-- Login Screen -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">Mne<span>sti</span></div>
+    <div class="login-logo">
+      <img class="login-logo-img" src="logo-mark.png" alt="Mnesti" onerror="this.style.display='none'">
+      <div class="login-logo-wordmark">Mne<span>sti</span></div>
+    </div>
     <div class="login-sub" id="loginSub">Il tuo piano di studio personalizzato<br>Accedi o crea il tuo account</div>
 
     <div class="login-field">
@@ -3032,7 +3073,10 @@
 
   <!-- Brand -->
   <div class="header-brand">
-    <div class="header-app-name">Mne<span>sti</span></div>
+    <div class="header-app-name">
+      <img class="header-app-name-img" src="logo-mark.png" alt="" onerror="this.style.display='none'">
+      <span class="header-app-name-text">Mne<span>sti</span></span>
+    </div>
     <h1 id="headerTitle">Psicologia Cognitiva — Prof. Serra</h1>
   </div>
 
@@ -3087,7 +3131,10 @@
 <!-- ── Onboarding overlay (new users without a study plan) ── -->
 <div class="ob-overlay" id="obOverlay">
   <div class="ob-box">
-    <div class="ob-logo">Mne<span>sti</span></div>
+    <div class="ob-logo">
+      <img class="ob-logo-img" src="logo-mark.png" alt="" onerror="this.style.display='none'">
+      <span class="ob-logo-text">Mne<span>sti</span></span>
+    </div>
 
     <div class="ob-hero">
       <h2>Configuriamo il tuo piano di studio</h2>
