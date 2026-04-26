@@ -2767,6 +2767,7 @@
       <input class="login-input" type="password" id="loginPassword"
              placeholder="••••••••"
              onkeydown="if(event.key==='Enter')doLogin()"
+             onpaste="return true"
              autocomplete="current-password">
     </div>
 
@@ -3083,17 +3084,20 @@
   let _loginMode = 'login'; // 'login' | 'register'
   window.toggleLoginMode = function() {
     _loginMode = _loginMode === 'login' ? 'register' : 'login';
-    const btn    = document.getElementById('loginBtn');
-    const toggle = document.getElementById('loginModeToggle');
-    const sub    = document.getElementById('loginSub');
+    const btn      = document.getElementById('loginBtn');
+    const toggle   = document.getElementById('loginModeToggle');
+    const sub      = document.getElementById('loginSub');
+    const passEl   = document.getElementById('loginPassword');
     if (_loginMode === 'register') {
       btn.textContent    = 'Crea account →';
       toggle.innerHTML   = 'Hai già un account? <a href="#" onclick="toggleLoginMode();return false;">Accedi</a>';
       sub.innerHTML      = 'Crea il tuo account SmartStudent<br>sincronizzato su tutti i dispositivi';
+      if (passEl) passEl.setAttribute('autocomplete', 'new-password');
     } else {
       btn.textContent    = 'Accedi →';
       toggle.innerHTML   = 'Nuovo utente? <a href="#" onclick="toggleLoginMode();return false;">Crea account</a>';
       sub.innerHTML      = 'Piano di studio personalizzato<br>Accedi o crea il tuo account';
+      if (passEl) passEl.setAttribute('autocomplete', 'current-password');
     }
   };
 
