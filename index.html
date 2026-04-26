@@ -1512,6 +1512,15 @@
     border-radius: 4px; transition: color 0.15s, background 0.15s;
   }
   .quiz-exit-btn:hover { color: var(--text); background: var(--border-subtle); }
+  .quiz-abandon-btn {
+    display: block; width: 100%; margin-top: 18px;
+    background: none; border: none; cursor: pointer;
+    font-size: 12px; color: var(--text-3);
+    font-family: 'Inter', sans-serif;
+    text-decoration: underline; text-underline-offset: 2px;
+    padding: 4px 0; transition: color 0.15s;
+  }
+  .quiz-abandon-btn:hover { color: var(--skip-text); }
 
   /* Loading */
   .quiz-loading { text-align: center; padding: 44px 0; }
@@ -6205,6 +6214,16 @@ function closeQuiz() {
   document.getElementById('quizModal').classList.remove('open');
 }
 
+function abandonQuiz() {
+  if (!_quiz) { closeQuiz(); return; }
+  const answered = _quiz.current;
+  const total    = _quiz.questions.length;
+  const msg = answered === 0
+    ? 'Vuoi davvero abbandonare il quiz? Non verrà registrato nessun punteggio.'
+    : `Hai risposto a ${answered} domanda${answered>1?'e':''} su ${total}. Abbandonando ora il punteggio parziale non verrà salvato. Continuare?`;
+  if (confirm(msg)) closeQuiz();
+}
+
 // ── Theme ──────────────────────────────────────────────────
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -7196,7 +7215,7 @@ updateSourcesBtn();
 <!-- Quiz Modal -->
 <div id="quizModal" class="quiz-overlay">
   <div class="quiz-box">
-    <button class="quiz-exit-btn" onclick="closeQuiz()" title="Chiudi">×</button>
+    <button class="quiz-exit-btn" onclick="_quiz && document.getElementById('quizQuestionView').style.display!=='none' ? abandonQuiz() : closeQuiz()" title="Chiudi">×</button>
 
     <!-- Loading -->
     <div class="quiz-loading" id="quizLoading">
@@ -7221,6 +7240,7 @@ updateSourcesBtn();
       <div class="quiz-options" id="quizOptions"></div>
       <div class="quiz-explanation" id="quizExplanation" style="display:none"></div>
       <button class="quiz-next-btn" id="quizNextBtn" onclick="nextQuizQuestion()" style="display:none">Prossima →</button>
+      <button class="quiz-abandon-btn" onclick="abandonQuiz()">Abbandona quiz</button>
     </div>
 
     <!-- Results view -->
