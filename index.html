@@ -927,19 +927,32 @@
   /* Pre-session prompt */
   .session-prompt {
     text-align: center;
-    padding: 28px 20px 20px;
+    padding: 22px 20px 20px;
   }
-  .session-done-count {
-    font-size: 12px; color: var(--text-3); margin-bottom: 14px;
-    font-family: 'Inter', sans-serif;
+  /* Progress dots */
+  .session-progress-dots {
+    display: flex; align-items: center; justify-content: center;
+    gap: 5px; margin-bottom: 14px; flex-wrap: wrap;
+    max-width: 320px; margin-left: auto; margin-right: auto;
+  }
+  .session-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .session-dot.done { background: var(--done-border); }
+  .session-progress-label {
+    font-size: 11px; color: var(--text-3); margin-bottom: 14px;
+    font-family: 'Inter', sans-serif; letter-spacing: 0.02em;
   }
   .session-start-btn {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--accent); color: #fff;
     border: none; border-radius: 8px;
-    padding: 13px 28px; font-size: 14px; font-weight: 700;
+    padding: 13px 32px; font-size: 14px; font-weight: 700;
     cursor: pointer; letter-spacing: -0.01em; min-height: 48px;
     transition: opacity 0.15s, transform 0.1s;
+    width: 100%;
   }
   .session-start-btn:hover { opacity: 0.88; transform: translateY(-1px); }
 
@@ -1863,6 +1876,8 @@
   .timer-btn.pause-btn:hover { background: var(--partial-bg); }
   .timer-btn.stop-btn { border-color: var(--skip-border); color: var(--skip-text); }
   .timer-btn.stop-btn:hover { background: var(--skip-bg); }
+  .timer-btn.timer-resume-btn { border-color: var(--accent); color: var(--accent); font-size: 11px; }
+  .timer-btn.timer-resume-btn:hover { background: var(--accent-bg); }
 
   .timer-meta {
     margin-left: auto;
@@ -2194,7 +2209,12 @@
     /* ── Section head: stack on mobile ── */
     .section-head { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 12px; }
     .section-head .section-title { font-size: 14px; }
-    .quiz-launch-btn { width: 100%; justify-content: center; padding: 10px 12px; font-size: 12px; margin-left: 0; min-height: 40px; }
+    .quiz-launch-btn {
+      width: 100%; justify-content: center; padding: 9px 12px;
+      font-size: 12px; margin-left: 0; min-height: 40px;
+      background: transparent; border: 1.5px solid var(--accent); color: var(--accent);
+    }
+    .quiz-launch-btn:hover { background: var(--accent-bg); }
 
     /* ── Questions ── */
     .q-top { flex-direction: column; gap: 8px; }
@@ -3623,11 +3643,16 @@ function _renderQsPanel(dayId) {
   // ── Pre-session state ────────────────────────────────────────
   if (!sessionStarted) {
     const btnLabel = completedCount > 0 ? '→ Riprendi sessione' : '→ Inizia sessione';
+    const dots = qList.map((q, i) =>
+      `<span class="session-dot${feedbacks[i] ? ' done' : ''}"></span>`
+    ).join('');
+    const progressLabel = completedCount > 0
+      ? `${completedCount} di ${qList.length} domande completate`
+      : `${qList.length} domande`;
     container.innerHTML = `
       <div class="session-prompt">
-        ${completedCount > 0
-          ? `<div class="session-done-count">${completedCount} / ${qList.length} domande già completate</div>`
-          : `<div class="session-done-count">${qList.length} domande da completare</div>`}
+        <div class="session-progress-dots">${dots}</div>
+        <div class="session-progress-label">${progressLabel}</div>
         <button class="session-start-btn" onclick="startDaySession('${dayId}')">${btnLabel}</button>
       </div>
       ${completedCount > 0 ? `<div class="done-questions-area"><div class="done-qs-header">Completate</div>${_completedHtml()}</div>` : ''}`;
@@ -3842,7 +3867,7 @@ function buildDays() {
         <div class="timer-block" id="timer-${day.id}">
           <div class="timer-display" id="timerDisplay-${day.id}">00:00:00</div>
           <div class="timer-controls">
-            <button class="timer-btn primary" id="timerStartBtn-${day.id}" onclick="startDaySession('${day.id}')">Inizia sessione</button>
+            <button class="timer-btn timer-resume-btn" id="timerResumeBtn-${day.id}" onclick="timerResume('${day.id}')" style="display:none">▶ Riprendi</button>
             <button class="timer-btn pause-btn" id="timerPauseBtn-${day.id}" onclick="timerPause('${day.id}')" style="display:none">Pausa</button>
             <button class="timer-btn stop-btn" id="timerStopBtn-${day.id}" onclick="timerStop('${day.id}')" style="display:none">Chiudi sessione</button>
           </div>
@@ -3903,7 +3928,8 @@ function timerStart(dayId) {
   var disp = document.getElementById('timerDisplay-' + dayId);
   disp.classList.add('running');
   disp.classList.remove('paused');
-  document.getElementById('timerStartBtn-' + dayId).style.display = 'none';
+  var resumeBtn = document.getElementById('timerResumeBtn-' + dayId);
+  if (resumeBtn) resumeBtn.style.display = 'none';
   document.getElementById('timerPauseBtn-' + dayId).style.display = '';
   document.getElementById('timerStopBtn-' + dayId).style.display = '';
 }
@@ -3923,9 +3949,9 @@ function timerPause(dayId) {
   var disp = document.getElementById('timerDisplay-' + dayId);
   disp.classList.remove('running');
   disp.classList.add('paused');
-  var btn = document.getElementById('timerPauseBtn-' + dayId);
-  btn.textContent = 'Riprendi';
-  btn.onclick = function() { timerResume(dayId); };
+  document.getElementById('timerPauseBtn-' + dayId).style.display = 'none';
+  var resumeBtn = document.getElementById('timerResumeBtn-' + dayId);
+  if (resumeBtn) { resumeBtn.style.display = ''; resumeBtn.textContent = '▶ Riprendi'; }
 }
 
 function timerResume(dayId) {
@@ -3935,9 +3961,9 @@ function timerResume(dayId) {
   var disp = document.getElementById('timerDisplay-' + dayId);
   disp.classList.add('running');
   disp.classList.remove('paused');
-  var btn = document.getElementById('timerPauseBtn-' + dayId);
-  btn.textContent = 'Pausa';
-  btn.onclick = function() { timerPause(dayId); };
+  var resumeBtn = document.getElementById('timerResumeBtn-' + dayId);
+  if (resumeBtn) resumeBtn.style.display = 'none';
+  document.getElementById('timerPauseBtn-' + dayId).style.display = '';
 }
 
 function timerStop(dayId) {
@@ -3952,11 +3978,12 @@ function timerStop(dayId) {
   var disp = document.getElementById('timerDisplay-' + dayId);
   disp.textContent = '00:00:00';
   disp.classList.remove('running', 'paused');
-  document.getElementById('timerStartBtn-' + dayId).style.display = '';
+  // Show compact "▶ Riprendi" — NOT "Inizia sessione" (session already started)
+  var resumeBtn = document.getElementById('timerResumeBtn-' + dayId);
+  if (resumeBtn) resumeBtn.style.display = state[dayId]?.sessionStarted ? '' : 'none';
   var pauseBtn = document.getElementById('timerPauseBtn-' + dayId);
   pauseBtn.style.display = 'none';
   pauseBtn.textContent = 'Pausa';
-  pauseBtn.onclick = function() { timerPause(dayId); };
   document.getElementById('timerStopBtn-' + dayId).style.display = 'none';
   var savedEl = document.getElementById('timerSaved-' + dayId);
   if (savedEl) savedEl.textContent = formatSeconds(state[dayId].totalSeconds);
