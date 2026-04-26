@@ -3309,7 +3309,12 @@
         _bootstrap(result.data.session, true);
       }
     } catch(e) {
-      errEl.textContent = 'Errore di rete. Riprova.';
+      console.error('[Login] catch error:', e);
+      const detail = e?.message || String(e);
+      errEl.style.color = '#e74c3c';
+      errEl.textContent = detail.toLowerCase().includes('fetch') || detail.toLowerCase().includes('network')
+        ? 'Connessione a Supabase fallita. Controlla la rete o riprova.'
+        : 'Errore: ' + detail.slice(0, 120);
       btn.disabled = false;
       btn.textContent = _loginMode === 'register' ? 'Crea account →' : 'Accedi →';
     }
