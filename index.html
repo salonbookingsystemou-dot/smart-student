@@ -131,7 +131,13 @@
     background: var(--accent);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    /* Prevent horizontal scroll caused by any overflowing element */
+    overflow-x: hidden;
+    max-width: 100%;
+  }
 
   body {
     font-family: 'Inter', sans-serif;
@@ -139,6 +145,10 @@
     color: var(--text);
     font-size: 14px;
     line-height: 1.6;
+    overflow-x: hidden;
+    max-width: 100%;
+    /* Ensure viewport meta is always respected */
+    width: 100%;
   }
 
   /* ── Header redesign ────────────────────────────────────────── */
@@ -234,6 +244,8 @@
     display: grid;
     grid-template-columns: 260px 1fr;
     min-height: calc(100vh - 56px);
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   .sidebar {
@@ -472,6 +484,8 @@
   .main {
     padding: 2rem 2.5rem;
     max-width: 900px;
+    min-width: 0; /* prevents grid blowout */
+    overflow-x: hidden;
   }
 
   .day-block {
@@ -2545,6 +2559,9 @@
       height: 48px;
       flex-wrap: nowrap;
       gap: 6px;
+      width: 100%;
+      max-width: 100vw;
+      overflow: hidden;
     }
     .hamburger-btn {
       display: flex; align-items: center; justify-content: center;
@@ -2589,9 +2606,11 @@
     .layout {
       grid-template-columns: 1fr;
       min-height: calc(100dvh - 48px);
+      width: 100%;
+      max-width: 100vw;
     }
 
-    /* ── Sidebar: slide-in overlay ── */
+    /* ── Sidebar: slide-in overlay (out of flow) ── */
     .sidebar {
       position: fixed;
       top: 0; left: 0; bottom: 0;
@@ -2612,8 +2631,19 @@
 
     /* ── Main content ── */
     .main {
-      padding: 1rem 1rem 5rem; /* bottom padding for mobile nav bar */
+      padding: 1rem 1rem 5rem;
       max-width: 100%;
+      width: 100%;
+      min-width: 0;
+      overflow-x: hidden;
+    }
+
+    /* Ensure all content cards don't overflow */
+    .day-block, .q-item, .tip-box, .session-prompt,
+    .done-questions-area, .q-active-card {
+      max-width: 100%;
+      overflow-x: hidden;
+      word-break: break-word;
     }
 
     /* ── Day header ── */
