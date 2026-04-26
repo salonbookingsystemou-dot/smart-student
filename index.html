@@ -183,16 +183,12 @@
     white-space: nowrap; flex-shrink: 0;
   }
   .header-app-name-img {
-    /* logo-mark.png cropped to 284×152 — icon fills the canvas now */
+    /* logo-full.png (affiancato) cropped to 783×152 — wide horizontal wordmark */
     height: 22px; width: auto; object-fit: contain;
     filter: invert(1); flex-shrink: 0;
   }
   [data-theme="light"] .header-app-name-img { filter: none; }
-  .header-app-name-text {
-    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 800;
-    letter-spacing: -0.04em; color: var(--text-1);
-  }
-  .header-app-name-text span { color: var(--accent); }
+  .header-app-name-text { display: none; }
 
   /* Sources count badge */
   .sources-count-badge {
@@ -3060,8 +3056,7 @@
   <!-- Brand -->
   <div class="header-brand">
     <div class="header-app-name">
-      <img class="header-app-name-img" src="logo-mark.png" alt="" onerror="this.style.display='none'">
-      <span class="header-app-name-text">Mne<span>sti</span></span>
+      <img class="header-app-name-img" src="logo-full.png" alt="Mnesti" onerror="this.style.display='none'">
     </div>
     <h1 id="headerTitle">Psicologia Cognitiva — Prof. Serra</h1>
   </div>
