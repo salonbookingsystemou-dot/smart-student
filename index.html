@@ -249,6 +249,18 @@
     padding: 0 1.25rem;
     margin-bottom: 1.5rem;
   }
+  .sidebar-logout {
+    padding: 1rem 1.25rem 1.5rem;
+    margin-top: auto;
+  }
+  .sidebar-logout button {
+    width: 100%; padding: 10px; border-radius: 9px;
+    border: 1px solid var(--border); background: none;
+    color: var(--text-3); font-family: 'Inter', sans-serif;
+    font-size: 12px; cursor: pointer; text-align: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sidebar-logout button:hover { background: var(--surface2); color: var(--text-2); }
 
   /* ── Readiness Panel ───────────────────────────────────────── */
   .readiness-panel {
@@ -2527,58 +2539,56 @@
   .header-row-break { display: none; }
 
   @media (max-width: 768px) {
-    /* ── Header: 2-row layout on mobile ── */
+    /* ── Header: SINGLE slim row on mobile ── */
     .header {
       padding: 0 0.75rem;
-      height: auto;
-      flex-wrap: wrap;
-      gap: 0;
-      row-gap: 0;
+      height: 48px;
+      flex-wrap: nowrap;
+      gap: 6px;
     }
-    /* Row 1: hamburger + title */
     .hamburger-btn {
       display: flex; align-items: center; justify-content: center;
-      margin-right: 6px; flex-shrink: 0; order: 0;
-      height: 44px;
+      flex-shrink: 0; width: 36px; height: 36px;
     }
     .header-brand {
-      order: 0; flex: 1 1 0; overflow: hidden; margin-right: 0;
-      display: flex; align-items: center; min-width: 0;
-      height: 44px;
+      flex: 1 1 0; overflow: hidden; min-width: 0;
+      display: flex; align-items: center;
+      margin-right: 0;
     }
     .header h1 {
-      font-size: 0.78rem; white-space: normal;
-      line-height: 1.3; overflow: visible;
+      font-size: 0.72rem; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      line-height: 1.2;
     }
-    /* Force row break between title and actions */
-    .header-row-break {
-      display: block; width: 100%; order: 1;
-      height: 0; border-top: 1px solid var(--border);
-    }
-    /* Row 2: action buttons */
+    /* Row break disabled on mobile — single row */
+    .header-row-break { display: none !important; }
+    /* Actions: right-aligned, icon-style compact buttons */
     .header-actions {
-      order: 2; width: 100%;
-      padding: 6px 0; gap: 6px;
+      flex-shrink: 0; display: flex;
+      align-items: center; gap: 5px;
+      padding: 0; width: auto;
     }
-    /* Hide last desktop divider */
-    .header > .header-vdiv:not(.header-hide-mobile) { display: none; }
-
     /* Hide non-essential header elements on mobile */
     .header-hide-mobile { display: none !important; }
+    .header > .header-vdiv { display: none; }
+    .header-app-name { display: none; }
+    .sync-chip { display: none; }
 
-    /* Show action labels on mobile row 2 (more space now) */
-    .api-label { display: inline; font-size: 11px; }
-    .sources-label { display: inline; font-size: 11px; }
-    .api-indicator { padding: 5px 10px; font-size: 12px; flex-shrink: 0; }
-    .sources-btn { padding: 5px 10px; font-size: 12px; flex-shrink: 0; }
-    .theme-switch { scale: 0.9; flex-shrink: 0; margin-left: auto; }
-    .sync-chip { display: none; }       /* hidden on mobile — saves space */
-    .header-app-name { display: none; } /* hidden on mobile — saves space */
+    /* Compact action buttons — icon + very short label */
+    .api-indicator {
+      padding: 5px 8px; font-size: 11px; flex-shrink: 0;
+      border-radius: 8px;
+    }
+    .api-label { display: none; } /* show only ⚡ icon on mobile */
+    .sources-btn { padding: 5px 8px; font-size: 12px; flex-shrink: 0; }
+    .sources-label { display: none; } /* show only 📚 + badge */
+    #logoutBtn { display: none; } /* moved to sidebar on mobile */
+    .theme-switch { scale: 0.85; flex-shrink: 0; }
 
     /* ── Layout: single column ── */
     .layout {
       grid-template-columns: 1fr;
-      min-height: calc(100dvh - 90px); /* 90px ≈ 2-row header height */
+      min-height: calc(100dvh - 48px);
     }
 
     /* ── Sidebar: slide-in overlay ── */
@@ -3067,6 +3077,11 @@
 
     <div class="sidebar-section">
       <div class="day-nav" id="dayNav"></div>
+    </div>
+
+    <!-- Logout at bottom of sidebar (mobile-friendly) -->
+    <div class="sidebar-logout" id="sidebarLogout">
+      <button onclick="doLogout()">Esci dall'account</button>
     </div>
   </div>
 
