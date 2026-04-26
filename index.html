@@ -2368,28 +2368,28 @@
   #loginScreen.fade-out { opacity: 0; pointer-events: none; }
 
   .login-box {
-    width: min(380px, 92vw);
-    padding: 40px 36px 32px;
+    width: min(360px, 90vw);
+    padding: 28px 28px 24px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 18px;
-    display: flex; flex-direction: column; gap: 20px;
+    display: flex; flex-direction: column; gap: 14px;
   }
   .login-logo {
     display: flex; flex-direction: column; align-items: center;
-    text-align: center;
+    text-align: center; margin-bottom: 2px;
   }
   .login-logo-img {
-    width: 200px; height: auto; object-fit: contain;
-    /* Real PNG with alpha: invert black logo to white for dark mode */
-    filter: invert(1);
+    /* constrain by height so portrait canvas doesn't inflate vertical space */
+    height: 72px; width: auto; max-width: 200px; object-fit: contain;
+    filter: invert(1); /* dark mode: black logo → white */
   }
   [data-theme="light"] .login-logo-img {
-    filter: none; /* black logo is naturally visible on light background */
+    filter: none;
   }
   .login-sub {
     font-family: 'Inter', sans-serif; font-size: 12px;
-    color: var(--text-3); text-align: center; margin-top: -12px;
+    color: var(--text-3); text-align: center; margin-top: -6px;
     line-height: 1.5;
   }
   .login-field {
@@ -2980,7 +2980,8 @@
     .plan-gen-title { font-size: 15px; }
 
     /* Login */
-    .login-box { padding: 28px 20px 24px; }
+    .login-box { padding: 24px 18px 20px; gap: 12px; }
+    .login-logo-img { height: 60px; }
     .login-input { font-size: 16px; } /* prevents iOS zoom on focus */
 
     /* ── Bigger tap targets for key buttons ── */
