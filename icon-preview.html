@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Icon Libraries Preview</title>
+<!-- Lucide -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<!-- Phosphor -->
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<!-- Tabler -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<!-- Heroicons via inline SVG (fetched) -->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #f5f3f0;
+    color: #1c1917;
+    padding: 32px 24px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 18px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.03em;
+  }
+  .subtitle { font-size: 13px; color: #78716c; margin-bottom: 36px; }
+
+  .library { margin-bottom: 48px; }
+  .lib-header {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 4px;
+  }
+  .lib-name { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+  .lib-tag  { font-size: 11px; color: #78716c; background: #e7e2dc; padding: 2px 8px; border-radius: 20px; }
+  .lib-desc { font-size: 12px; color: #78716c; margin-bottom: 16px; }
+  .lib-url  { font-size: 11px; color: #d97757; text-decoration: none; }
+  .lib-url:hover { text-decoration: underline; }
+
+  .icon-grid {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .icon-cell {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    width: 72px; padding: 12px 4px 8px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #e7e2dc;
+    cursor: default;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .icon-cell:hover { background: #fdf8f5; border-color: #d97757; }
+  .icon-cell .label { font-size: 9px; color: #a8a099; text-align: center; line-height: 1.3; }
+
+  /* icon sizing */
+  .icon-cell svg, .icon-cell i { font-size: 22px; color: #292524; }
+  .icon-cell svg { width: 22px; height: 22px; stroke-width: 1.6; }
+
+  .divider { height: 1px; background: #e7e2dc; margin: 8px 0 36px; }
+</style>
+</head>
+<body>
+
+<h1>Icon Libraries — Confronto Visivo</h1>
+<p class="subtitle">Passa il mouse sulle icone per l'effetto hover. Clicca sul link di ogni libreria per esplorare tutti gli icon set.</p>
+
+<!-- ── LUCIDE ────────────────────────────────────────────── -->
+<div class="library">
+  <div class="lib-header">
+    <span class="lib-name">Lucide</span>
+    <span class="lib-tag">★ Raccomandato</span>
+  </div>
+  <p class="lib-desc">Clean, stroke uniforme, perfettamente geometrico. Usato da Vercel, Linear, Notion. ~1500 icone. <a class="lib-url" href="https://lucide.dev" target="_blank">lucide.dev →</a></p>
+  <div class="icon-grid" id="lucide-grid"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ── PHOSPHOR ──────────────────────────────────────────── -->
+<div class="library">
+  <div class="lib-header">
+    <span class="lib-name">Phosphor Icons</span>
+    <span class="lib-tag">6 pesi</span>
+  </div>
+  <p class="lib-desc">Elegante, 6 varianti (thin, light, regular, bold, fill, duotone). ~9000 icone. <a class="lib-url" href="https://phosphoricons.com" target="_blank">phosphoricons.com →</a></p>
+  <div class="icon-grid" id="phosphor-grid"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ── TABLER ────────────────────────────────────────────── -->
+<div class="library">
+  <div class="lib-header">
+    <span class="lib-name">Tabler Icons</span>
+    <span class="lib-tag">5000+ icone</span>
+  </div>
+  <p class="lib-desc">Stroke sottile 1.5px, massima copertura. Ideale per dashboard e UI dense. <a class="lib-url" href="https://tabler.io/icons" target="_blank">tabler.io/icons →</a></p>
+  <div class="icon-grid" id="tabler-grid"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ── HEROICONS ─────────────────────────────────────────── -->
+<div class="library">
+  <div class="lib-header">
+    <span class="lib-name">Heroicons</span>
+    <span class="lib-tag">By Tailwind CSS</span>
+  </div>
+  <p class="lib-desc">Due varianti: outline e solid. Minimalista, molto pulito. 300 icone essenziali. <a class="lib-url" href="https://heroicons.com" target="_blank">heroicons.com →</a></p>
+  <div class="icon-grid" id="hero-grid"></div>
+</div>
+
+<script>
+// ── Lucide ───────────────────────────────────────────────────
+const lucideIcons = [
+  ['wrench','Setup'],['book-open','Fonti'],['key','Chiave API'],['palette','Tema'],
+  ['sun','Giorno'],['moon','Notte'],['calendar','Cal.'],['check-circle','Fatto'],
+  ['mic','Mic'],['play','Avvia'],['pause','Pausa'],['stop-circle','Stop'],
+  ['chevron-right','Succ.'],['chevron-left','Prec.'],['x','Chiudi'],['save','Salva'],
+  ['upload','Carica'],['file-text','File'],['trash-2','Elimina'],['settings','Settings'],
+  ['log-out','Esci'],['refresh-cw','Sync'],['zap','API'],['star','Stella'],
+];
+
+window.addEventListener('load', () => {
+  const grid = document.getElementById('lucide-grid');
+  lucideIcons.forEach(([name, label]) => {
+    const cell = document.createElement('div');
+    cell.className = 'icon-cell';
+    cell.innerHTML = `<i data-lucide="${name}"></i><span class="label">${label}</span>`;
+    grid.appendChild(cell);
+  });
+  if (window.lucide) lucide.createIcons();
+});
+
+// ── Phosphor ─────────────────────────────────────────────────
+const phosphorIcons = [
+  ['ph-wrench','Setup'],['ph-books','Fonti'],['ph-key','Chiave'],['ph-paint-bucket','Tema'],
+  ['ph-sun','Giorno'],['ph-moon','Notte'],['ph-calendar','Cal.'],['ph-check-circle','Fatto'],
+  ['ph-microphone','Mic'],['ph-play-circle','Avvia'],['ph-pause-circle','Pausa'],['ph-stop-circle','Stop'],
+  ['ph-caret-right','Succ.'],['ph-caret-left','Prec.'],['ph-x-circle','Chiudi'],['ph-floppy-disk','Salva'],
+  ['ph-upload-simple','Carica'],['ph-file-text','File'],['ph-trash','Elimina'],['ph-gear','Settings'],
+  ['ph-sign-out','Esci'],['ph-arrows-clockwise','Sync'],['ph-lightning','API'],['ph-star','Stella'],
+];
+
+const phGrid = document.getElementById('phosphor-grid');
+phosphorIcons.forEach(([cls, label]) => {
+  const cell = document.createElement('div');
+  cell.className = 'icon-cell';
+  cell.innerHTML = `<i class="${cls}" style="font-size:22px"></i><span class="label">${label}</span>`;
+  phGrid.appendChild(cell);
+});
+
+// ── Tabler ───────────────────────────────────────────────────
+const tablerIcons = [
+  ['ti-tool','Setup'],['ti-books','Fonti'],['ti-key','Chiave'],['ti-palette','Tema'],
+  ['ti-sun','Giorno'],['ti-moon','Notte'],['ti-calendar','Cal.'],['ti-circle-check','Fatto'],
+  ['ti-microphone','Mic'],['ti-player-play','Avvia'],['ti-player-pause','Pausa'],['ti-player-stop','Stop'],
+  ['ti-chevron-right','Succ.'],['ti-chevron-left','Prec.'],['ti-x','Chiudi'],['ti-device-floppy','Salva'],
+  ['ti-upload','Carica'],['ti-file-text','File'],['ti-trash','Elimina'],['ti-settings','Settings'],
+  ['ti-logout','Esci'],['ti-refresh','Sync'],['ti-bolt','API'],['ti-star','Stella'],
+];
+
+const tabGrid = document.getElementById('tabler-grid');
+tablerIcons.forEach(([cls, label]) => {
+  const cell = document.createElement('div');
+  cell.className = 'icon-cell';
+  cell.innerHTML = `<i class="ti ${cls}" style="font-size:22px"></i><span class="label">${label}</span>`;
+  tabGrid.appendChild(cell);
+});
+
+// ── Heroicons (inline SVG subset) ────────────────────────────
+const heroSVGs = [
+  ['M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z', 'Settings'],
+  ['M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25', 'Fonti'],
+  ['M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z', 'Chiave API'],
+  ['M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z', 'Tema'],
+  ['m4.5 12.75 6 6 9-13.5', 'Check'],
+  ['M6 18 18 6M6 6l12 12', 'Chiudi'],
+  ['M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z', 'Mic'],
+  ['M21 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 0 1 0-1.953l7.108-4.062A1.125 1.125 0 0 1 21 8.688v8.123ZM11.25 16.811c0 .864-.933 1.405-1.683.977l-7.108-4.062a1.125 1.125 0 0 1 0-1.953L9.567 8.71a1.125 1.125 0 0 1 1.683.977v7.124Z', 'Indietro'],
+  ['M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5', 'Upload'],
+  ['M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0', 'Elimina'],
+  ['M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99', 'Sync'],
+];
+
+const heroLabels = ['Settings','Fonti','Chiave','Tema','Check','Chiudi','Mic','Indietro','Upload','Elimina','Sync'];
+const heroGrid = document.getElementById('hero-grid');
+heroSVGs.forEach(([d, label]) => {
+  const cell = document.createElement('div');
+  cell.className = 'icon-cell';
+  cell.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="${d}"/></svg><span class="label">${label}</span>`;
+  heroGrid.appendChild(cell);
+});
+</script>
+</body>
+</html>

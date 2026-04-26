@@ -24,6 +24,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Styrene+A:wght@300;400;500&family=Tiempos+Text:ital,wght@0,400;1,400&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
@@ -303,12 +304,15 @@
     color: var(--text-3); letter-spacing: 0.03em;
     transition: color 0.15s, border-color 0.15s;
     white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
   }
   .setup-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
   .setup-tab:hover:not(.active) { color: var(--text-1); }
   .setup-close-btn {
-    font-size: 20px; line-height: 1; background: none; border: none;
-    color: var(--text-3); cursor: pointer; padding: 2px 6px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none;
+    color: var(--text-3); cursor: pointer; padding: 4px 6px; flex-shrink: 0;
+    border-radius: 4px; transition: color 0.15s, background 0.15s;
   }
   .setup-close-btn:hover { color: var(--text-1); }
   .setup-tab-border {
@@ -1048,6 +1052,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     transition: all 0.15s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   }
   .q-verify-btn:hover:not(:disabled) { background: rgba(217,119,87,0.18); border-color: var(--accent); }
   .q-verify-btn:disabled {
@@ -1523,7 +1528,7 @@
   .sources-upload-area:hover, .sources-upload-area.drag-over {
     border-color: var(--accent); background: var(--accent-bg);
   }
-  .sources-upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .sources-upload-icon { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; color: var(--text-3); }
   .sources-upload-label {
     font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-2);
     line-height: 1.5;
@@ -1657,7 +1662,7 @@
   }
   .gen-q-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
   .gen-q-btn.loading { opacity: 0.6; pointer-events: none; }
-  .gen-q-btn svg { flex-shrink: 0; }
+  .gen-q-btn svg, .gen-q-btn i { flex-shrink: 0; }
 
   .quiz-overlay {
     display: none;
@@ -1967,7 +1972,7 @@
 
   /* Next button */
   .quiz-next-btn {
-    display: block;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
     width: calc(100% - 0px);
     padding: 12px 24px;
     background: var(--accent);
@@ -2254,6 +2259,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 5px;
   }
 
   .timer-btn:hover { border-color: var(--text-2); color: var(--text); }
@@ -3158,9 +3164,7 @@
 <div class="header">
   <!-- Hamburger (mobile only) -->
   <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileSidebar()" aria-label="Menu">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-    </svg>
+    <i data-lucide="menu" style="width:18px;height:18px;stroke-width:2.2"></i>
   </button>
 
   <!-- Brand -->
@@ -3189,7 +3193,7 @@
     <div class="header-stat-label">Ore studiate</div>
     <div class="header-stat-val">
       <span id="totalHoursDisplay">0h 00m</span>
-      <button onclick="resetTotalHours()" style="font-family:'Inter',sans-serif;font-size:9px;padding:2px 5px;border-radius:3px;border:1px solid var(--border);background:none;color:var(--text-3);cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;" title="Azzera">✕</button>
+      <button onclick="resetTotalHours()" style="font-family:'Inter',sans-serif;font-size:9px;padding:2px 5px;border-radius:3px;border:1px solid var(--border);background:none;color:var(--text-3);cursor:pointer;display:flex;align-items:center;" title="Azzera"><i data-lucide="rotate-ccw" style="width:9px;height:9px;stroke-width:2.5"></i></button>
     </div>
   </div>
 
@@ -3207,10 +3211,12 @@
     <div id="syncChip" style="display:none"><span class="sync-status-dot" id="syncStatusDot"></span><span id="syncChipLabel"></span></div>
     <span id="apiLabel" style="display:none"></span>
     <button class="setup-btn" id="setupBtn" onclick="openSetupDrawer('fonti')" title="Impostazioni">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      <i data-lucide="settings-2" style="width:13px;height:13px;stroke-width:2.2"></i>
       Setup
     </button>
-    <button class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;">Esci</button>
+    <button class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;display:flex;align-items:center;gap:5px;">
+      <i data-lucide="log-out" style="width:12px;height:12px;stroke-width:2.2"></i>Esci
+    </button>
   </div>
 </div>
 
@@ -3824,6 +3830,7 @@ window._reinitApp = function() {
       if (d.type !== 'rest' && d.type !== 'exam') _autoSetStatus(d.id);
     });
   }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
   if (typeof _refreshNavLocks === 'function') _refreshNavLocks();
 
   // Navigate to first day
@@ -4971,7 +4978,7 @@ function closeWelcomeModal() {
 // ── Session-based question panel ─────────────────────────────
 
 const MIN_ANSWER_CHARS = 40;
-const _MIC_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+const _MIC_SVG = `<i data-lucide="mic" style="width:14px;height:14px;stroke-width:2.2;pointer-events:none"></i>`;
 
 function _nextUnverifiedIdx(dayId, qList) {
   const feedbacks = state[dayId]?.feedbacks || {};
@@ -5065,7 +5072,7 @@ function _renderQsPanel(dayId) {
 
   // ── Pre-session state ────────────────────────────────────────
   if (!sessionStarted) {
-    const btnLabel = completedCount > 0 ? '→ Riprendi sessione' : '→ Inizia sessione';
+    const btnLabel = completedCount > 0 ? '<i data-lucide="play" style="width:13px;height:13px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i> Riprendi sessione' : '<i data-lucide="play" style="width:13px;height:13px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i> Inizia sessione';
     const dots = qList.map((q, i) =>
       `<span class="session-dot${feedbacks[i] ? ' done' : ''}"></span>`
     ).join('');
@@ -5074,7 +5081,7 @@ function _renderQsPanel(dayId) {
       : `${qList.length} domande`;
     const savedSecs = state[dayId]?.totalSeconds || 0;
     const hoursBadge = savedSecs > 0
-      ? `<div class="session-hours-badge">⏱ ${formatSeconds(savedSecs)} già studiate</div>`
+      ? `<div class="session-hours-badge"><i data-lucide="timer" style="width:11px;height:11px;stroke-width:2;vertical-align:middle"></i> ${formatSeconds(savedSecs)} già studiate</div>`
       : '';
     container.innerHTML = `
       <div class="session-prompt">
@@ -5084,6 +5091,7 @@ function _renderQsPanel(dayId) {
         <button class="session-start-btn" onclick="startDaySession('${dayId}')">${btnLabel}</button>
       </div>
       ${completedCount > 0 ? `<div class="done-questions-area"><div class="done-qs-header">Completate</div>${_completedHtml()}</div>` : ''}`;
+    lucide.createIcons();
     return;
   }
 
@@ -5096,6 +5104,7 @@ function _renderQsPanel(dayId) {
         <div class="session-complete-sub">Hai verificato tutte e ${qList.length} le domande di oggi.</div>
       </div>
       <div class="done-questions-area"><div class="done-qs-header">Domande completate</div>${_completedHtml()}</div>`;
+    lucide.createIcons();
     return;
   }
 
@@ -5120,7 +5129,7 @@ function _renderQsPanel(dayId) {
             onclick="startVoiceDictation('${dayId}', ${activeIdx})" title="Trascrivi con voce">${_MIC_SVG}</button>
           <button class="q-verify-btn" id="verify-${dayId}-${activeIdx}"
             ${canVerify ? '' : 'disabled'}
-            onclick="verifyAnswer('${dayId}', ${activeIdx}, '${q.text.replace(/'/g,"\\'")}', '${q.type}')">Verifica risposta →</button>
+            onclick="verifyAnswer('${dayId}', ${activeIdx}, '${q.text.replace(/'/g,"\\'")}', '${q.type}')"><i data-lucide="check-circle" style="width:13px;height:13px;stroke-width:2.2;flex-shrink:0"></i> Verifica risposta</button>
         </div>
         <div class="q-feedback" id="feedback-${dayId}-${activeIdx}"></div>
       </div>
@@ -5131,6 +5140,7 @@ function _renderQsPanel(dayId) {
     : '';
 
   container.innerHTML = activeHtml + doneHtml;
+  lucide.createIcons();
 }
 
 // Returns true if day at given id is accessible (all preceding non-rest days have a status)
@@ -5202,7 +5212,7 @@ function buildNav() {
     const locked = !isDayUnlocked(day.id);
     if (locked) item.classList.add('locked');
     const lockSvg = locked
-      ? `<svg class="nav-lock-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+      ? `<i class="nav-lock-icon" data-lucide="lock" style="width:10px;height:10px;stroke-width:2.5;flex-shrink:0"></i>`
       : '';
     item.innerHTML = `
       <div class="day-dot"></div>
@@ -5216,6 +5226,7 @@ function buildNav() {
     nav.appendChild(item);
     if (hasQ) renderDayReadiness(day.id);
   });
+  lucide.createIcons();
 }
 
 function showDay(id) {
@@ -5297,11 +5308,11 @@ function buildDays() {
       const isAiQ  = !!dayState.aiQuestions;
       const genQBtn = day.questions ? `
         <button class="gen-q-btn" id="genq-btn-${day.id}" onclick="generateQuestionsFromSource('${day.id}')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          ${isAiQ ? '✦ Rigenera domande dalle fonti' : '✦ Genera domande dalle fonti'}
+          <i data-lucide="sparkles" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i>
+          ${isAiQ ? 'Rigenera domande dalle fonti' : 'Genera domande dalle fonti'}
         </button>` : '';
 
-      const _statusLabel = { done: '✓ Completata', partial: '◑ In corso', skip: '✗ Saltata' };
+      const _statusLabel = { done: '✓ Completata', partial: '· In corso', skip: '✕ Saltata' };
       const _curStatus   = dayState.status || 'none';
       const _skipBtnTxt  = dayState.status === 'skip' ? '↩ Annulla skip' : 'Salta giornata';
 
@@ -5320,15 +5331,15 @@ function buildDays() {
         <div class="timer-block" id="timer-${day.id}">
           <div class="timer-display" id="timerDisplay-${day.id}">00:00:00</div>
           <div class="timer-controls">
-            <button class="timer-btn timer-resume-btn" id="timerResumeBtn-${day.id}" onclick="timerResume('${day.id}')" style="display:none">▶ Riprendi</button>
-            <button class="timer-btn pause-btn" id="timerPauseBtn-${day.id}" onclick="timerPause('${day.id}')" style="display:none">Pausa</button>
-            <button class="timer-btn stop-btn" id="timerStopBtn-${day.id}" onclick="timerStop('${day.id}')" style="display:none">Chiudi sessione</button>
+            <button class="timer-btn timer-resume-btn" id="timerResumeBtn-${day.id}" onclick="timerResume('${day.id}')" style="display:none"><i data-lucide="play" style="width:11px;height:11px;stroke-width:2.2;fill:currentColor"></i> Riprendi</button>
+            <button class="timer-btn pause-btn" id="timerPauseBtn-${day.id}" onclick="timerPause('${day.id}')" style="display:none"><i data-lucide="pause" style="width:11px;height:11px;stroke-width:2.2;fill:currentColor"></i> Pausa</button>
+            <button class="timer-btn stop-btn" id="timerStopBtn-${day.id}" onclick="timerStop('${day.id}')" style="display:none"><i data-lucide="square" style="width:10px;height:10px;stroke-width:2.2;fill:currentColor"></i> Chiudi sessione</button>
           </div>
           <div class="timer-meta">
             <div class="timer-saved">Sessioni salvate: <span id="timerSaved-${day.id}">${formatSeconds(dayState.totalSeconds || 0)}</span></div>
           </div>
         </div>
-        ${day.tip ? `<div class="tip-box"><div class="tip-label"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Metodo di studio</div><div class="tip-text">${day.tip}</div></div>` : ''}
+        ${day.tip ? `<div class="tip-box"><div class="tip-label"><i data-lucide="lightbulb" style="width:11px;height:11px;stroke-width:2.2;flex-shrink:0"></i>Metodo di studio</div><div class="tip-text">${day.tip}</div></div>` : ''}
         <div class="section-card">
           <div class="section-head">
             <span class="section-tag tag-retrieval">retrieval practice</span>
@@ -5336,7 +5347,7 @@ function buildDays() {
             <button class="quiz-launch-btn" id="quiz-btn-${day.id}"
               style="${dayState.sessionStarted ? '' : 'display:none'}"
               onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <i data-lucide="zap" style="width:12px;height:12px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i>
               Genera Quiz
             </button>
           </div>
@@ -5357,6 +5368,7 @@ function buildDays() {
       _renderQsPanel(day.id);
     }
   });
+  lucide.createIcons();
 }
 
 function formatSeconds(secs) {
@@ -5450,14 +5462,15 @@ function _showStillThereModal(reason, awayMs) {
 
   if (reason === 'hidden') {
     const awayMin = Math.round(awayMs / 60000);
-    iconEl.textContent  = '🌙';
+    iconEl.innerHTML = '<i data-lucide="moon" style="width:32px;height:32px;stroke-width:1.5"></i>';
     bodyEl.textContent  = awayMin >= 1
       ? `Il timer è stato messo in pausa mentre eri via (${awayMin} min). Vuoi riprendere la sessione?`
       : 'Il timer è stato messo in pausa mentre eri via. Vuoi riprendere?';
   } else {
-    iconEl.textContent  = '💤';
+    iconEl.innerHTML = '<i data-lucide="clock" style="width:32px;height:32px;stroke-width:1.5"></i>';
     bodyEl.textContent  = 'Nessuna attività da 20 minuti. Il timer è in pausa — stavi ancora studiando?';
   }
+  lucide.createIcons();
 
   // Auto-stop countdown
   let secsLeft = Math.round(ST_AUTO_STOP_MS / 1000);
@@ -5725,16 +5738,12 @@ function _refreshNavLocks() {
     let lockEl = el.querySelector('.nav-lock-icon');
     if (locked) {
       if (!lockEl) {
-        lockEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        lockEl = document.createElement('i');
         lockEl.setAttribute('class', 'nav-lock-icon');
-        lockEl.setAttribute('width', '10'); lockEl.setAttribute('height', '10');
-        lockEl.setAttribute('viewBox', '0 0 24 24');
-        lockEl.setAttribute('fill', 'none');
-        lockEl.setAttribute('stroke', 'currentColor');
-        lockEl.setAttribute('stroke-width', '2.5');
-        lockEl.setAttribute('stroke-linecap', 'round');
-        lockEl.innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
+        lockEl.setAttribute('data-lucide', 'lock');
+        lockEl.style.cssText = 'width:10px;height:10px;stroke-width:2.5;flex-shrink:0';
         el.appendChild(lockEl);
+        lucide.createIcons({ nodes: [lockEl] });
       }
     } else {
       lockEl?.remove();
@@ -6017,7 +6026,7 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
     }
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Verifica risposta →';
+    btn.innerHTML = '<i data-lucide="check-circle" style="width:13px;height:13px;stroke-width:2.2;flex-shrink:0"></i> Verifica risposta'; lucide.createIcons();
   }
 }
 
@@ -6186,6 +6195,7 @@ function startVoiceDictation(dayId, qIdx, overrideTextarea) {
   waveEl.classList.remove('paused');
   pauseBtn.classList.remove('paused');
   modal.classList.add('open');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 
   const baseText   = textarea.value;
   let finalAdded   = '';
@@ -6399,13 +6409,8 @@ function _closeMicModal(apply) {
 function _setMicPauseIcon(isPlaying) {
   const el = document.getElementById('micPauseIcon');
   if (!el) return;
-  if (isPlaying) {
-    // Play icon (riprendi)
-    el.innerHTML = '<path d="M8 5v14l11-7z"/>';
-  } else {
-    // Pause icon
-    el.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
-  }
+  el.setAttribute('data-lucide', isPlaying ? 'play' : 'pause');
+  lucide.createIcons({ nodes: [el] });
 }
 
 // ── Quiz ────────────────────────────────────────────────────
@@ -6439,7 +6444,7 @@ async function startQuiz(dayId, topic) {
     const dots = warmupQs.map((_, i) => `<div class="quiz-warmup-dot${i===0?' active':''}"></div>`).join('');
     loading.innerHTML = `
       <div class="quiz-warmup">
-        <div class="quiz-warmup-header">⚡ Riscaldamento mentale</div>
+        <div class="quiz-warmup-header"><i data-lucide="brain" style="width:14px;height:14px;stroke-width:2;vertical-align:middle;margin-right:4px"></i> Riscaldamento mentale</div>
         <div class="quiz-warmup-card" id="warmupCard">
           <div class="quiz-warmup-type" id="warmupType">Ripassa nella mente</div>
           <div class="quiz-warmup-q" id="warmupQ">${escHtml(warmupQs[0].text)}</div>
@@ -6483,6 +6488,7 @@ async function startQuiz(dayId, topic) {
   qView.style.display   = 'none';
   rView.style.display   = 'none';
   modal.classList.add('open');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 
   // Include source context if available
   const sourceCtx = getAllSourcesContext();
@@ -6608,7 +6614,9 @@ function _showQuizQuestion(idx) {
   const nextBtn = document.getElementById('quizNextBtn');
   expEl.style.display  = 'none';
   nextBtn.style.display = 'none';
-  nextBtn.textContent = idx < _quiz.questions.length - 1 ? 'Prossima →' : 'Risultati →';
+  nextBtn.innerHTML = idx < _quiz.questions.length - 1
+    ? 'Prossima <i data-lucide="arrow-right" style="width:13px;height:13px;stroke-width:2.2"></i>'
+    : 'Risultati <i data-lucide="arrow-right" style="width:13px;height:13px;stroke-width:2.2"></i>';
 
   const letters = ['A','B','C','D'];
   document.getElementById('quizOptions').innerHTML = q.opts.map((opt, i) =>
@@ -6619,6 +6627,7 @@ function _showQuizQuestion(idx) {
   ).join('');
 
   _startQuizTimer();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function _startQuizTimer() {
@@ -6786,6 +6795,7 @@ function _showQuizResults() {
 
   // Aggiorna l'indicatore di preparazione nella sidebar
   renderDayReadiness(dayId);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function retryQuiz() {
@@ -6849,6 +6859,8 @@ renderReadinessPanel();
   const first = active[0];
   if (first) showDay(first.id);
 })();
+// Initialize Lucide icons (after all DOM is set up)
+if (typeof lucide !== 'undefined') lucide.createIcons();
 
 // ── Sources (PDF fonti) ────────────────────────────────────
 const SOURCES_KEY  = 'psico_sources';
@@ -7013,7 +7025,9 @@ function renderSourcesList() {
   }
   el.innerHTML = sources.map(s => {
     const isText = s.type === 'text';
-    const icon   = isText ? '📋' : '📄';
+    const icon   = isText
+      ? `<i data-lucide="clipboard-list" style="width:16px;height:16px;stroke-width:2"></i>`
+      : `<i data-lucide="file-text" style="width:16px;height:16px;stroke-width:2"></i>`;
     const chars  = s.content.length.toLocaleString('it-IT');
     const meta   = isText
       ? `${chars} caratteri · usato come timone principale`
@@ -7027,9 +7041,10 @@ function renderSourcesList() {
         <div class="source-item-title" title="${s.title}">${s.title}${badge}</div>
         <div class="source-item-meta">${meta}</div>
       </div>
-      <button class="source-item-del" onclick="removeSource('${s.id}')" title="Rimuovi">×</button>
+      <button class="source-item-del" onclick="removeSource('${s.id}')" title="Rimuovi"><i data-lucide="trash-2" style="width:12px;height:12px;stroke-width:2"></i></button>
     </div>`;
   }).join('');
+  lucide.createIcons();
 }
 
 function openSourcesPanel() { openSetupDrawer('fonti'); }
@@ -7814,11 +7829,11 @@ updateSourcesBtn();
 
     <div class="setup-drawer-top">
       <div class="setup-tabs">
-        <button class="setup-tab active" id="setupTabFonti"  onclick="switchSetupTab('fonti')">📚 Fonti</button>
-        <button class="setup-tab"        id="setupTabApi"    onclick="switchSetupTab('api')">🔑 Chiave API</button>
-        <button class="setup-tab"        id="setupTabTema"   onclick="switchSetupTab('tema')">🎨 Tema</button>
+        <button class="setup-tab active" id="setupTabFonti"  onclick="switchSetupTab('fonti')"><i data-lucide="book-open" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Fonti</button>
+        <button class="setup-tab"        id="setupTabApi"    onclick="switchSetupTab('api')"><i data-lucide="key-round" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Chiave API</button>
+        <button class="setup-tab"        id="setupTabTema"   onclick="switchSetupTab('tema')"><i data-lucide="palette" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Tema</button>
       </div>
-      <button class="setup-close-btn" onclick="closeSetupDrawer()">×</button>
+      <button class="setup-close-btn" onclick="closeSetupDrawer()"><i data-lucide="x" style="width:16px;height:16px;stroke-width:2.2"></i></button>
     </div>
     <div class="setup-tab-border"></div>
 
@@ -7834,7 +7849,7 @@ updateSourcesBtn();
            ondragover="event.preventDefault();this.classList.add('drag-over')"
            ondragleave="this.classList.remove('drag-over')"
            ondrop="handlePdfDrop(event)">
-        <div class="sources-upload-icon">📄</div>
+        <div class="sources-upload-icon"><i data-lucide="file-text" style="width:28px;height:28px;stroke-width:1.5"></i></div>
         <div class="sources-upload-label">
           <strong>Carica un PDF</strong> o trascinalo qui<br>
           <small>Dispense, slide, appunti — testo estratto nel browser, mai caricato online</small>
@@ -7853,7 +7868,7 @@ updateSourcesBtn();
       <!-- Free text input -->
       <div class="sources-text-section">
         <div class="sources-text-toggle" onclick="toggleTextInput()" id="textToggleBtn">
-          <span>📋 Incolla testo o lista lezioni</span>
+          <span><i data-lucide="clipboard-list" style="width:13px;height:13px;stroke-width:2;flex-shrink:0;vertical-align:middle;margin-right:5px"></i> Incolla testo o lista lezioni</span>
           <span class="sources-text-chevron" id="textChevron">›</span>
         </div>
         <div class="sources-text-body" id="textInputBody" style="display:none">
@@ -7870,7 +7885,7 @@ updateSourcesBtn();
 
       <!-- Exam info + Generate Plan -->
       <div class="sources-exam-section" id="examSection">
-        <div class="sources-exam-label">📅 Dati esame</div>
+        <div class="sources-exam-label"><i data-lucide="calendar" style="width:13px;height:13px;stroke-width:2;flex-shrink:0;vertical-align:middle;margin-right:4px"></i> Dati esame</div>
         <div class="sources-exam-fields">
           <input class="sources-exam-input" type="text" id="examSubject"
                  placeholder="Materia (es. Psicologia Cognitiva)"
@@ -7882,12 +7897,12 @@ updateSourcesBtn();
                  oninput="saveExamInfo()">
         </div>
         <button class="gen-plan-btn" id="genPlanBtn" onclick="generateStudyPlan()" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <i data-lucide="layout-list" style="width:14px;height:14px;stroke-width:2.2;flex-shrink:0"></i>
           Sviluppa piano di studio
         </button>
         <div class="gen-plan-status" id="genPlanStatus"></div>
         <span class="gen-plan-reset" id="genPlanReset" style="display:none"
-              onclick="resetAiPlan()">↩ Ripristina piano predefinito</span>
+              onclick="resetAiPlan()"><i data-lucide="rotate-ccw" style="width:11px;height:11px;stroke-width:2.2;vertical-align:middle"></i> Ripristina piano predefinito</span>
       </div>
     </div>
         <div class="sources-footer" style="padding:0;border-top:1px solid var(--border);margin-top:16px;padding-top:14px;">
@@ -7898,17 +7913,17 @@ updateSourcesBtn();
           <div id="storageUsageBar" style="margin-top:10px"></div>
           <div class="sync-section">
             <div class="sync-title">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+              <i data-lucide="refresh-cw" style="width:11px;height:11px;stroke-width:2.2;flex-shrink:0"></i>
               Sincronizza dispositivi
             </div>
             <div class="sync-desc">Esporta il backup per usare l'app anche dal telefono.</div>
             <div class="sync-btns">
               <button class="sync-btn" onclick="exportAllData()">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <i data-lucide="download" style="width:11px;height:11px;stroke-width:2.2;flex-shrink:0"></i>
                 Esporta backup
               </button>
               <button class="sync-btn primary" onclick="openImportModal()">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <i data-lucide="upload" style="width:11px;height:11px;stroke-width:2.2;flex-shrink:0"></i>
                 Importa backup
               </button>
             </div>
@@ -7997,7 +8012,7 @@ updateSourcesBtn();
 <!-- Quiz Modal -->
 <div id="quizModal" class="quiz-overlay">
   <div class="quiz-box">
-    <button class="quiz-exit-btn" onclick="_quiz && document.getElementById('quizQuestionView').style.display!=='none' ? abandonQuiz() : closeQuiz()" title="Chiudi">×</button>
+    <button class="quiz-exit-btn" onclick="_quiz && document.getElementById('quizQuestionView').style.display!=='none' ? abandonQuiz() : closeQuiz()" title="Chiudi"><i data-lucide="x" style="width:16px;height:16px;stroke-width:2.2"></i></button>
 
     <!-- Loading -->
     <div class="quiz-loading" id="quizLoading">
@@ -8021,7 +8036,7 @@ updateSourcesBtn();
       <div class="quiz-q-meta" id="quizQMeta" style="display:none"></div>
       <div class="quiz-options" id="quizOptions"></div>
       <div class="quiz-explanation" id="quizExplanation" style="display:none"></div>
-      <button class="quiz-next-btn" id="quizNextBtn" onclick="nextQuizQuestion()" style="display:none">Prossima →</button>
+      <button class="quiz-next-btn" id="quizNextBtn" onclick="nextQuizQuestion()" style="display:none">Prossima <i data-lucide="arrow-right" style="width:13px;height:13px;stroke-width:2.2"></i></button>
       <button class="quiz-abandon-btn" onclick="abandonQuiz()">Abbandona quiz</button>
     </div>
 
@@ -8040,7 +8055,7 @@ updateSourcesBtn();
       </div>
       <div class="quiz-bloom-dist" id="quizBloomDist" style="display:none"></div>
       <div class="quiz-result-btns">
-        <button class="quiz-retry-btn" onclick="retryQuiz()">↺ Nuovo quiz</button>
+        <button class="quiz-retry-btn" onclick="retryQuiz()"><i data-lucide="refresh-cw" style="width:13px;height:13px;stroke-width:2.2"></i> Nuovo quiz</button>
         <button class="quiz-close-btn" onclick="closeQuiz()">Chiudi</button>
       </div>
     </div>
@@ -8050,13 +8065,13 @@ updateSourcesBtn();
 <!-- Still-there / inactivity modal -->
 <div id="stillThereModal" class="st-overlay">
   <div class="st-box">
-    <div class="st-icon" id="stIcon">⏸</div>
+    <div class="st-icon" id="stIcon"><i data-lucide="pause-circle" style="width:32px;height:32px;stroke-width:1.5"></i></div>
     <div class="st-title">Sei ancora lì?</div>
     <div class="st-body" id="stBody">Il timer è stato messo in pausa.</div>
     <div class="st-countdown" id="stCountdown"></div>
     <div class="st-btns">
-      <button class="st-resume-btn" onclick="_stillThereResume()">▶ Sì, riprendo</button>
-      <button class="st-stop-btn"   onclick="_stillThereStop()">Chiudi sessione</button>
+      <button class="st-resume-btn" onclick="_stillThereResume()"><i data-lucide="play" style="width:12px;height:12px;stroke-width:2.2;fill:currentColor"></i> Sì, riprendo</button>
+      <button class="st-stop-btn"   onclick="_stillThereStop()"><i data-lucide="square" style="width:11px;height:11px;stroke-width:2.2;fill:currentColor"></i> Chiudi sessione</button>
     </div>
   </div>
 </div>
@@ -8073,13 +8088,13 @@ updateSourcesBtn();
     <div class="mic-modal-transcript" id="micModalTranscript">In ascolto...</div>
     <div class="mic-modal-actions">
       <button class="mic-action-btn mic-btn-cancel" onclick="stopVoiceDictation(false)" title="Annulla — scarta testo">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <i data-lucide="x" style="width:14px;height:14px;stroke-width:2.5"></i>
       </button>
       <button class="mic-action-btn mic-btn-pause" id="micModalPause" onclick="pauseVoiceDictation()" title="Pausa">
-        <svg id="micPauseIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        <i id="micPauseIcon" data-lucide="pause" style="width:14px;height:14px;stroke-width:2.2;fill:currentColor"></i>
       </button>
       <button class="mic-action-btn mic-btn-apply" onclick="stopVoiceDictation(true)" title="Applica risposta">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <i data-lucide="check" style="width:14px;height:14px;stroke-width:2.5"></i>
       </button>
     </div>
     <div class="mic-modal-hint">Parla in italiano &middot; ✓ per applicare &middot; ✕ per annullare</div>
