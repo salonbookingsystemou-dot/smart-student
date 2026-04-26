@@ -1116,6 +1116,52 @@
     color: var(--text-2); line-height: 1.5; margin-bottom: 10px;
     white-space: pre-wrap; font-family: 'Inter', sans-serif;
   }
+  .q-done-improve-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 8px; padding: 5px 11px;
+    font-size: 11px; font-family: 'Inter', sans-serif;
+    background: none; border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text-2); cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .q-done-improve-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .q-done-edit-area {
+    display: none; margin-top: 12px;
+    border-top: 1px solid var(--border); padding-top: 12px;
+  }
+  .q-done-edit-area.open { display: block; }
+  .q-done-edit-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--accent); font-weight: 700; margin-bottom: 6px;
+    font-family: 'Inter', sans-serif;
+  }
+  .q-done-edit-textarea {
+    width: 100%; min-height: 120px; resize: vertical;
+    padding: 10px 12px; font-size: 13px; line-height: 1.55;
+    font-family: 'Inter', sans-serif;
+    background: var(--surface); border: 1.5px solid var(--accent);
+    border-radius: 8px; color: var(--text-1);
+    outline: none; box-sizing: border-box;
+  }
+  .q-done-edit-bar {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  }
+  .q-done-reverify-btn {
+    flex: 1; padding: 9px 14px; font-size: 12px; font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    background: none; border: 1.5px solid var(--accent);
+    border-radius: 8px; color: var(--accent); cursor: pointer;
+    transition: background 0.15s;
+  }
+  .q-done-reverify-btn:hover { background: rgba(217,119,87,0.12); }
+  .q-done-reverify-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .q-done-cancel-edit {
+    background: none; border: none; font-size: 11px;
+    color: var(--text-3); cursor: pointer; padding: 4px 6px;
+    font-family: 'Inter', sans-serif; text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .q-done-cancel-edit:hover { color: var(--text-2); }
 
   /* Session complete card */
   .session-complete-card {
@@ -4744,6 +4790,8 @@ function _renderQsPanel(dayId) {
     const fbContent = fb.html
       ? fb.html
       : `<div class="q-review-text">${escHtml(fb.text || '')}</div>`;
+    const qTypeEscaped = (q.type || '').replace(/'/g, "\\'");
+    const qTextEscaped = q.text.replace(/'/g, "\\'");
     return `
       <div class="q-done-summary" id="done-q-${dayId}-${i}">
         <button class="q-done-toggle" onclick="toggleDoneQ('${dayId}', ${i})">
@@ -4753,8 +4801,22 @@ function _renderQsPanel(dayId) {
         </button>
         <div class="q-done-body">
           <div class="q-done-answer-label">La tua risposta</div>
-          <div class="q-done-answer-text">${ansPreview}</div>
-          <div class="q-feedback ${fb.grade || ''} visible" style="margin-top:0">${fbContent}</div>
+          <div class="q-done-answer-text" id="done-ans-text-${dayId}-${i}">${ansPreview}</div>
+          <div class="q-feedback ${fb.grade || ''} visible" style="margin-top:0" id="done-fb-${dayId}-${i}">${fbContent}</div>
+          <button class="q-done-improve-btn" onclick="openImproveAnswer('${dayId}', ${i})" id="done-improve-btn-${dayId}-${i}">✏ Migliora risposta</button>
+          <div class="q-done-edit-area" id="done-edit-${dayId}-${i}">
+            <div class="q-done-edit-label">Modifica e riverifica</div>
+            <textarea class="q-done-edit-textarea" id="done-edit-ta-${dayId}-${i}"
+              oninput="_syncReverifyBtn('${dayId}', ${i}, this.value)">${escHtml(ans)}</textarea>
+            <div class="q-done-edit-bar">
+              <button class="q-mic-btn" onclick="startVoiceDictationInto('done-edit-ta-${dayId}-${i}')" title="Trascrivi con voce">${_MIC_SVG}</button>
+              <button class="q-done-reverify-btn" id="done-reverify-btn-${dayId}-${i}"
+                onclick="reverifyAnswer('${dayId}', ${i}, '${qTextEscaped}', '${qTypeEscaped}')">
+                Riverifica →
+              </button>
+              <button class="q-done-cancel-edit" onclick="closeImproveAnswer('${dayId}', ${i})">Annulla</button>
+            </div>
+          </div>
         </div>
       </div>`;
   }).join('');
@@ -5570,19 +5632,155 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
   }
 }
 
+// ── Improve (re-edit + re-verify) done answers ──────────────
+function openImproveAnswer(dayId, qIdx) {
+  const area = document.getElementById(`done-edit-${dayId}-${qIdx}`);
+  const btn  = document.getElementById(`done-improve-btn-${dayId}-${qIdx}`);
+  if (!area) return;
+  area.classList.add('open');
+  if (btn) btn.style.display = 'none';
+  // make sure the card is expanded
+  const card = document.getElementById(`done-q-${dayId}-${qIdx}`);
+  if (card && !card.classList.contains('expanded')) card.classList.add('expanded');
+  const ta = document.getElementById(`done-edit-ta-${dayId}-${qIdx}`);
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  _syncReverifyBtn(dayId, qIdx, ta?.value || '');
+}
+
+function closeImproveAnswer(dayId, qIdx) {
+  const area = document.getElementById(`done-edit-${dayId}-${qIdx}`);
+  const btn  = document.getElementById(`done-improve-btn-${dayId}-${qIdx}`);
+  if (area) area.classList.remove('open');
+  if (btn) btn.style.display = '';
+}
+
+function _syncReverifyBtn(dayId, qIdx, val) {
+  const btn = document.getElementById(`done-reverify-btn-${dayId}-${qIdx}`);
+  if (btn) btn.disabled = val.trim().length < MIN_ANSWER_CHARS;
+}
+
+async function reverifyAnswer(dayId, qIdx, questionText, qType) {
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) { showApiModal(); return; }
+
+  const ta   = document.getElementById(`done-edit-ta-${dayId}-${qIdx}`);
+  const fbEl = document.getElementById(`done-fb-${dayId}-${qIdx}`);
+  const rvBtn = document.getElementById(`done-reverify-btn-${dayId}-${qIdx}`);
+  if (!ta || !fbEl) return;
+
+  const answer = ta.value.trim();
+  if (answer.length < MIN_ANSWER_CHARS) return;
+
+  rvBtn.disabled = true;
+  rvBtn.textContent = 'Valutazione…';
+  fbEl.className = 'q-feedback loading visible';
+  fbEl.innerHTML = '<div class="q-feedback-label">Claude sta valutando…</div>';
+
+  const systemPrompt = `Sei un coach universitario esperto di Psicologia Cognitiva. Il tuo ruolo non è solo valutare — è far crescere lo studente.
+Il corso è "Psicologia Cognitiva" della Prof. Laura Serra (UNINETTUNO).
+Rispondi SEMPRE in italiano.
+
+Struttura la risposta così:
+1. Prima riga: SOLO il giudizio: OTTIMO / BUONO / PARZIALE / INSUFFICIENTE
+2. 2-4 frasi di feedback chirurgico: cosa è corretto, cosa manca, cosa è impreciso.
+3. Se mancano concetti chiave, elencali in modo conciso.
+
+Tono da mantenere:
+- Per OTTIMO: riconosci l'eccellenza in modo specifico.
+- Per BUONO: celebra senza compiacere. Indica il delta verso la perfezione.
+- Per PARZIALE: sii diretto e propositivo. Indica esattamente il gap.
+- Per INSUFFICIENTE: non demolire, ma non edulcorare. Aiuta a capire perché e cosa fare subito.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 400,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Domanda (tipo: ${qType}): ${questionText}\n\nRisposta dello studente: ${answer}` }]
+      })
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
+    const data = await res.json();
+    const text = data.content[0].text.trim();
+    const firstLine = text.split('\n')[0].toUpperCase();
+    const rest = text.split('\n').slice(1).join('\n').trim();
+
+    let grade = 'partial', gradeLabel = 'PARZIALE', gradeClass = 'feedback-partial', score = 2;
+    if (firstLine.includes('OTTIMO'))       { grade='good';    gradeLabel='OTTIMO';        gradeClass='feedback-good';    score=5; }
+    else if (firstLine.includes('BUONO'))   { grade='good';    gradeLabel='BUONO';         gradeClass='feedback-good';    score=4; }
+    else if (firstLine.includes('INSUFFICIENTE')) { grade='poor'; gradeLabel='INSUFFICIENTE'; gradeClass='feedback-poor'; score=1; }
+
+    const dots = Array.from({length:5},(_,i)=>`<span class="q-dot${i<score?' filled':''}"></span>`).join('');
+    const fbHtml = `<div class="q-rating-row"><span class="q-rating-dots">${dots}</span><span class="q-rating-label ${gradeClass}">${gradeLabel}</span></div><div class="q-review-text">${rest.replace(/\n/g,'<br>')}</div>`;
+
+    fbEl.className = `q-feedback ${grade} visible`;
+    fbEl.innerHTML = fbHtml;
+
+    // Update answer preview
+    const previewEl = document.getElementById(`done-ans-text-${dayId}-${qIdx}`);
+    const preview = answer.length > 300 ? answer.substring(0, 300) + '…' : answer;
+    if (previewEl) previewEl.textContent = preview;
+
+    // Update grade icon on toggle button
+    const iconEl = document.querySelector(`#done-q-${dayId}-${qIdx} .q-done-grade-icon`);
+    if (iconEl) {
+      iconEl.className = `q-done-grade-icon grade-${grade}`;
+      iconEl.textContent = { good:'✓', partial:'◑', poor:'✗' }[grade] || '?';
+    }
+
+    // Persist
+    if (!state[dayId]) state[dayId] = {};
+    if (!state[dayId].answers) state[dayId].answers = {};
+    state[dayId].answers[qIdx] = answer;
+    const _fbTmp = document.createElement('div'); _fbTmp.innerHTML = fbHtml;
+    state[dayId].feedbacks[qIdx] = {
+      grade, text: (_fbTmp.textContent||'').slice(0,1200),
+      html: fbHtml.length < 3000 ? fbHtml : null
+    };
+    saveState();
+    renderDayReadiness(dayId);
+    renderReadinessPanel();
+    _autoSetStatus(dayId);
+
+    // Close edit area, show coach modal
+    closeImproveAnswer(dayId, qIdx);
+    _showCoachModal(grade, score, null);
+
+  } catch(err) {
+    fbEl.className = 'q-feedback poor visible';
+    fbEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div>' + escHtml(err.message);
+  } finally {
+    rvBtn.disabled = false;
+    rvBtn.textContent = 'Riverifica →';
+  }
+}
+
 // ── Voice Dictation Modal ───────────────────────────────────
 let _mic = null; // stato globale sessione microfono
 
-function startVoiceDictation(dayId, qIdx) {
+// Write into any textarea by ID (used by "improve done answer" mic button)
+function startVoiceDictationInto(targetId) {
+  const el = document.getElementById(targetId);
+  if (el) startVoiceDictation(null, null, el);
+}
+
+function startVoiceDictation(dayId, qIdx, overrideTextarea) {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) {
     alert('Il tuo browser non supporta la trascrizione vocale.\nUsa Chrome o Edge per questa funzione.');
     return;
   }
 
-  const textarea  = document.getElementById('answer-' + dayId + '-' + qIdx);
-  const qTextEls  = document.querySelectorAll('#block-' + dayId + ' .q-text');
-  const questionText = qTextEls[qIdx] ? qTextEls[qIdx].textContent.trim() : '';
+  const textarea  = overrideTextarea || document.getElementById('answer-' + dayId + '-' + qIdx);
+  const qTextEls  = dayId ? document.querySelectorAll('#block-' + dayId + ' .q-text') : [];
+  const questionText = (qTextEls[qIdx] ? qTextEls[qIdx].textContent.trim() : '');
 
   // Prepara UI modal
   const modal       = document.getElementById('micModal');
