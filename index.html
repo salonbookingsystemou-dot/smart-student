@@ -921,6 +921,134 @@
     line-height: 1.65;
     color: var(--text);
   }
+
+  /* ── Session-based question UX ────────────────────────────── */
+
+  /* Pre-session prompt */
+  .session-prompt {
+    text-align: center;
+    padding: 28px 20px 20px;
+  }
+  .session-done-count {
+    font-size: 12px; color: var(--text-3); margin-bottom: 14px;
+    font-family: 'Inter', sans-serif;
+  }
+  .session-start-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 8px;
+    padding: 13px 28px; font-size: 14px; font-weight: 700;
+    cursor: pointer; letter-spacing: -0.01em; min-height: 48px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .session-start-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  /* Active question card */
+  .q-active-card {
+    border: 1.5px solid var(--accent); border-radius: 10px;
+    background: var(--bg); padding: 16px; margin-bottom: 12px;
+    animation: q-slide-in 0.28s cubic-bezier(0.22,1,0.36,1);
+  }
+  @keyframes q-slide-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .q-active-label {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.09em; color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .q-active-label::before {
+    content: ''; display: inline-block;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: pulse-dot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* Advance button (shown after feedback) */
+  .q-advance-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 12px;
+    padding: 8px 16px; border-radius: 6px;
+    border: 1.5px solid var(--accent);
+    background: var(--accent-bg); color: var(--accent);
+    font-family: 'Inter', monospace; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .q-advance-btn:hover { background: var(--accent); color: #fff; }
+
+  /* Completed questions area */
+  .done-questions-area { margin-top: 16px; }
+  .done-qs-header {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-3); font-weight: 600; margin-bottom: 8px;
+    font-family: 'Inter', sans-serif;
+  }
+  .q-done-summary {
+    border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 5px; overflow: hidden;
+    background: var(--surface2);
+  }
+  .q-done-toggle {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; cursor: pointer; width: 100%;
+    background: none; border: none; text-align: left;
+    color: var(--text-2); font-family: 'Inter', sans-serif;
+  }
+  .q-done-toggle:hover { background: rgba(127,127,127,0.06); }
+  .q-done-grade-icon {
+    font-size: 13px; flex-shrink: 0; width: 18px; text-align: center;
+  }
+  .q-done-grade-icon.grade-good    { color: var(--done-border); }
+  .q-done-grade-icon.grade-partial { color: var(--partial-text); }
+  .q-done-grade-icon.grade-poor    { color: var(--skip-text); }
+  .q-done-text {
+    flex: 1; font-size: 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .q-done-chevron {
+    color: var(--text-3); font-size: 14px; transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .q-done-summary.expanded .q-done-chevron { transform: rotate(90deg); }
+  .q-done-body {
+    display: none; padding: 12px 14px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .q-done-summary.expanded .q-done-body { display: block; }
+  .q-done-answer-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--text-3); font-weight: 600; margin-bottom: 4px;
+    font-family: 'Inter', sans-serif;
+  }
+  .q-done-answer-text {
+    color: var(--text-2); line-height: 1.5; margin-bottom: 10px;
+    white-space: pre-wrap; font-family: 'Inter', sans-serif;
+  }
+
+  /* Session complete card */
+  .session-complete-card {
+    text-align: center; padding: 28px 20px;
+    background: var(--surface2); border-radius: 10px;
+    border: 1px solid var(--done-border); margin-bottom: 14px;
+  }
+  .session-complete-icon {
+    font-size: 32px; margin-bottom: 8px;
+  }
+  .session-complete-title {
+    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
+    color: var(--done-border); margin-bottom: 4px;
+  }
+  .session-complete-sub {
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-3);
+  }
   .feedback-good    { color: var(--accent); }
   .feedback-partial { color: var(--text-2); }
   .feedback-poor    { color: var(--skip-text); }
@@ -3426,6 +3554,133 @@ function closeWelcomeModal() {
   sessionStorage.setItem('ss_welcome_shown', '1');
 }
 
+// ── Session-based question panel ─────────────────────────────
+
+const MIN_ANSWER_CHARS = 40;
+const _MIC_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+
+function _nextUnverifiedIdx(dayId, qList) {
+  const feedbacks = state[dayId]?.feedbacks || {};
+  return qList.findIndex((q, i) => !feedbacks[i]);
+}
+
+function startDaySession(dayId) {
+  if (!state[dayId]) state[dayId] = {};
+  const wasStarted = !!state[dayId].sessionStarted;
+  state[dayId].sessionStarted = true;
+  saveState();
+  timerStart(dayId); // also start/continue timer
+  if (!wasStarted) _renderQsPanel(dayId); // first time: reveal questions
+}
+
+function advanceQuestion(dayId) {
+  _renderQsPanel(dayId);
+}
+
+function toggleDoneQ(dayId, idx) {
+  document.getElementById(`done-q-${dayId}-${idx}`)?.classList.toggle('expanded');
+}
+
+function _renderQsPanel(dayId) {
+  const container = document.getElementById('qs-panel-' + dayId);
+  if (!container) return;
+
+  const day = getActiveDays().find(d => d.id === dayId);
+  if (!day) return;
+
+  const dayState    = state[dayId] || {};
+  const sessionStarted = !!dayState.sessionStarted;
+  const qList       = dayState.aiQuestions || day.questions || [];
+  if (!qList.length) { container.innerHTML = ''; return; }
+
+  const feedbacks = dayState.feedbacks || {};
+  const answers   = dayState.answers   || {};
+  const completedCount = qList.filter((q, i) => feedbacks[i]).length;
+  const activeIdx  = _nextUnverifiedIdx(dayId, qList);
+  const allDone    = activeIdx === -1;
+
+  // ── Completed questions HTML (collapsed cards) ──────────────
+  const _completedHtml = () => qList.map((q, i) => {
+    if (!feedbacks[i]) return '';
+    const fb = feedbacks[i];
+    const gradeIcon = { good: '✓', partial: '◑', poor: '✗' }[fb.grade] || '?';
+    const ans = answers[i] || '';
+    const ansPreview = escHtml(ans.length > 300 ? ans.substring(0,300) + '…' : ans);
+    return `
+      <div class="q-done-summary" id="done-q-${dayId}-${i}">
+        <button class="q-done-toggle" onclick="toggleDoneQ('${dayId}', ${i})">
+          <span class="q-done-grade-icon grade-${fb.grade || 'poor'}">${gradeIcon}</span>
+          <span class="q-done-text">${q.text}</span>
+          <span class="q-done-chevron">›</span>
+        </button>
+        <div class="q-done-body">
+          <div class="q-done-answer-label">La tua risposta</div>
+          <div class="q-done-answer-text">${ansPreview}</div>
+          <div class="q-feedback ${fb.grade || ''} visible" style="margin-top:0">${fb.html}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // ── Pre-session state ────────────────────────────────────────
+  if (!sessionStarted) {
+    const btnLabel = completedCount > 0 ? '→ Riprendi sessione' : '→ Inizia sessione';
+    container.innerHTML = `
+      <div class="session-prompt">
+        ${completedCount > 0
+          ? `<div class="session-done-count">${completedCount} / ${qList.length} domande già completate</div>`
+          : `<div class="session-done-count">${qList.length} domande da completare</div>`}
+        <button class="session-start-btn" onclick="startDaySession('${dayId}')">${btnLabel}</button>
+      </div>
+      ${completedCount > 0 ? `<div class="done-questions-area"><div class="done-qs-header">Completate</div>${_completedHtml()}</div>` : ''}`;
+    return;
+  }
+
+  // ── All questions done ───────────────────────────────────────
+  if (allDone) {
+    container.innerHTML = `
+      <div class="session-complete-card">
+        <div class="session-complete-icon">✓</div>
+        <div class="session-complete-title">Sessione completata!</div>
+        <div class="session-complete-sub">Hai verificato tutte e ${qList.length} le domande di oggi.</div>
+      </div>
+      <div class="done-questions-area"><div class="done-qs-header">Domande completate</div>${_completedHtml()}</div>`;
+    return;
+  }
+
+  // ── Active question ──────────────────────────────────────────
+  const q = qList[activeIdx];
+  const existingAns = answers[activeIdx] || '';
+  const canVerify = existingAns.trim().length >= MIN_ANSWER_CHARS;
+
+  const activeHtml = `
+    <div class="q-active-card">
+      <div class="q-active-label">In corso — ${activeIdx + 1} di ${qList.length}</div>
+      <div class="q-top">
+        <div class="q-text">${q.text}</div>
+        <div class="q-type">${_qTypeBadge(q.type)}</div>
+      </div>
+      <div class="q-answer-area">
+        <textarea class="q-answer-input" id="answer-${dayId}-${activeIdx}"
+          placeholder="Scrivi qui la tua risposta…"
+          oninput="saveAnswer('${dayId}', ${activeIdx}, this.value); _syncVerifyBtn('${dayId}', ${activeIdx}, this.value)">${escHtml(existingAns)}</textarea>
+        <div class="q-answer-bar">
+          <button class="q-mic-btn" id="mic-${dayId}-${activeIdx}"
+            onclick="startVoiceDictation('${dayId}', ${activeIdx})" title="Trascrivi con voce">${_MIC_SVG}</button>
+          <button class="q-verify-btn" id="verify-${dayId}-${activeIdx}"
+            ${canVerify ? '' : 'disabled'}
+            onclick="verifyAnswer('${dayId}', ${activeIdx}, '${q.text.replace(/'/g,"\\'")}', '${q.type}')">Verifica risposta →</button>
+        </div>
+        <div class="q-feedback" id="feedback-${dayId}-${activeIdx}"></div>
+      </div>
+    </div>`;
+
+  const doneHtml = completedCount > 0
+    ? `<div class="done-questions-area"><div class="done-qs-header">Completate</div>${_completedHtml()}</div>`
+    : '';
+
+  container.innerHTML = activeHtml + doneHtml;
+}
+
 // Returns true if day at given id is accessible (all preceding non-rest days have a status)
 function isDayUnlocked(dayId) {
   const activeDays = getActiveDays();
@@ -3560,37 +3815,8 @@ function buildDays() {
           </div>
         </div>`).join('');
 
-      // Use AI-generated questions if available, otherwise fall back to hardcoded
-      const aiQs   = dayState.aiQuestions;
-      const qList  = aiQs ? aiQs : (day.questions || []);
-      const isAiQ  = !!aiQs;
-
-      const MIN_ANSWER_CHARS = 40; // minimum chars to unlock verify
-      const _makeQItem = (q, i) => {
-        const existingAnswer = answers[i] || '';
-        const canVerify = existingAnswer.trim().length >= MIN_ANSWER_CHARS;
-        return `
-        <li class="question-item">
-          <div class="q-top">
-            <div class="q-text">${q.text}</div>
-            <div class="q-type">${_qTypeBadge(q.type)}</div>
-          </div>
-          <div class="q-answer-area">
-            <textarea class="q-answer-input" id="answer-${day.id}-${i}" placeholder="Scrivi qui la tua risposta..." oninput="saveAnswer('${day.id}', ${i}, this.value); _syncVerifyBtn('${day.id}', ${i}, this.value)">${escHtml(existingAnswer)}</textarea>
-            <div class="q-answer-bar">
-              <button class="q-mic-btn" id="mic-${day.id}-${i}" onclick="startVoiceDictation('${day.id}', ${i})" title="Trascrivi con voce">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-              </button>
-              <button class="q-verify-btn" id="verify-${day.id}-${i}" ${canVerify ? '' : 'disabled'} onclick="verifyAnswer('${day.id}', ${i}, '${q.text.replace(/'/g, "\\'")}', '${q.type}')">Verifica risposta →</button>
-            </div>
-            <div class="q-feedback${feedbacks[i] ? ' '+feedbacks[i].grade+' visible' : ''}" id="feedback-${day.id}-${i}">${feedbacks[i] ? feedbacks[i].html : ''}</div>
-          </div>
-        </li>`;
-      };
-
-      let questionsHtml = qList.map(_makeQItem).join('');
-
       // Button to generate questions from sources
+      const isAiQ  = !!dayState.aiQuestions;
       const genQBtn = day.questions ? `
         <button class="gen-q-btn" id="genq-btn-${day.id}" onclick="generateQuestionsFromSource('${day.id}')">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -3617,7 +3843,7 @@ function buildDays() {
         <div class="timer-block" id="timer-${day.id}">
           <div class="timer-display" id="timerDisplay-${day.id}">00:00:00</div>
           <div class="timer-controls">
-            <button class="timer-btn primary" id="timerStartBtn-${day.id}" onclick="timerStart('${day.id}')">Inizia sessione</button>
+            <button class="timer-btn primary" id="timerStartBtn-${day.id}" onclick="startDaySession('${day.id}')">Inizia sessione</button>
             <button class="timer-btn pause-btn" id="timerPauseBtn-${day.id}" onclick="timerPause('${day.id}')" style="display:none">Pausa</button>
             <button class="timer-btn stop-btn" id="timerStopBtn-${day.id}" onclick="timerStop('${day.id}')" style="display:none">Chiudi sessione</button>
           </div>
@@ -3636,7 +3862,7 @@ function buildDays() {
             </button>
           </div>
           <div class="section-body">
-            <ul class="questions-list">${questionsHtml}</ul>
+            <div id="qs-panel-${day.id}"></div>
             ${genQBtn}
             <div class="notes-area" style="margin-top:14px;">
               <label>Note e punti deboli emersi</label>
@@ -3647,6 +3873,10 @@ function buildDays() {
     }
 
     main.appendChild(block);
+    // Populate the dynamic questions panel after block is in DOM
+    if (day.type !== 'rest' && day.type !== 'exam') {
+      _renderQsPanel(day.id);
+    }
   });
 }
 
@@ -3936,6 +4166,14 @@ Sii preciso e diretto. Non essere eccessivamente indulgente.`;
     state[dayId].feedbacks[qIdx] = { grade: grade, html: feedbackEl.innerHTML };
     saveState();
     renderDayReadiness(dayId);
+    renderReadinessPanel();
+
+    // Determine if there are more questions to advance to
+    const _qListNow = (state[dayId]?.aiQuestions) ||
+      (getActiveDays().find(d => d.id === dayId)?.questions) || [];
+    const _nextIdx = _nextUnverifiedIdx(dayId, _qListNow);
+    const _advLabel = _nextIdx === -1 ? 'Mostra riepilogo →' : 'Prossima domanda →';
+    feedbackEl.innerHTML += `<button class="q-advance-btn" onclick="advanceQuestion('${dayId}')">${_advLabel}</button>`;
 
   } catch(err) {
     feedbackEl.className = 'q-feedback poor visible';
