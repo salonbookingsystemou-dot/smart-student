@@ -638,19 +638,33 @@
   .notes-area textarea:focus { border-color: var(--accent); }
 
   .tip-box {
+    position: relative;
     background: var(--accent-bg);
     border: 1px solid var(--accent-border);
-    border-radius: 4px;
-    padding: 10px 14px;
-    margin-bottom: 1rem;
-    font-size: 12px;
-    color: var(--accent);
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin-bottom: 1.2rem;
+    display: block;
   }
 
-  .tip-icon { flex-shrink: 0; margin-top: 1px; }
+  .tip-label {
+    display: flex; align-items: center; gap: 5px;
+    font-family: 'Inter', monospace;
+    font-size: 9px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--accent); opacity: 0.75;
+    margin-bottom: 7px;
+  }
+
+  .tip-text {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-2);
+  }
+
+  /* legacy icon kept for safety, hidden in new layout */
+  .tip-icon { display: none; }
 
   .rest-day {
     display: flex;
@@ -4057,7 +4071,7 @@ function buildDays() {
             <div class="timer-saved">Sessioni salvate: <span id="timerSaved-${day.id}">${formatSeconds(dayState.totalSeconds || 0)}</span></div>
           </div>
         </div>
-        ${day.tip ? `<div class="tip-box"><span class="tip-icon">→</span><span>${day.tip}</span></div>` : ''}
+        ${day.tip ? `<div class="tip-box"><div class="tip-label"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Metodo di studio</div><div class="tip-text">${day.tip}</div></div>` : ''}
         <div class="section-card">
           <div class="section-head">
             <span class="section-tag tag-retrieval">retrieval practice</span>
