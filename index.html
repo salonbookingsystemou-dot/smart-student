@@ -1516,22 +1516,71 @@
   /* Loading */
   .quiz-loading { text-align: center; padding: 44px 0; }
   .quiz-spinner {
-    width: 38px; height: 38px;
-    border: 3px solid var(--border);
+    width: 32px; height: 32px;
+    border: 2.5px solid var(--border);
     border-top-color: var(--accent);
     border-radius: 50%;
     animation: quiz-spin 0.75s linear infinite;
-    margin: 0 auto 18px;
+    margin: 0 auto 12px;
+    flex-shrink: 0;
   }
   @keyframes quiz-spin { to { transform: rotate(360deg); } }
   .quiz-loading-label {
-    font-size: 13px; color: var(--text-2);
-    font-family: 'Inter', sans-serif;
-  }
-  .quiz-loading-sub {
     font-size: 11px; color: var(--text-3);
-    margin-top: 6px; font-family: 'JetBrains Mono', monospace;
-    max-width: 300px; margin-left: auto; margin-right: auto;
+    font-family: 'Inter', sans-serif; text-align: center;
+  }
+
+  /* ── Quiz warm-up carousel ── */
+  .quiz-warmup {
+    width: 100%; display: flex; flex-direction: column;
+    align-items: center; gap: 0; padding: 0 4px;
+  }
+  .quiz-warmup-header {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--accent);
+    font-family: 'Inter', sans-serif; margin-bottom: 14px;
+  }
+  .quiz-warmup-card {
+    width: 100%; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 18px; min-height: 110px;
+    display: flex; flex-direction: column;
+    align-items: flex-start; justify-content: center;
+    position: relative; overflow: hidden;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .quiz-warmup-card.fade-out {
+    opacity: 0; transform: translateY(-8px);
+  }
+  .quiz-warmup-type {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-3);
+    font-family: 'Inter', sans-serif; margin-bottom: 8px;
+  }
+  .quiz-warmup-q {
+    font-size: 14px; font-weight: 500; color: var(--text-1);
+    font-family: 'Inter', sans-serif; line-height: 1.5;
+  }
+  .quiz-warmup-hint {
+    font-size: 11px; color: var(--text-3);
+    font-family: 'Inter', sans-serif; margin-top: 10px;
+    font-style: italic;
+  }
+  .quiz-warmup-nav {
+    display: flex; gap: 5px; margin-top: 12px; justify-content: center;
+  }
+  .quiz-warmup-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--border); transition: background 0.3s;
+  }
+  .quiz-warmup-dot.active { background: var(--accent); }
+  .quiz-warmup-footer {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 16px; justify-content: center;
+  }
+  .quiz-warmup-generating {
+    font-size: 11px; color: var(--text-3);
+    font-family: 'Inter', sans-serif;
   }
 
   /* Top bar */
@@ -5776,9 +5825,64 @@ async function startQuiz(dayId, topic) {
   const qView   = document.getElementById('quizQuestionView');
   const rView   = document.getElementById('quizResultsView');
 
-  loading.innerHTML = `<div class="quiz-spinner"></div>
-    <div class="quiz-loading-label">Generazione domande in corso…</div>
-    <div class="quiz-loading-sub" id="quizLoadingTopic">${topic}</div>`;
+  // Build warm-up prompts from day questions (free retrieval practice while waiting)
+  const day = getActiveDays().find(d => d.id === dayId);
+  const dayQs = (day?.questions || []).filter(q => q.text);
+  const hints = [
+    'Cerca di ricordarlo con parole tue, senza guardare gli appunti.',
+    'Prova a spiegarlo come se dovessi insegnarlo a qualcuno.',
+    'Pensa a un esempio concreto che lo illustri.',
+    'Quali sono le parole chiave di questo concetto?',
+    'Come lo collegheresti a ciò che hai studiato prima?'
+  ];
+  const warmupQs = dayQs.length >= 2
+    ? dayQs.sort(() => Math.random() - 0.5).slice(0, Math.min(dayQs.length, 5))
+    : null;
+
+  if (warmupQs) {
+    const dots = warmupQs.map((_, i) => `<div class="quiz-warmup-dot${i===0?' active':''}"></div>`).join('');
+    loading.innerHTML = `
+      <div class="quiz-warmup">
+        <div class="quiz-warmup-header">⚡ Riscaldamento mentale</div>
+        <div class="quiz-warmup-card" id="warmupCard">
+          <div class="quiz-warmup-type" id="warmupType">Ripassa nella mente</div>
+          <div class="quiz-warmup-q" id="warmupQ">${escHtml(warmupQs[0].text)}</div>
+          <div class="quiz-warmup-hint" id="warmupHint">${hints[0]}</div>
+        </div>
+        <div class="quiz-warmup-nav" id="warmupDots">${dots}</div>
+        <div class="quiz-warmup-footer">
+          <div class="quiz-spinner"></div>
+          <div class="quiz-warmup-generating">Il quiz si sta preparando…</div>
+        </div>
+      </div>`;
+
+    // Auto-cycle cards every 10 seconds
+    let _warmupIdx = 0;
+    const _warmupTimer = setInterval(() => {
+      const card = document.getElementById('warmupCard');
+      if (!card) { clearInterval(_warmupTimer); return; }
+      card.classList.add('fade-out');
+      setTimeout(() => {
+        if (!document.getElementById('warmupCard')) { clearInterval(_warmupTimer); return; }
+        _warmupIdx = (_warmupIdx + 1) % warmupQs.length;
+        document.getElementById('warmupQ').textContent    = warmupQs[_warmupIdx].text;
+        document.getElementById('warmupHint').textContent = hints[_warmupIdx % hints.length];
+        // Update dots
+        document.querySelectorAll('.quiz-warmup-dot').forEach((d, i) =>
+          d.classList.toggle('active', i === _warmupIdx));
+        card.classList.remove('fade-out');
+      }, 420);
+    }, 10000);
+    // Expose timer so it can be cleared when quiz loads
+    loading._warmupTimer = _warmupTimer;
+  } else {
+    loading.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+        <div class="quiz-spinner"></div>
+        <div class="quiz-loading-label">Generazione domande in corso…<br><span style="font-size:10px;color:var(--text-3)">${escHtml(topic)}</span></div>
+      </div>`;
+  }
+
   loading.style.display = '';
   qView.style.display   = 'none';
   rView.style.display   = 'none';
@@ -5852,6 +5956,8 @@ Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
       answered: false, TIMER_MS: 25000
     };
 
+    // Clear warm-up carousel if active
+    if (loading._warmupTimer) { clearInterval(loading._warmupTimer); loading._warmupTimer = null; }
     loading.style.display = 'none';
     qView.style.display   = '';
     _showQuizQuestion(0);
