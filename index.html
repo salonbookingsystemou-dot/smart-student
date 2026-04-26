@@ -13,10 +13,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mnesti">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-<!-- Favicon fallback -->
-<link rel="shortcut icon" href="logo-mark.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32"  href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16"  href="favicon-16.png">
+<link rel="shortcut icon" href="favicon-32.png">
 
 <!-- Anti-FOUC: everything hidden until auth is resolved -->
 <style>body { visibility: hidden; }</style>
@@ -182,8 +183,10 @@
     white-space: nowrap; flex-shrink: 0;
   }
   .header-app-name-img {
-    height: 28px; width: auto; object-fit: contain;
-    filter: invert(1); flex-shrink: 0; /* dark mode: invert black logo → white */
+    /* logo-full.png has a portrait canvas (819×1024); raise height so the
+       side-by-side graphic inside renders at a legible size */
+    height: 38px; width: auto; object-fit: contain;
+    filter: invert(1); flex-shrink: 0; /* dark mode: black → white */
   }
   [data-theme="light"] .header-app-name-img { filter: none; }
   .header-app-name-text { display: none; } /* text hidden; logo image already contains it */
