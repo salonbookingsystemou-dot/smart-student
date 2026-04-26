@@ -179,17 +179,20 @@
 
   /* Brand zone */
   .header-app-name {
-    display: flex; align-items: center;
+    display: flex; align-items: center; gap: 7px;
     white-space: nowrap; flex-shrink: 0;
   }
   .header-app-name-img {
-    /* logo-full.png has a portrait canvas (819×1024); raise height so the
-       side-by-side graphic inside renders at a legible size */
-    height: 38px; width: auto; object-fit: contain;
-    filter: invert(1); flex-shrink: 0; /* dark mode: black → white */
+    /* icon-only PNG; size to match header row */
+    height: 26px; width: auto; object-fit: contain;
+    filter: invert(1); flex-shrink: 0;
   }
   [data-theme="light"] .header-app-name-img { filter: none; }
-  .header-app-name-text { display: none; } /* text hidden; logo image already contains it */
+  .header-app-name-text {
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 800;
+    letter-spacing: -0.04em; color: var(--text-1);
+  }
+  .header-app-name-text span { color: var(--accent); }
 
   /* Sources count badge */
   .sources-count-badge {
@@ -3057,7 +3060,8 @@
   <!-- Brand -->
   <div class="header-brand">
     <div class="header-app-name">
-      <img class="header-app-name-img" src="logo-full.png" alt="Mnesti" onerror="this.style.display='none'">
+      <img class="header-app-name-img" src="logo-mark.png" alt="" onerror="this.style.display='none'">
+      <span class="header-app-name-text">Mne<span>sti</span></span>
     </div>
     <h1 id="headerTitle">Psicologia Cognitiva — Prof. Serra</h1>
   </div>
