@@ -421,6 +421,13 @@
   .day-nav-item.status-done { border-left: 2px solid var(--done-border); }
   .day-nav-item.status-partial { border-left: 2px solid var(--partial-border); }
   .day-nav-item.status-skip { border-left: 2px solid var(--skip-border); }
+  .day-nav-item.locked {
+    opacity: 0.45; cursor: not-allowed; pointer-events: none;
+    filter: grayscale(0.4);
+  }
+  .nav-lock-icon {
+    flex-shrink: 0; opacity: 0.5; margin-left: auto;
+  }
 
   .day-dot {
     width: 6px; height: 6px;
@@ -3388,6 +3395,19 @@ function closeWelcomeModal() {
   sessionStorage.setItem('ss_welcome_shown', '1');
 }
 
+// Returns true if day at given id is accessible (all preceding non-rest days have a status)
+function isDayUnlocked(dayId) {
+  const activeDays = getActiveDays();
+  const idx = activeDays.findIndex(d => d.id === dayId);
+  if (idx <= 0) return true; // first day always open
+  for (let i = 0; i < idx; i++) {
+    const d = activeDays[i];
+    if (d.type === 'rest') continue; // rest days don't require completion
+    if (!state[d.id]?.status) return false; // no status → chain breaks here
+  }
+  return true;
+}
+
 function buildNav() {
   const nav = document.getElementById('dayNav');
   nav.innerHTML = ''; // reset
@@ -3421,13 +3441,19 @@ function buildNav() {
     if (status) item.classList.add('status-' + status);
     const tag = typeTag[day.type] || { cls: '', label: day.type };
     const hasQ = (day.questions && day.questions.length > 0) || !!state[day.id]?.aiQuestions;
+    const locked = !isDayUnlocked(day.id);
+    if (locked) item.classList.add('locked');
+    const lockSvg = locked
+      ? `<svg class="nav-lock-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+      : '';
     item.innerHTML = `
       <div class="day-dot"></div>
       <div class="nav-day-content">
         <span class="nav-day-name">${day.label}</span>
         ${hasQ ? `<div class="day-readiness" id="readiness-${day.id}"></div>` : ''}
       </div>
-      <span class="nav-type-tag ${tag.cls}">${tag.label}</span>`;
+      <span class="nav-type-tag ${tag.cls}">${tag.label}</span>
+      ${lockSvg}`;
     item.onclick = () => showDay(day.id);
     nav.appendChild(item);
     if (hasQ) renderDayReadiness(day.id);
@@ -3435,10 +3461,12 @@ function buildNav() {
 }
 
 function showDay(id) {
+  if (!isDayUnlocked(id)) return; // guard: locked days are inaccessible
   document.querySelectorAll('.day-block').forEach(el => el.classList.remove('visible'));
   document.querySelectorAll('.day-nav-item').forEach(el => el.classList.remove('active'));
   document.getElementById('block-' + id)?.classList.add('visible');
   document.querySelector(`[data-id="${id}"]`)?.classList.add('active');
+  if (window.innerWidth <= 768) { updateMobileDayNav(id); closeMobileSidebar(); }
 }
 
 // Mappa tipo-domanda → Tassonomia di Bloom + difficoltà
@@ -3714,6 +3742,37 @@ function setStatus(dayId, status, btn) {
     navItem.classList.add('status-' + status);
   }
   saveState();
+  // Refresh lock states across all nav items
+  _refreshNavLocks();
+}
+
+function _refreshNavLocks() {
+  const activeDays = getActiveDays();
+  activeDays.forEach(d => {
+    const el = document.querySelector(`[data-id="${d.id}"]`);
+    if (!el) return;
+    const locked = !isDayUnlocked(d.id);
+    // Toggle locked class
+    el.classList.toggle('locked', locked);
+    // Update/insert lock icon
+    let lockEl = el.querySelector('.nav-lock-icon');
+    if (locked) {
+      if (!lockEl) {
+        lockEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        lockEl.setAttribute('class', 'nav-lock-icon');
+        lockEl.setAttribute('width', '10'); lockEl.setAttribute('height', '10');
+        lockEl.setAttribute('viewBox', '0 0 24 24');
+        lockEl.setAttribute('fill', 'none');
+        lockEl.setAttribute('stroke', 'currentColor');
+        lockEl.setAttribute('stroke-width', '2.5');
+        lockEl.setAttribute('stroke-linecap', 'round');
+        lockEl.innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
+        el.appendChild(lockEl);
+      }
+    } else {
+      lockEl?.remove();
+    }
+  });
 }
 
 function saveNotes(dayId, value) {
@@ -5130,9 +5189,15 @@ function mobileNavDay(dir) {
   const active = getActiveDays();
   const cur = document.querySelector('.day-nav-item.active');
   const curId = cur?.dataset.id;
-  const idx = curId ? active.findIndex(d => d.id === curId) : 0;
-  const next = active[idx + dir];
-  if (next) showDay(next.id);
+  let idx = curId ? active.findIndex(d => d.id === curId) : 0;
+  // Walk in dir until we find an unlocked day
+  let steps = 0;
+  while (steps < active.length) {
+    idx += dir;
+    if (idx < 0 || idx >= active.length) break;
+    if (isDayUnlocked(active[idx].id)) { showDay(active[idx].id); break; }
+    steps++;
+  }
 }
 
 // Close sidebar on swipe left
