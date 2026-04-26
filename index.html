@@ -3333,17 +3333,8 @@
   </div>
 </div>
 
-<!-- API Key Modal -->
-<div class="modal-overlay" id="apiModal" style="display:none">
-  <div class="modal-box">
-    <h2>Configura API Key</h2>
-    <p>Inserisci la tua API key di Anthropic per abilitare la verifica delle risposte in tempo reale. La chiave viene salvata solo nel tuo browser e non viene mai trasmessa altrove.</p>
-    <input class="modal-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
-    <button class="modal-btn" onclick="saveApiKey()">Salva e connetti</button>
-    <button onclick="document.getElementById('apiModal').style.display='none'" style="font-family:'Inter',monospace;font-size:11px;padding:8px 16px;border:none;background:none;color:var(--text-3);cursor:pointer;margin-left:8px;">Annulla</button>
-    <p class="modal-note">La chiave è salvata nel localStorage del tuo browser. Non condividerla mai con nessuno.</p>
-  </div>
-</div>
+<!-- API Key Modal (legacy stub — functionality moved to Setup drawer) -->
+<div id="apiModal" style="display:none"></div>
 
 <div class="layout">
   <div class="sidebar">
@@ -5774,15 +5765,18 @@ function saveApiKey() {
 
 function updateApiIndicator() {
   const key = localStorage.getItem('anthropic_api_key');
-  const el = document.getElementById('apiIndicator');
-  const labelEl = document.getElementById('apiLabel');
-  if (!el) return;
-  if (key) {
-    el.classList.add('connected');
-    if (labelEl) labelEl.textContent = 'API connessa';
-  } else {
-    el.classList.remove('connected');
-    if (labelEl) labelEl.textContent = 'API non configurata';
+  // Update Setup drawer status label if visible
+  const statusEl = document.getElementById('setupApiStatus');
+  if (statusEl) {
+    if (key) {
+      statusEl.style.display = '';
+      statusEl.textContent = '✓ Chiave connessa';
+      statusEl.style.color = '#27ae60';
+    } else {
+      statusEl.style.display = '';
+      statusEl.textContent = 'Nessuna chiave configurata';
+      statusEl.style.color = 'var(--text-3)';
+    }
   }
 }
 
