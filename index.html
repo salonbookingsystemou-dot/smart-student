@@ -6,6 +6,7 @@
 <title>Psicologia Cognitiva — Piano di Studio</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Styrene+A:wght@300;400;500&family=Tiempos+Text:ital,wght@0,400;1,400&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
@@ -2215,6 +2216,26 @@
     color: var(--text-3); text-align: center; margin-top: 8px;
     line-height: 1.6;
   }
+  .login-mode-toggle {
+    font-family: 'Inter', sans-serif; font-size: 11px;
+    color: var(--text-3); text-align: center; margin-top: -8px;
+  }
+  .login-mode-toggle a {
+    color: var(--accent); text-decoration: none; font-weight: 600;
+  }
+  .login-mode-toggle a:hover { text-decoration: underline; }
+
+  /* Cloud sync status dot (header) */
+  .sync-status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border); flex-shrink: 0;
+    transition: background 0.4s;
+    title: 'Sincronizzazione cloud';
+  }
+  .sync-status-dot.synced  { background: #27ae60; }
+  .sync-status-dot.syncing { background: #f39c12; animation: sync-pulse 1s ease-in-out infinite; }
+  .sync-status-dot.error   { background: #e74c3c; }
+  @keyframes sync-pulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
 
   /* ── Welcome modal ──────────────────────────────────────────── */
   .welcome-overlay {
@@ -2625,20 +2646,31 @@
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">Smart<span>Student</span></div>
-    <div class="login-sub">Piano di studio personalizzato<br>Accesso riservato</div>
+    <div class="login-sub" id="loginSub">Piano di studio personalizzato<br>Accedi o crea il tuo account</div>
 
     <div class="login-field">
-      <div class="login-label">Password</div>
+      <div class="login-label">Email</div>
+      <input class="login-input" type="email" id="loginEmail"
+             placeholder="la-tua@email.com"
+             onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()"
+             autocomplete="email">
+    </div>
+
+    <div class="login-field">
+      <div class="login-label" id="loginPassLabel">Password</div>
       <input class="login-input" type="password" id="loginPassword"
              placeholder="••••••••"
              onkeydown="if(event.key==='Enter')doLogin()"
              autocomplete="current-password">
     </div>
 
-    <button class="login-btn" onclick="doLogin()">Accedi →</button>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Accedi →</button>
     <div class="login-error" id="loginError"></div>
 
-    <div class="login-footer">Accesso riservato all'utente autorizzato.<br>I dati rimangono nel tuo browser.</div>
+    <div class="login-mode-toggle" id="loginModeToggle">
+      Nuovo utente? <a href="#" onclick="toggleLoginMode();return false;">Crea account</a>
+    </div>
+    <div class="login-footer">I dati sono sincronizzati in cloud — accessibili da tutti i tuoi dispositivi.</div>
   </div>
 </div>
 
@@ -2686,8 +2718,10 @@
   <!-- Action buttons -->
   <div class="header-actions">
     <div class="focus-indicator" id="focusIndicator" title="Sessione di studio in corso — metti in pausa per navigare"><span class="focus-dot"></span>Focus</div>
+    <span class="sync-status-dot" id="syncStatusDot" title="Sincronizzazione cloud"></span>
     <button class="api-indicator" id="apiIndicator" onclick="showApiModal()">⚡ <span class="api-label" id="apiLabel">API</span></button>
     <button class="sources-btn" id="sourcesBtn" onclick="openSourcesPanel()">📚 <span class="sources-label">Fonti</span><span id="sourcesCount" style="display:none"></span></button>
+    <button class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;">↪ Esci</button>
     <div class="theme-switch" onclick="toggleTheme()" title="Cambia tema">
       <div class="theme-track"><div class="theme-thumb"></div></div>
     </div>
@@ -2841,71 +2875,255 @@
 </div>
 
 <script>
-// ── Login guard ──────────────────────────────────────────────
+// ── Supabase Auth + Cloud Sync ───────────────────────────────
 (function() {
-  // Password hash (SHA-256 of "smart2026") — never stored in plain text
-  const PASS_HASH = '7e6e3a89b4c6df1a9e7f0c62b0eb5daa4e5c4a1fe2b0988a7d8f3e4c5b9a2d1';
-  const SESSION_KEY = 'ss_auth_v1';
 
-  function sha256(str) {
-    // Simple FNV-1a-inspired hash sufficient for client-side protection
-    let h = 0x811c9dc5;
-    for (let i = 0; i < str.length; i++) {
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 0x01000193);
-    }
-    return ((h >>> 0).toString(16).padStart(8, '0')).repeat(8);
+  /* ── Config ── */
+  const SB_URL  = 'https://olagntawajefdjrkkvcc.supabase.co';
+  const SB_KEY  = 'sb_publishable_azsXEe4uMlPAbKNZ1seQuA_6uVieV_c';
+
+  // Keys synced to cloud
+  const SYNC_KEYS = [
+    'psico_state', 'psico_sources', 'psico_exam_info',
+    'psico_ai_plan', 'psico_objective', 'psico_theme',
+    'anthropic_api_key'
+  ];
+
+  /* ── Init client ── */
+  const _sb = window.supabase
+    ? window.supabase.createClient(SB_URL, SB_KEY)
+    : null;
+
+  if (!_sb) {
+    console.error('[Supabase] SDK not loaded — cloud sync disabled');
   }
 
-  const SECRET = sha256('smart2026');
+  window._sb = _sb;
 
-  window._loginSecret = SECRET;
-  window._sessionKey  = SESSION_KEY;
-
-  window.doLogin = function() {
-    const val = document.getElementById('loginPassword').value;
-    const errEl = document.getElementById('loginError');
-    const inputEl = document.getElementById('loginPassword');
-
-    if (sha256(val) === SECRET) {
-      sessionStorage.setItem(SESSION_KEY, SECRET);
-      const screen = document.getElementById('loginScreen');
-      screen.classList.add('fade-out');
-      setTimeout(() => {
-        screen.style.display = 'none';
-        // Show welcome modal after login (first time this session)
-        if (typeof showWelcomeModal === 'function') showWelcomeModal();
-      }, 450);
-      errEl.textContent = '';
+  /* ── Login mode toggle (login / register) ── */
+  let _loginMode = 'login'; // 'login' | 'register'
+  window.toggleLoginMode = function() {
+    _loginMode = _loginMode === 'login' ? 'register' : 'login';
+    const btn    = document.getElementById('loginBtn');
+    const toggle = document.getElementById('loginModeToggle');
+    const sub    = document.getElementById('loginSub');
+    if (_loginMode === 'register') {
+      btn.textContent    = 'Crea account →';
+      toggle.innerHTML   = 'Hai già un account? <a href="#" onclick="toggleLoginMode();return false;">Accedi</a>';
+      sub.innerHTML      = 'Crea il tuo account SmartStudent<br>sincronizzato su tutti i dispositivi';
     } else {
-      errEl.textContent = 'Password non corretta. Riprova.';
-      inputEl.classList.add('shake');
-      inputEl.value = '';
-      setTimeout(() => inputEl.classList.remove('shake'), 400);
+      btn.textContent    = 'Accedi →';
+      toggle.innerHTML   = 'Nuovo utente? <a href="#" onclick="toggleLoginMode();return false;">Crea account</a>';
+      sub.innerHTML      = 'Piano di studio personalizzato<br>Accedi o crea il tuo account';
     }
   };
 
-  // Check session on load
-  if (sessionStorage.getItem(SESSION_KEY) === SECRET) {
-    // Already authenticated — hide login, show welcome if first time this session
-    const screen = document.getElementById('loginScreen');
-    if (screen) screen.style.display = 'none';
-    if (!sessionStorage.getItem('ss_welcome_shown')) {
-      window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-          if (typeof showWelcomeModal === 'function') showWelcomeModal();
-        }, 300);
-      });
-    }
-  } else {
-    // Show login, hide app content until authenticated
-    document.addEventListener('DOMContentLoaded', () => {
-      const input = document.getElementById('loginPassword');
-      if (input) input.focus();
-    });
+  /* ── Sync dot helper ── */
+  function _syncDot(state) { // 'synced' | 'syncing' | 'error' | ''
+    const dot = document.getElementById('syncStatusDot');
+    if (!dot) return;
+    dot.className = 'sync-status-dot' + (state ? ' ' + state : '');
+    dot.title = state === 'synced'  ? 'Dati sincronizzati ✓'
+              : state === 'syncing' ? 'Sincronizzazione in corso…'
+              : state === 'error'   ? 'Errore sincronizzazione'
+              : '';
   }
+
+  /* ── Hide login screen ── */
+  function _hideLogin() {
+    const screen = document.getElementById('loginScreen');
+    if (!screen || screen.style.display === 'none') return;
+    screen.classList.add('fade-out');
+    setTimeout(() => { screen.style.display = 'none'; }, 420);
+  }
+
+  /* ── Load data from Supabase into localStorage ── */
+  async function _loadFromSupabase(userId) {
+    if (!_sb) return;
+    try {
+      const { data, error } = await _sb
+        .from('user_data')
+        .select('psico_state,psico_sources,psico_exam_info,psico_ai_plan,psico_objective')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.warn('[Supabase] Load error:', error.message);
+        return;
+      }
+      if (!data) return; // new user — nothing to restore yet
+
+      if (data.psico_state)     localStorage.setItem('psico_state',     JSON.stringify(data.psico_state));
+      if (data.psico_sources)   localStorage.setItem('psico_sources',   JSON.stringify(data.psico_sources));
+      if (data.psico_exam_info) localStorage.setItem('psico_exam_info', JSON.stringify(data.psico_exam_info));
+      if (data.psico_ai_plan)   localStorage.setItem('psico_ai_plan',   JSON.stringify(data.psico_ai_plan));
+      if (data.psico_objective) localStorage.setItem('psico_objective', data.psico_objective);
+    } catch(e) {
+      console.warn('[Supabase] Load exception:', e);
+    }
+  }
+
+  /* ── Push local data to Supabase ── */
+  window._syncToSupabase = async function() {
+    if (!_sb) return;
+    const session = (await _sb.auth.getSession()).data.session;
+    if (!session) return;
+
+    _syncDot('syncing');
+
+    function _parseLS(key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+    }
+
+    const payload = {
+      user_id:         session.user.id,
+      psico_state:     _parseLS('psico_state')     || {},
+      psico_sources:   _parseLS('psico_sources')   || [],
+      psico_exam_info: _parseLS('psico_exam_info') || {},
+      psico_ai_plan:   _parseLS('psico_ai_plan'),
+      psico_objective: localStorage.getItem('psico_objective') || 'pass',
+      updated_at:      new Date().toISOString()
+    };
+
+    try {
+      const { error } = await _sb
+        .from('user_data')
+        .upsert(payload, { onConflict: 'user_id' });
+
+      if (error) {
+        console.warn('[Supabase] Sync error:', error.message);
+        _syncDot('error');
+        setTimeout(() => _syncDot(''), 4000);
+      } else {
+        _syncDot('synced');
+      }
+    } catch(e) {
+      console.warn('[Supabase] Sync exception:', e);
+      _syncDot('error');
+      setTimeout(() => _syncDot(''), 4000);
+    }
+  };
+
+  /* ── Post-auth bootstrap ── */
+  let _bootstrapped = false;
+  async function _bootstrap(session, isNewLogin) {
+    if (_bootstrapped) return;
+    _bootstrapped = true;
+
+    if (isNewLogin) {
+      // Pull remote data first, then reload to apply it
+      await _loadFromSupabase(session.user.id);
+    }
+
+    _hideLogin();
+
+    await window._syncToSupabase();
+
+    if (!sessionStorage.getItem('ss_welcome_shown')) {
+      setTimeout(() => {
+        if (typeof showWelcomeModal === 'function') showWelcomeModal();
+      }, 600);
+    }
+  }
+
+  /* ── doLogin (called by button) ── */
+  window.doLogin = async function() {
+    if (!_sb) {
+      document.getElementById('loginError').textContent = 'Errore: SDK Supabase non caricato.';
+      return;
+    }
+    const email    = (document.getElementById('loginEmail').value    || '').trim();
+    const password = (document.getElementById('loginPassword').value || '').trim();
+    const errEl    = document.getElementById('loginError');
+    const btn      = document.getElementById('loginBtn');
+
+    if (!email || !password) {
+      errEl.textContent = 'Inserisci email e password.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = _loginMode === 'register' ? 'Creazione account…' : 'Accesso in corso…';
+    errEl.textContent = '';
+
+    try {
+      let result;
+      if (_loginMode === 'register') {
+        result = await _sb.auth.signUp({ email, password });
+        if (!result.error && result.data?.user && !result.data.session) {
+          // Email confirmation required
+          errEl.style.color = '#27ae60';
+          errEl.textContent = '✓ Controlla la tua email per confermare l\'account, poi accedi.';
+          btn.disabled = false;
+          btn.textContent = 'Crea account →';
+          return;
+        }
+      } else {
+        result = await _sb.auth.signInWithPassword({ email, password });
+      }
+
+      if (result.error) {
+        const msg = result.error.message;
+        errEl.style.color = '#e74c3c';
+        errEl.textContent = msg.includes('Invalid login') ? 'Email o password non corretti.'
+                          : msg.includes('Email not confirmed') ? 'Conferma la tua email prima di accedere.'
+                          : msg;
+        const inputEl = document.getElementById('loginPassword');
+        inputEl.classList.add('shake');
+        setTimeout(() => inputEl.classList.remove('shake'), 400);
+        btn.disabled = false;
+        btn.textContent = _loginMode === 'register' ? 'Crea account →' : 'Accedi →';
+      } else {
+        await _loadFromSupabase(result.data.user.id);
+        _bootstrap(result.data.session, true);
+      }
+    } catch(e) {
+      errEl.textContent = 'Errore di rete. Riprova.';
+      btn.disabled = false;
+      btn.textContent = _loginMode === 'register' ? 'Crea account →' : 'Accedi →';
+    }
+  };
+
+  /* ── Logout ── */
+  window.doLogout = async function() {
+    if (_sb) await _sb.auth.signOut();
+    localStorage.removeItem('psico_state');
+    localStorage.removeItem('anthropic_api_key');
+    location.reload();
+  };
+
+  /* ── Check existing session on load ── */
+  window.addEventListener('DOMContentLoaded', async () => {
+    const loginEmail = document.getElementById('loginEmail');
+    if (loginEmail) loginEmail.focus();
+
+    if (!_sb) return;
+
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session) {
+        // Valid session found — load remote data then enter app
+        await _loadFromSupabase(session.user.id);
+        _bootstrap(session, false);
+      }
+      // else: stay on login screen
+    } catch(e) {
+      console.warn('[Supabase] Session check failed:', e);
+    }
+
+    // Listen for auth state changes (e.g. token refresh, logout from another tab)
+    _sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        location.reload();
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        // Silently re-sync on token refresh
+        window._syncToSupabase();
+      }
+    });
+  });
+
 })();
-// ── End login guard ──────────────────────────────────────────
+// ── End Supabase Auth ─────────────────────────────────────────
 
 const days = [
   {
@@ -3492,10 +3710,20 @@ function _storageUsageKB() {
   return Math.round(total / 1024);
 }
 
+// Debounced cloud sync — avoids hammering Supabase on every keystroke
+let _syncTimer = null;
+function _debouncedSync() {
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => {
+    if (typeof window._syncToSupabase === 'function') window._syncToSupabase();
+  }, 3000);
+}
+
 function saveState() {
   _safeLSSet('psico_state', JSON.stringify(state));
   updateProgress();
   renderReadinessPanel();
+  _debouncedSync();
 }
 
 function escHtml(s) {
@@ -5434,7 +5662,10 @@ function getSources() {
   try { return JSON.parse(localStorage.getItem(SOURCES_KEY) || '[]'); }
   catch(e) { return []; }
 }
-function saveSources(arr) { _safeLSSet(SOURCES_KEY, JSON.stringify(arr)); }
+function saveSources(arr) {
+  _safeLSSet(SOURCES_KEY, JSON.stringify(arr));
+  _debouncedSync();
+}
 
 function addSource(title, content, sizeBytes) {
   const sources = getSources();
