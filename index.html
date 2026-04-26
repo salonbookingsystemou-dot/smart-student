@@ -6051,6 +6051,9 @@ function toggleTheme() {
   applyTheme(current === 'dark' ? 'light' : 'dark');
 }
 
+// Mobile sidebar state — must be declared BEFORE any showDay() call
+let _mobileSidebarOpen = false;
+
 // Applica il tema salvato (o dark di default)
 applyTheme(localStorage.getItem('psico_theme') || 'dark');
 
@@ -6780,8 +6783,6 @@ function getActiveDays() {
 }
 
 // ── Mobile sidebar & navigation ──────────────────────────────
-let _mobileSidebarOpen = false;
-
 function toggleMobileSidebar() {
   _mobileSidebarOpen ? closeMobileSidebar() : openMobileSidebar();
 }
