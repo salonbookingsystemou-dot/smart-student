@@ -949,7 +949,8 @@
   /* Mobile: ring stacks below questions */
   @media (max-width: 720px) {
     .day-content-row { flex-direction: column; }
-    .day-ring-aside { width: 100%; position: static; }
+    /* Hide progress ring on mobile — progress shown via session dots instead */
+    .day-ring-aside { display: none !important; }
     .session-ring-wrap {
       flex-direction: row; align-items: center; text-align: left;
       padding: 14px 16px; gap: 16px;
