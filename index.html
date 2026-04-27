@@ -2545,6 +2545,192 @@
   /* legacy total-hours kept for JS references */
   .total-hours-value { font-family: 'Inter', monospace; font-size: 13px; color: var(--text-1); }
 
+  /* ── Brain Dump modal ──────────────────────────────────────── */
+  .bd-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.82); z-index: 3100;
+    align-items: flex-end; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .bd-overlay.open { display: flex; }
+  .bd-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    width: min(620px, 100vw);
+    max-height: 96dvh; overflow-y: auto;
+    padding: 24px 24px 32px;
+    position: relative;
+    animation: bd-in 0.3s cubic-bezier(0.22,1,0.36,1);
+  }
+  @keyframes bd-in {
+    from { opacity: 0; transform: translateY(48px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .bd-exit-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-3); padding: 4px; border-radius: 6px;
+    display: flex; align-items: center;
+  }
+  .bd-exit-btn:hover { color: var(--text-1); background: var(--surface); }
+  .bd-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent);
+    font-family: 'Inter', monospace; margin-bottom: 6px;
+  }
+  .bd-topic {
+    font-size: 17px; font-weight: 700; color: var(--text-1);
+    font-family: 'Inter', sans-serif; margin-bottom: 4px; line-height: 1.3;
+  }
+  .bd-hint {
+    font-size: 12px; color: var(--text-3); font-family: 'Inter', sans-serif;
+    margin-bottom: 16px; line-height: 1.5;
+  }
+  /* Timer bar */
+  .bd-timer-wrap {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .bd-timer-label {
+    font-size: 22px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+    color: var(--text-1); min-width: 52px; flex-shrink: 0;
+  }
+  .bd-timer-label.urgent { color: #e74c3c; }
+  .bd-timer-track {
+    flex: 1; height: 5px; border-radius: 3px;
+    background: var(--border); overflow: hidden;
+  }
+  .bd-timer-fill {
+    height: 100%; border-radius: 3px;
+    background: var(--accent); transition: width 1s linear, background 0.5s;
+  }
+  .bd-timer-fill.urgent { background: #e74c3c; }
+  /* Input */
+  .bd-textarea {
+    width: 100%; min-height: 160px; max-height: 280px;
+    padding: 14px; font-size: 14px; line-height: 1.6;
+    font-family: 'Inter', sans-serif; color: var(--text-1);
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 10px; resize: vertical; box-sizing: border-box;
+    transition: border-color 0.2s;
+  }
+  .bd-textarea:focus { outline: none; border-color: var(--accent); }
+  .bd-textarea:disabled { opacity: 0.5; pointer-events: none; }
+  .bd-actions {
+    display: flex; gap: 10px; margin-top: 12px; align-items: center;
+  }
+  .bd-submit-btn {
+    flex: 1; padding: 12px; background: var(--accent); color: var(--bg);
+    border: none; border-radius: 10px; font-size: 14px; font-weight: 700;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: opacity 0.15s;
+  }
+  .bd-submit-btn:hover { opacity: 0.88; }
+  .bd-submit-btn:disabled { opacity: 0.45; pointer-events: none; }
+  .bd-mic-btn {
+    width: 46px; height: 46px; flex-shrink: 0;
+    background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 10px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    color: var(--text-2); transition: border-color 0.15s, color 0.15s;
+  }
+  .bd-mic-btn:hover { border-color: var(--accent); color: var(--accent); }
+  /* Loading */
+  .bd-loading {
+    text-align: center; padding: 28px 0;
+    font-size: 13px; color: var(--text-3); font-family: 'Inter', sans-serif;
+  }
+  @keyframes bd-spin { to { transform: rotate(360deg); } }
+  /* Results */
+  .bd-results { animation: fadeIn 0.3s ease; }
+  .bd-score-wrap {
+    display: flex; align-items: center; gap: 18px;
+    background: var(--surface); border-radius: 14px;
+    padding: 18px 20px; margin-bottom: 16px;
+  }
+  .bd-score-circle {
+    width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; border: 4px solid;
+    position: relative;
+  }
+  .bd-score-circle.poor   { border-color: #e74c3c; background: rgba(231,76,60,0.08); }
+  .bd-score-circle.medium { border-color: #f39c12; background: rgba(243,156,18,0.08); }
+  .bd-score-circle.good   { border-color: #27ae60; background: rgba(39,174,96,0.08); }
+  .bd-score-num {
+    font-size: 26px; font-weight: 800; line-height: 1;
+    font-family: 'Inter', sans-serif;
+  }
+  .bd-score-circle.poor   .bd-score-num { color: #e74c3c; }
+  .bd-score-circle.medium .bd-score-num { color: #f39c12; }
+  .bd-score-circle.good   .bd-score-num { color: #27ae60; }
+  .bd-score-pct {
+    font-size: 11px; color: var(--text-3); font-family: 'Inter', sans-serif;
+  }
+  .bd-score-meta { flex: 1; min-width: 0; }
+  .bd-badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 20px; margin-bottom: 6px;
+  }
+  .bd-badge.poor   { background: rgba(231,76,60,0.15); color: #e74c3c; }
+  .bd-badge.medium { background: rgba(243,156,18,0.15); color: #f39c12; }
+  .bd-badge.good   { background: rgba(39,174,96,0.15);  color: #27ae60; }
+  .bd-score-feedback {
+    font-size: 12px; color: var(--text-2); font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+  }
+  .bd-concepts {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .bd-concept-col {
+    background: var(--surface); border-radius: 10px; padding: 12px 14px;
+  }
+  .bd-concept-col-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 8px;
+    font-family: 'Inter', monospace;
+  }
+  .bd-concept-col.covered .bd-concept-col-title { color: #27ae60; }
+  .bd-concept-col.missing .bd-concept-col-title { color: #e74c3c; }
+  .bd-concept-item {
+    font-size: 12px; color: var(--text-2); font-family: 'Inter', sans-serif;
+    padding: 3px 0; display: flex; align-items: flex-start; gap: 6px;
+    line-height: 1.4;
+  }
+  .bd-concept-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+  }
+  .covered .bd-concept-dot { background: #27ae60; }
+  .missing .bd-concept-dot { background: #e74c3c; }
+  .bd-result-actions {
+    display: flex; gap: 10px;
+  }
+  .bd-retry-btn {
+    flex: 1; padding: 12px; background: var(--accent); color: var(--bg);
+    border: none; border-radius: 10px; font-size: 13px; font-weight: 700;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: opacity 0.15s;
+  }
+  .bd-retry-btn:hover { opacity: 0.88; }
+  .bd-close-btn {
+    padding: 12px 18px; background: none; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 13px; color: var(--text-2);
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .bd-close-btn:hover { border-color: var(--accent); color: var(--accent); }
+  /* Best score badge on button */
+  .bd-best-score {
+    font-size: 10px; opacity: 0.75; font-weight: 500;
+  }
+  @media (max-width: 540px) {
+    .bd-concepts { grid-template-columns: 1fr; }
+    .bd-box { border-radius: 16px 16px 0 0; padding: 18px 16px 28px; }
+  }
+
   /* ── Coach feedback modal ─────────────────────────────────── */
   .coach-overlay {
     position: fixed; inset: 0; z-index: 8500;
@@ -4985,6 +5171,7 @@ function calculateGlobalReadiness() {
   let totalQ = 0, answeredQ = 0, verifiedQ = 0;
   let qualitySum = 0;
   let quizScoreSum = 0, quizCount = 0;
+  let bdScoreSum = 0, bdCount = 0;
   const weakTopics = [];
 
   studyDays.forEach(day => {
@@ -5027,6 +5214,11 @@ function calculateGlobalReadiness() {
       quizScoreSum += Math.min(1, qz.score / QUIZ_MAX);
       quizCount++;
     }
+    // Brain Dump
+    if (ds.brainDumpBest != null) {
+      bdScoreSum += ds.brainDumpBest / 100;
+      bdCount++;
+    }
   });
 
   // Component scores (0-1)
@@ -5034,13 +5226,19 @@ function calculateGlobalReadiness() {
   const qualityScore      = totalQ > 0 ? qualitySum / totalQ : 0;
   const engagementScore   = answeredQ > 0 ? verifiedQ / answeredQ : 0;
   const quizScore         = quizCount > 0 ? quizScoreSum / quizCount : null;
+  const bdScore           = bdCount   > 0 ? bdScoreSum   / bdCount   : null;
 
-  // Weighted composite (weights: coverage 20, quality 50, engagement 10, quiz 20)
+  // Weighted composite — quality anchors the score, brain dump & quiz add breadth
   let raw;
-  if (quizScore !== null) {
-    raw = coverageScore * 0.20 + qualityScore * 0.50 + engagementScore * 0.10 + quizScore * 0.20;
+  const hasQuiz = quizScore !== null;
+  const hasBd   = bdScore   !== null;
+  if (hasQuiz && hasBd) {
+    raw = coverageScore * 0.15 + qualityScore * 0.45 + engagementScore * 0.10 + quizScore * 0.15 + bdScore * 0.15;
+  } else if (hasQuiz) {
+    raw = coverageScore * 0.18 + qualityScore * 0.52 + engagementScore * 0.10 + quizScore * 0.20;
+  } else if (hasBd) {
+    raw = coverageScore * 0.18 + qualityScore * 0.52 + engagementScore * 0.10 + bdScore   * 0.20;
   } else {
-    // No quizzes: redistribute quiz weight to quality
     raw = coverageScore * 0.20 + qualityScore * 0.65 + engagementScore * 0.15;
   }
 
@@ -5723,6 +5921,11 @@ function buildDays() {
                   <i data-lucide="sparkles" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
                   ${isAiQ ? 'Rigenera domande' : 'Genera domande'}
                 </button>` : ''}
+                <button class="genq-launch-btn" id="bd-btn-${day.id}"
+                  onclick="startBrainDump('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
+                  <i data-lucide="brain" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
+                  Brain Dump${(dayState.brainDumpBest != null) ? `<span class="bd-best-score">${dayState.brainDumpBest}%</span>` : ''}
+                </button>
                 <button class="quiz-launch-btn" id="quiz-btn-${day.id}"
                   onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
                   <i data-lucide="zap" style="width:12px;height:12px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i>
@@ -5838,6 +6041,203 @@ document.addEventListener('visibilitychange', function() {
 ['mousemove','keydown','click','touchstart','scroll'].forEach(function(evt) {
   document.addEventListener(evt, _resetInactivity, { passive: true });
 });
+
+// ── Brain Dump ────────────────────────────────────────────────
+const BD_DURATION = 180; // seconds
+let _bdDayId      = null;
+let _bdTopic      = null;
+let _bdInterval   = null;
+let _bdSecsLeft   = BD_DURATION;
+let _bdStarted    = false;
+
+function startBrainDump(dayId, topic) {
+  _bdDayId  = dayId;
+  _bdTopic  = topic;
+  _bdStarted = false;
+  _bdSecsLeft = BD_DURATION;
+
+  // Reset all views
+  document.getElementById('bdInputView').style.display    = '';
+  document.getElementById('bdLoadingView').style.display  = 'none';
+  document.getElementById('bdResultsView').style.display  = 'none';
+  document.getElementById('bdTopic').textContent          = topic;
+  document.getElementById('bdTextarea').value             = '';
+  document.getElementById('bdTextarea').disabled          = true;
+  document.getElementById('bdSubmitBtn').style.display    = 'none';
+  document.getElementById('bdStartBtn').style.display     = '';
+  document.getElementById('bdMicBtn').disabled            = true;
+  _bdSetTimer(BD_DURATION, BD_DURATION);
+
+  document.getElementById('brainDumpOverlay').classList.add('open');
+  lucide.createIcons();
+}
+
+function _bdStart() {
+  if (_bdStarted) return;
+  _bdStarted = true;
+  document.getElementById('bdStartBtn').style.display  = 'none';
+  document.getElementById('bdSubmitBtn').style.display = '';
+  document.getElementById('bdTextarea').disabled       = false;
+  document.getElementById('bdMicBtn').disabled         = false;
+  document.getElementById('bdTextarea').focus();
+
+  clearInterval(_bdInterval);
+  _bdInterval = setInterval(() => {
+    _bdSecsLeft--;
+    _bdSetTimer(_bdSecsLeft, BD_DURATION);
+    if (_bdSecsLeft <= 0) {
+      clearInterval(_bdInterval);
+      _submitBrainDump();
+    }
+  }, 1000);
+}
+
+function _bdSetTimer(secs, total) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  const label = document.getElementById('bdTimerLabel');
+  const fill  = document.getElementById('bdTimerFill');
+  if (label) {
+    label.textContent = m + ':' + String(s).padStart(2, '0');
+    label.className = 'bd-timer-label' + (secs <= 30 ? ' urgent' : '');
+  }
+  if (fill) {
+    fill.style.width = (secs / total * 100) + '%';
+    fill.className = 'bd-timer-fill' + (secs <= 30 ? ' urgent' : '');
+  }
+}
+
+function _bdToggleMic() {
+  const ta = document.getElementById('bdTextarea');
+  if (ta) startVoiceDictationInto('bdTextarea');
+}
+
+async function _submitBrainDump() {
+  clearInterval(_bdInterval);
+  const text = (document.getElementById('bdTextarea')?.value || '').trim();
+
+  document.getElementById('bdInputView').style.display   = 'none';
+  document.getElementById('bdLoadingView').style.display = '';
+  lucide.createIcons();
+
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) { _closeBrainDump(); showApiModal(); return; }
+
+  const sourceCtx = getAllSourcesContext ? getAllSourcesContext() : '';
+  const day = getActiveDays().find(d => d.id === _bdDayId);
+  const qList = (state[_bdDayId]?.aiQuestions) || (day?.questions) || [];
+  const knownConcepts = qList.map(q => q.text).slice(0, 12).join('\n');
+
+  const systemPrompt = `Sei un professore di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra).
+Hai ricevuto un "brain dump" testuale di uno studente: tutto quello che ricorda su un argomento specifico, scritto liberamente senza guardare gli appunti.
+Il tuo compito è analizzare quanto lo studente ha compreso e ricordato.
+${sourceCtx ? `\nMateriale del corso di riferimento (usa per identificare i concetti chiave):\n${sourceCtx.slice(0, 8000)}` : ''}
+${knownConcepts ? `\nConcetti noti dall'argomento:\n${knownConcepts}` : ''}
+
+Rispondi ESCLUSIVAMENTE con JSON valido, nessun altro testo:
+{
+  "score": <numero 0-100>,
+  "covered": [<lista concetti chiave che lo studente ha menzionato, stringhe brevi>],
+  "missing": [<lista concetti chiave importanti che mancano, max 8, stringhe brevi>],
+  "feedback": "<1-2 frasi di feedback motivante e specifico in italiano>"
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 800,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Argomento: ${_bdTopic}\n\nBrain dump dello studente:\n${text || '(nessun testo inserito)'}` }]
+      })
+    });
+
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
+    const data = await res.json();
+    let raw = data.content[0].text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+    const result = JSON.parse(raw);
+    _showBrainDumpResults(result.score || 0, result.covered || [], result.missing || [], result.feedback || '');
+
+  } catch(e) {
+    document.getElementById('bdLoadingView').style.display  = 'none';
+    document.getElementById('bdInputView').style.display    = '';
+    document.getElementById('bdTextarea').disabled          = false;
+    alert('Errore nell\'analisi: ' + e.message);
+    lucide.createIcons();
+  }
+}
+
+function _showBrainDumpResults(score, covered, missing, feedback) {
+  document.getElementById('bdLoadingView').style.display  = 'none';
+  document.getElementById('bdResultsView').style.display  = '';
+
+  // Save best score
+  if (_bdDayId) {
+    if (!state[_bdDayId]) state[_bdDayId] = {};
+    const prev = state[_bdDayId].brainDumpBest || 0;
+    if (score > prev) state[_bdDayId].brainDumpBest = score;
+    state[_bdDayId].brainDumpLast = score;
+    saveState();
+    // Update readiness + ring
+    if (typeof renderDayReadiness  === 'function') renderDayReadiness(_bdDayId);
+    if (typeof renderReadinessPanel === 'function') renderReadinessPanel();
+    if (typeof _renderSessionRing   === 'function') _renderSessionRing(_bdDayId, true);
+    // Refresh button badge
+    const bdBtn = document.getElementById('bd-btn-' + _bdDayId);
+    if (bdBtn) {
+      const best = state[_bdDayId].brainDumpBest;
+      bdBtn.innerHTML = `<i data-lucide="brain" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i> Brain Dump<span class="bd-best-score">${best}%</span>`;
+      lucide.createIcons();
+    }
+  }
+
+  // Score circle
+  const tier = score >= 75 ? 'good' : score >= 45 ? 'medium' : 'poor';
+  const label = score >= 75 ? 'Ottima padronanza' : score >= 45 ? 'In sviluppo' : 'In apprendimento';
+  const circle = document.getElementById('bdScoreCircle');
+  circle.className = 'bd-score-circle ' + tier;
+  document.getElementById('bdScoreNum').textContent = score;
+  const badge = document.getElementById('bdBadge');
+  badge.className = 'bd-badge ' + tier;
+  badge.textContent = label;
+  document.getElementById('bdFeedback').textContent = feedback;
+
+  // Concepts columns
+  const cols = document.getElementById('bdConcepts');
+  const mkItems = (arr, cls) => arr.length
+    ? arr.map(c => `<div class="bd-concept-item"><span class="bd-concept-dot"></span>${c}</div>`).join('')
+    : `<div class="bd-concept-item" style="opacity:.5">—</div>`;
+
+  cols.innerHTML = `
+    <div class="bd-concept-col covered">
+      <div class="bd-concept-col-title">✓ Coperti (${covered.length})</div>
+      ${mkItems(covered, 'covered')}
+    </div>
+    <div class="bd-concept-col missing">
+      <div class="bd-concept-col-title">✗ Mancanti (${missing.length})</div>
+      ${mkItems(missing, 'missing')}
+    </div>`;
+
+  lucide.createIcons();
+}
+
+function _retryBrainDump() {
+  startBrainDump(_bdDayId, _bdTopic);
+}
+
+function _closeBrainDump() {
+  clearInterval(_bdInterval);
+  _bdInterval  = null;
+  _bdStarted   = false;
+  document.getElementById('brainDumpOverlay').classList.remove('open');
+}
 
 // ── Debug/test helper (available in browser console) ─────────
 // Usage: _debugInactivity()        → print state
@@ -8482,6 +8882,78 @@ updateSourcesBtn();
       <div class="quiz-result-btns">
         <button class="quiz-retry-btn" onclick="retryQuiz()"><i data-lucide="refresh-cw" style="width:13px;height:13px;stroke-width:2.2"></i> Nuovo quiz</button>
         <button class="quiz-close-btn" onclick="closeQuiz()">Chiudi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Brain Dump modal -->
+<div id="brainDumpOverlay" class="bd-overlay">
+  <div class="bd-box">
+    <button class="bd-exit-btn" onclick="_closeBrainDump()">
+      <i data-lucide="x" style="width:18px;height:18px;stroke-width:2.2"></i>
+    </button>
+
+    <!-- Input view -->
+    <div id="bdInputView">
+      <div class="bd-tag"><i data-lucide="brain" style="width:11px;height:11px;stroke-width:2;vertical-align:middle"></i> Brain Dump</div>
+      <div class="bd-topic" id="bdTopic">—</div>
+      <div class="bd-hint">Scrivi o parla liberamente per <strong>3 minuti</strong>: tutto quello che sai su questo argomento, senza guardare gli appunti. L'AI analizzerà quanto hai coperto.</div>
+      <div class="bd-timer-wrap">
+        <div class="bd-timer-label" id="bdTimerLabel">3:00</div>
+        <div class="bd-timer-track">
+          <div class="bd-timer-fill" id="bdTimerFill" style="width:100%"></div>
+        </div>
+      </div>
+      <textarea class="bd-textarea" id="bdTextarea"
+        placeholder="Inizia a scrivere… esempio: 'La memoria di lavoro è un sistema a capacità limitata che gestisce…'"
+        disabled></textarea>
+      <div class="bd-actions">
+        <button class="bd-mic-btn" id="bdMicBtn" title="Trascrivi con voce" onclick="_bdToggleMic()" disabled>
+          <i data-lucide="mic" style="width:16px;height:16px;stroke-width:2"></i>
+        </button>
+        <button class="bd-submit-btn" id="bdSubmitBtn" onclick="_submitBrainDump()" disabled>
+          <i data-lucide="send" style="width:14px;height:14px;stroke-width:2;flex-shrink:0"></i>
+          Invia e analizza
+        </button>
+        <button class="bd-submit-btn" id="bdStartBtn" style="background:var(--accent)"
+          onclick="_bdStart()">
+          <i data-lucide="play" style="width:14px;height:14px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i>
+          Inizia
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="bdLoadingView" style="display:none">
+      <div class="bd-loading">
+        <i data-lucide="loader-circle" style="width:28px;height:28px;stroke-width:1.8;animation:bd-spin 1s linear infinite;display:block;margin:0 auto 12px"></i>
+        Claude sta analizzando il tuo brain dump…
+      </div>
+    </div>
+
+    <!-- Results view -->
+    <div id="bdResultsView" style="display:none">
+      <div class="bd-results">
+        <div class="bd-tag"><i data-lucide="bar-chart-2" style="width:11px;height:11px;stroke-width:2;vertical-align:middle"></i> Risultati</div>
+        <div class="bd-score-wrap">
+          <div class="bd-score-circle" id="bdScoreCircle">
+            <span class="bd-score-num" id="bdScoreNum">—</span>
+            <span class="bd-score-pct">/ 100</span>
+          </div>
+          <div class="bd-score-meta">
+            <span class="bd-badge" id="bdBadge">—</span>
+            <div class="bd-score-feedback" id="bdFeedback">—</div>
+          </div>
+        </div>
+        <div class="bd-concepts" id="bdConcepts"></div>
+        <div class="bd-result-actions">
+          <button class="bd-retry-btn" onclick="_retryBrainDump()">
+            <i data-lucide="refresh-cw" style="width:13px;height:13px;stroke-width:2.2;flex-shrink:0"></i>
+            Riprova
+          </button>
+          <button class="bd-close-btn" onclick="_closeBrainDump()">Chiudi</button>
+        </div>
       </div>
     </div>
   </div>
