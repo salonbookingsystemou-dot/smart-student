@@ -858,87 +858,90 @@
 
   /* ── Session Progress Ring ──────────────────────────────────── */
   .session-ring-wrap {
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px 16px 18px;
+    border-radius: 16px;
+    padding: 24px 20px 20px;
     text-align: center;
   }
   .prog-ring-container {
-    position: relative; width: 110px; height: 110px; flex-shrink: 0;
+    position: relative; width: 130px; height: 130px; flex-shrink: 0;
   }
   .prog-ring-svg { transform: rotate(-90deg); display: block; }
-  .prog-ring-bg   { fill: none; stroke: var(--border); stroke-width: 8; }
+  .prog-ring-bg   { fill: none; stroke: var(--border); stroke-width: 9; }
   .prog-ring-fill {
-    fill: none; stroke-width: 8; stroke-linecap: round;
+    fill: none; stroke-width: 9; stroke-linecap: round;
     transition: stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1), stroke 0.5s;
   }
   .prog-ring-center {
     position: absolute; inset: 0;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    pointer-events: none;
+    pointer-events: none; gap: 2px;
   }
   .prog-ring-pct {
     font-family: 'Inter', sans-serif;
-    font-size: 24px; font-weight: 800; line-height: 1;
-    transition: color 0.5s;
+    font-size: 30px; font-weight: 800; line-height: 1;
+    transition: color 0.5s; letter-spacing: -0.03em;
   }
   .prog-ring-sub {
     font-family: 'Inter', sans-serif;
-    font-size: 8px; font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--text-3); margin-top: 3px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-3);
   }
   .prog-ring-info { width: 100%; }
   .prog-ring-label {
     font-family: 'Inter', sans-serif;
-    font-size: 11px; font-weight: 600; color: var(--text-2);
-    line-height: 1.45; margin-bottom: 12px;
+    font-size: 12px; font-weight: 600; color: var(--text-2);
+    line-height: 1.5; margin-bottom: 14px;
   }
   .prog-ring-stats {
-    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+    display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
   }
   .prog-stat {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 3px; flex: 1; padding: 10px 6px;
   }
+  .prog-stat + .prog-stat { border-left: 1px solid var(--border); }
   .prog-stat-val {
     font-family: 'Inter', sans-serif;
-    font-size: 18px; font-weight: 800; color: var(--text-1); line-height: 1;
+    font-size: 20px; font-weight: 800; color: var(--text-1); line-height: 1;
   }
   .prog-stat-lbl {
     font-family: 'Inter', sans-serif;
-    font-size: 8px; font-weight: 600; letter-spacing: 0.07em;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
     text-transform: uppercase; color: var(--text-3);
   }
-  .prog-stat-sep {
-    width: 1px; background: var(--border); align-self: stretch; margin: 0 2px;
-  }
+  .prog-stat-sep { display: none; } /* now handled by border-left */
   .prog-ring-dots {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 12px;
-    padding-top: 12px; border-top: 1px solid var(--border-subtle);
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+    margin-top: 4px; padding-top: 14px; border-top: 1px solid var(--border);
+    width: 100%;
   }
   .prog-q-dot {
-    width: 9px; height: 9px; border-radius: 50%;
-    border: 1.5px solid var(--border);
+    width: 11px; height: 11px; border-radius: 50%;
+    border: 2px solid var(--border);
     background: transparent;
     transition: background 0.4s, border-color 0.4s, transform 0.3s;
     flex-shrink: 0;
     cursor: default;
   }
-  .prog-q-dot.answered  { background: rgba(127,127,127,0.25); border-color: var(--border); }
+  .prog-q-dot.answered  { background: rgba(127,127,127,0.22); border-color: var(--border); }
   .prog-q-dot.poor      { background: #c0392b; border-color: #c0392b; }
   .prog-q-dot.partial   { background: #f39c12; border-color: #f39c12; }
-  .prog-q-dot.good      { background: #27ae60; border-color: #27ae60; transform: scale(1.15); }
+  .prog-q-dot.good      { background: #27ae60; border-color: #27ae60; transform: scale(1.18); }
   @keyframes dot-pop {
     0%   { transform: scale(1); }
-    50%  { transform: scale(1.7); }
-    100% { transform: scale(1.15); }
+    50%  { transform: scale(1.8); }
+    100% { transform: scale(1.18); }
   }
   .prog-q-dot.good.just-updated { animation: dot-pop 0.4s ease forwards; }
   @keyframes ring-glow {
     0%   { filter: drop-shadow(0 0 0px currentColor); }
-    50%  { filter: drop-shadow(0 0 10px currentColor); }
+    50%  { filter: drop-shadow(0 0 12px currentColor); }
     100% { filter: drop-shadow(0 0 0px currentColor); }
   }
   .prog-ring-fill.pulse { animation: ring-glow 0.9s ease; }
@@ -946,16 +949,16 @@
   /* Mobile: ring stacks below questions */
   @media (max-width: 720px) {
     .day-content-row { flex-direction: column; }
-    .day-ring-aside {
-      width: 100%; position: static;
-    }
+    .day-ring-aside { width: 100%; position: static; }
     .session-ring-wrap {
-      flex-direction: row; align-items: center; text-align: left; padding: 14px 16px; gap: 16px;
+      flex-direction: row; align-items: center; text-align: left;
+      padding: 14px 16px; gap: 16px;
     }
-    .prog-ring-container { width: 80px; height: 80px; }
-    .prog-ring-pct { font-size: 18px; }
+    .prog-ring-container { width: 90px; height: 90px; }
+    .prog-ring-pct { font-size: 22px; }
     .prog-ring-info { flex: 1; }
-    .prog-ring-dots { justify-content: flex-start; padding-top: 8px; margin-top: 8px; }
+    .prog-ring-dots { justify-content: flex-start; padding-top: 10px; margin-top: 10px; }
+    .prog-ring-stats { flex-wrap: nowrap; }
   }
 
   /* legacy icon kept for safety, hidden in new layout */
@@ -4799,7 +4802,7 @@ function _renderSessionRing(dayId, animate) {
     coveragePct >= 10 ? '#d35400' : 'var(--border)';
 
   // SVG arc
-  const R = 38;
+  const R = 52;
   const C = +(2 * Math.PI * R).toFixed(2);
   const offset = +(C * (1 - coveragePct / 100)).toFixed(2);
 
@@ -4813,7 +4816,7 @@ function _renderSessionRing(dayId, animate) {
                          'Giornata quasi completata — consolida i punti deboli';
 
   const quizHtml = quizBest
-    ? `<div class="prog-stat"><span class="prog-stat-val" style="font-size:14px">${quizBest.score}<small style="font-size:10px;font-weight:500"> pt</small></span><span class="prog-stat-lbl">miglior quiz</span></div>`
+    ? `<div class="prog-stat"><span class="prog-stat-val" style="font-size:16px;letter-spacing:-0.02em">${quizBest.score}<small style="font-size:11px;font-weight:600"> pt</small></span><span class="prog-stat-lbl">miglior quiz</span></div>`
     : '';
 
   const dotsHtml = dotStates.map((s, i) =>
@@ -4824,9 +4827,9 @@ function _renderSessionRing(dayId, animate) {
   wrap.innerHTML = `
     <div class="session-ring-wrap">
       <div class="prog-ring-container">
-        <svg class="prog-ring-svg" width="88" height="88" viewBox="0 0 88 88">
-          <circle class="prog-ring-bg" cx="44" cy="44" r="${R}"/>
-          <circle class="prog-ring-fill${animate ? ' pulse' : ''}" cx="44" cy="44" r="${R}"
+        <svg class="prog-ring-svg" width="130" height="130" viewBox="0 0 130 130">
+          <circle class="prog-ring-bg" cx="65" cy="65" r="${R}"/>
+          <circle class="prog-ring-fill${animate ? ' pulse' : ''}" cx="65" cy="65" r="${R}"
             stroke="${ringColor}"
             stroke-dasharray="${C}" stroke-dashoffset="${offset}"/>
         </svg>
@@ -4842,12 +4845,10 @@ function _renderSessionRing(dayId, animate) {
             <span class="prog-stat-val">${verified}</span>
             <span class="prog-stat-lbl">verificate</span>
           </div>
-          <div class="prog-stat-sep"></div>
           <div class="prog-stat">
             <span class="prog-stat-val">${total}</span>
             <span class="prog-stat-lbl">domande</span>
           </div>
-          ${quizBest ? '<div class="prog-stat-sep"></div>' : ''}
           ${quizHtml}
         </div>
         <div class="prog-ring-dots">${dotsHtml}</div>
