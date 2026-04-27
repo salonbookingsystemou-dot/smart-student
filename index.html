@@ -2181,41 +2181,51 @@
 
   /* Launch button inside day block */
   .section-head-actions {
-    display: flex; align-items: center; gap: 7px;
-    margin-left: auto; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;
+    display: flex; align-items: center; gap: 6px;
+    margin-left: auto; flex-shrink: 0; flex-wrap: nowrap;
   }
-  .quiz-launch-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    flex-shrink: 0;
-    padding: 5px 12px;
-    background: var(--accent);
-    border: none;
-    border-radius: 5px;
-    color: var(--bg);
-    font-family: 'Inter', sans-serif;
-    font-size: 11px; font-weight: 600;
-    cursor: pointer;
-    letter-spacing: 0.01em;
-    transition: opacity 0.15s, transform 0.1s;
-  }
+  /* Ghost secondary buttons (Genera domande, Brain Dump) */
   .genq-launch-btn {
     display: inline-flex; align-items: center; gap: 5px;
     flex-shrink: 0;
-    padding: 5px 11px;
+    white-space: nowrap;
+    padding: 6px 11px;
     background: none;
     border: 1.5px solid var(--border);
-    border-radius: 5px;
+    border-radius: 7px;
     color: var(--text-2);
     font-family: 'Inter', sans-serif;
-    font-size: 11px; font-weight: 600;
+    font-size: 11.5px; font-weight: 600;
     cursor: pointer;
     letter-spacing: 0.01em;
     transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
-  .genq-launch-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+  .genq-launch-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+  /* Primary filled button (Genera Quiz) */
+  .quiz-launch-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 7px 14px;
+    background: var(--accent);
+    border: none;
+    border-radius: 7px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent);
+    transition: opacity 0.15s, transform 0.12s, box-shadow 0.15s;
+  }
   .quiz-launch-btn:hover {
-    opacity: 0.88;
+    opacity: 0.9;
     transform: translateY(-1px);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
   }
 
   /* ── Voice Dictation Modal ─────────────────────────────── */
@@ -3366,15 +3376,19 @@
     /* ── Section head: stack on mobile ── */
     .section-head { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 12px; }
     .section-head .section-title { font-size: 14px; }
-    .section-head-actions { margin-left: 0; width: 100%; justify-content: stretch; }
+    .section-head-actions { margin-left: 0; width: 100%; gap: 6px; }
+    /* On mobile all 3 share equal width, single row */
     .quiz-launch-btn, .genq-launch-btn {
-      flex: 1; justify-content: center; padding: 9px 12px;
-      font-size: 12px; min-height: 40px;
+      flex: 1; justify-content: center;
+      padding: 9px 6px; font-size: 11px; min-height: 42px;
+      white-space: nowrap; overflow: hidden;
     }
+    /* Quiz stays filled accent on mobile */
     .quiz-launch-btn {
-      background: transparent; border: 1.5px solid var(--accent); color: var(--accent);
+      background: var(--accent); color: #fff;
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
     }
-    .quiz-launch-btn:hover { background: var(--accent-bg); }
+    .quiz-launch-btn:hover { background: var(--accent); opacity: 0.9; }
 
     /* ── Questions ── */
     .q-top { flex-direction: column; gap: 8px; }
