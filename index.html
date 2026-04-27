@@ -6492,24 +6492,30 @@ async function startQuiz(dayId, topic) {
 
   // Include source context if available
   const sourceCtx = getAllSourcesContext();
-  const sourcePreamble = sourceCtx
-    ? `Hai a disposizione il seguente materiale del corso. Basa le domande ESCLUSIVAMENTE su questo contenuto:\n--- INIZIO FONTI ---\n${sourceCtx.slice(0, 18000)}\n--- FINE FONTI ---\n\n`
+  const hasSources = !!sourceCtx;
+  const sourcePreamble = hasSources
+    ? `Hai a disposizione il seguente materiale del corso. Le domande devono essere ricavate ESCLUSIVAMENTE da questo contenuto — non usare conoscenza generale della disciplina:\n--- INIZIO FONTI ---\n${sourceCtx.slice(0, 18000)}\n--- FINE FONTI ---\n\n`
     : '';
 
-  const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.\n\n${sourcePreamble}STANDARD DI QUALITÀ — ogni domanda DEVE rispettare tutti questi criteri:
-1. Rilevanza: testa un concetto chiave del programma (non dettagli marginali o aneddoti)
+  const sourceConstraint = hasSources
+    ? `VINCOLO FONTI (critico): ogni domanda DEVE essere direttamente ricavabile dal materiale fornito sopra. Ogni concetto, autore, modello, esperimento o termine tecnico citato deve essere esplicitamente presente nelle fonti. NON generare domande basate su conoscenza generale della disciplina. Se un concetto non è nelle fonti, non fare domande su di esso.`
+    : `ATTENZIONE: nessuna fonte fornita. Genera domande strettamente specifiche all'argomento indicato, con terminologia tecnica precisa, evitando qualsiasi domanda di carattere metodologico generale o metadisciplinare (es. evita domande sul "metodo scientifico in psicologia" o simili). Focalizzati solo sui concetti, modelli e autori specifici di quell'argomento.`;
+
+  const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.\n\n${sourcePreamble}${sourceConstraint}\n\nSTANDARD DI QUALITÀ — ogni domanda DEVE rispettare tutti questi criteri:
+1. Specificità: testa un concetto, modello, autore o esperimento preciso — NON principi generali o metodologia scientifica generica
 2. Chiarezza: formulazione inequivocabile, una sola interpretazione possibile
 3. Distrattori plausibili: le opzioni errate devono sembrare credibili a chi non ha studiato bene — mai opzioni assurde o palesemente errate
 4. Unicità: esattamente una risposta corretta, senza ambiguità
 5. Livello accademico: richiede comprensione e ragionamento, non sola memorizzazione meccanica
 
 DISTRIBUZIONE COGNITIVA (Tassonomia di Bloom) — distribuisci le 6 domande così:
-• 2 domande "ricordo": definizioni precise, autori chiave, nomenclatura tecnica
+• 2 domande "ricordo": definizioni precise, autori chiave, nomenclatura tecnica specifica dell'argomento
 • 2 domande "comprensione": spiegare meccanismi, distinguere concetti simili, inferire conseguenze
 • 2 domande "applicazione": applicare un modello teorico a un caso concreto, riconoscere un fenomeno in un esempio
 
 AUTO-VALIDAZIONE — prima di finalizzare ogni domanda, verifica internamente:
-✓ La domanda è chiara e non ambigua?
+✓ La domanda è specifica e non generica? (una domanda sul "metodo scientifico in generale" NON è accettabile)
+✓ Il concetto testato è presente nelle fonti fornite (se disponibili)?
 ✓ C'è esattamente una risposta corretta, inequivocabilmente?
 ✓ I 3 distrattori sono plausibili ma sbagliati se si conosce la materia?
 ✓ Il livello è adeguato per un esame universitario scritto?
@@ -6535,7 +6541,7 @@ Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
         system: systemPrompt,
         messages: [{
           role: 'user',
-          content: `Argomento: ${topic}\n\n[Sessione #${Date.now()}-${Math.random().toString(36).slice(2,7)}] Genera un set di domande COMPLETAMENTE NUOVO e DIVERSO rispetto a qualsiasi sessione precedente. Varia i concetti scelti, le formulazioni e i distrattori.`
+          content: `Argomento: ${topic}\n\n[Sessione #${Date.now()}-${Math.random().toString(36).slice(2,7)}] Genera un set di domande COMPLETAMENTE NUOVO e DIVERSO rispetto a qualsiasi sessione precedente. Varia i concetti scelti, le formulazioni e i distrattori.\n\nRicorda: le domande devono riguardare concetti, modelli, autori ed esperimenti SPECIFICI di questo argomento${hasSources ? ', presenti nelle fonti fornite' : ''}. Evita domande generiche, metodologiche o metadisciplinari.`
         }]
       })
     });
@@ -7344,15 +7350,18 @@ ${sourceCtx.slice(0, 20000)}
 
 Genera esattamente 7 domande a risposta aperta sull'argomento specificato, basandoti ESCLUSIVAMENTE sulle fonti fornite.
 
+VINCOLO FONTI (critico): ogni domanda deve essere direttamente ricavabile dal materiale fornito. Ogni concetto, autore, modello o esperimento citato deve essere esplicitamente presente nelle fonti. NON generare domande basate su conoscenza generale della disciplina — se un concetto non è nelle fonti, non fare domande su di esso. NON fare domande generiche, metodologiche o metadisciplinari (es. "come si applica il metodo scientifico" è una domanda non accettabile).
+
 DISTRIBUZIONE (Tassonomia di Bloom):
 • 2 domande tipo "definizione" (ricordo): definizioni precise, nomenclatura tecnica, autori chiave presenti nelle fonti
-• 3 domande tipo "meccanismo" (comprensione): spiegare meccanismi, descrivere processi, distinguere concetti
-• 2 domande tipo "connessione" (applicazione/analisi): collegare concetti tra loro, confrontare teorie, applicare a esempi
+• 3 domande tipo "meccanismo" (comprensione): spiegare meccanismi, descrivere processi, distinguere concetti specifici presenti nel materiale
+• 2 domande tipo "connessione" (applicazione/analisi): collegare concetti tra loro, confrontare teorie, applicare a esempi — tutto ricavato dalle fonti
 
 QUALITÀ:
-- Ogni domanda deve essere rispondibile usando le fonti fornite
-- Usa terminologia e concetti effettivamente presenti nel materiale
+- Ogni domanda deve essere rispondibile usando esclusivamente le fonti fornite
+- Usa terminologia e concetti effettivamente presenti nel materiale, non vocabolario generico
 - Livello universitario, non banale
+- Evita domande che chiunque con una conoscenza generica della psicologia potrebbe rispondere senza aver studiato le fonti
 
 Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
 [{"text":"testo della domanda","type":"definizione|meccanismo|connessione"}]`;
@@ -7371,7 +7380,7 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
         max_tokens: 2500,
         temperature: 1,
         system: systemPrompt,
-        messages: [{ role: 'user', content: `Argomento: ${topic}\n\nGenera le domande basandoti sul materiale fornito.` }]
+        messages: [{ role: 'user', content: `Argomento: ${topic}\n\nGenera le domande traendo ESCLUSIVAMENTE dai contenuti delle fonti fornite nel system prompt. Ogni domanda deve fare riferimento a concetti, teorie, autori, modelli o esperimenti esplicitamente menzionati nelle fonti. Evita domande generiche che non richiedano la conoscenza specifica del materiale.` }]
       })
     });
     if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
