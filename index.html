@@ -1297,6 +1297,19 @@
     from { opacity: 0; transform: translateY(-10px); }
     to   { opacity: 1; transform: none; }
   }
+  .q-active-card.q-advance-in {
+    animation: q-advance-in 0.45s cubic-bezier(0.22,1,0.36,1) forwards,
+               q-advance-glow 0.9s ease-out 0.1s forwards;
+  }
+  @keyframes q-advance-in {
+    from { opacity: 0; transform: translateX(32px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes q-advance-glow {
+    0%   { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); border-color: var(--accent); }
+    60%  { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent); }
+    100% { box-shadow: none; border-color: var(--accent); }
+  }
   .q-active-label {
     display: inline-flex; align-items: center; gap: 5px;
     font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -2610,7 +2623,7 @@
     height: 3px; border-radius: 0 0 18px 18px;
     background: var(--accent); opacity: 0.35;
     width: 100%;
-    transition: width 5s linear;
+    transition: width var(--coach-bar-dur, 5s) linear;
   }
   .coach-timer-bar.run { width: 0%; }
 
@@ -5256,8 +5269,19 @@ function startDaySession(dayId) {
   _renderSessionRing(dayId, false);
 }
 
-function advanceQuestion(dayId) {
+function advanceQuestion(dayId, animate) {
   _renderQsPanel(dayId);
+  if (animate) {
+    requestAnimationFrame(() => {
+      const card = document.querySelector('#qs-panel-' + dayId + ' .q-active-card');
+      if (card) {
+        card.classList.add('q-advance-in');
+        card.addEventListener('animationend', () => card.classList.remove('q-advance-in'), { once: true });
+        // Scroll the new question into view smoothly
+        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+      }
+    });
+  }
 }
 
 function toggleDoneQ(dayId, idx) {
@@ -6081,7 +6105,7 @@ const _COACH_MSGS = {
 let _coachDismissTimer = null;
 let _coachAdvanceFn   = null;
 
-function _showCoachModal(grade, score, advanceFn) {
+function _showCoachModal(grade, score, advanceFn, autoAdvance) {
   // Resolve message pool
   const key = score === 5 ? 'ottimo' : score === 4 ? 'buono' : score <= 1 ? 'insuff' : 'parziale';
   const msgs = _COACH_MSGS[key];
@@ -6089,8 +6113,8 @@ function _showCoachModal(grade, score, advanceFn) {
 
   // Grade display config
   const cfg = {
-    ottimo:  { label: 'OTTIMO',        cls: 'ottimo',   cta: 'Avanti →' },
-    buono:   { label: 'BUONO',         cls: 'buono',    cta: 'Avanti →' },
+    ottimo:  { label: 'OTTIMO',        cls: 'ottimo',   cta: autoAdvance ? 'Prossima domanda →' : 'Avanti →' },
+    buono:   { label: 'BUONO',         cls: 'buono',    cta: autoAdvance ? 'Prossima domanda →' : 'Avanti →' },
     parziale:{ label: 'PARZIALE',      cls: 'parziale', cta: 'Continua →' },
     insuff:  { label: 'INSUFFICIENTE', cls: 'insuff',   cta: 'Ho capito →' },
   }[key];
@@ -6117,7 +6141,7 @@ function _showCoachModal(grade, score, advanceFn) {
       <div class="coach-headline">${msg.headline}</div>
       <div class="coach-body">${msg.body}</div>
       <button class="coach-cta" onclick="_coachCtaClick()">${cfg.cta}</button>
-      <div class="coach-timer-bar" id="coachTimerBar"></div>
+      <div class="coach-timer-bar" id="coachTimerBar" style="--coach-bar-dur:${autoAdvance ? '3.5s' : '5s'}"></div>
     </div>`;
 
   _coachAdvanceFn = advanceFn || null;
@@ -6135,9 +6159,9 @@ function _showCoachModal(grade, score, advanceFn) {
     }
   });
 
-  // Auto-dismiss after 5s (without advancing)
+  // Auto-dismiss: for good scores auto-advance, for weak scores just close
   clearTimeout(_coachDismissTimer);
-  _coachDismissTimer = setTimeout(() => _dismissCoachModal(false), 5000);
+  _coachDismissTimer = setTimeout(() => _dismissCoachModal(!!autoAdvance), autoAdvance ? 3500 : 5000);
 }
 
 function _coachCtaClick() {
@@ -6277,11 +6301,9 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
     _autoSetStatus(dayId); // may promote to 'done' if all questions verified
     _renderSessionRing(dayId, true);
 
-    // Show coach modal with CTA that also advances the question
-    const _qListNow = (state[dayId]?.aiQuestions) ||
-      (getActiveDays().find(d => d.id === dayId)?.questions) || [];
-    const _nextIdx = _nextUnverifiedIdx(dayId, _qListNow);
-    _showCoachModal(grade, score, () => advanceQuestion(dayId));
+    // Show coach modal; good scores auto-advance with animation
+    const _autoAdv = grade === 'good';
+    _showCoachModal(grade, score, () => advanceQuestion(dayId, _autoAdv), _autoAdv);
 
   } catch(err) {
     feedbackEl.className = 'q-feedback poor visible';
