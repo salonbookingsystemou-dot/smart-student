@@ -5189,13 +5189,17 @@ function _syncVerifyBtn(dayId, qIdx, value) {
 
 function calcDayReadiness(dayId) {
   const day = getActiveDays().find(d => d.id === dayId);
-  if (!day || !day.questions || !day.questions.length) return null;
-  const nTotal    = day.questions.length;
+  if (!day) return null;
   const dayState  = state[dayId] || {};
+  // Use AI-generated questions if present, fall back to hardcoded ones
+  const qList  = (dayState.aiQuestions && dayState.aiQuestions.length)
+    ? dayState.aiQuestions : (day.questions || []);
+  if (!qList.length) return null;
+  const nTotal    = qList.length;
   const answers   = dayState.answers   || {};
   const feedbacks = dayState.feedbacks || {};
 
-  const answered = Object.values(answers).filter(v => v && v.trim()).length;
+  const answered = Object.values(answers).filter(v => v && v.trim().length >= 10).length;
 
   // Segnale 1 — feedback risposte aperte (0..4)
   const gradeMap = { good: 4, partial: 2, poor: 1 };
@@ -5204,21 +5208,26 @@ function calcDayReadiness(dayId) {
   const feedbackLevel = totalPts / (nTotal * 4) * 4;   // 0..4
 
   // Segnale 2 — miglior punteggio quiz (0..4)
-  // Max realistico: 6 domande × 15 pt (10 base + 5 speed bonus) = 90 pt
   const QUIZ_MAX  = 90;
   const quizBest  = dayState.quizBestScore;
   const quizLevel = quizBest ? Math.min(4, (quizBest.score / QUIZ_MAX) * 4) : null;
 
+  // Segnale 3 — risposte scritte ma non ancora verificate (credito parziale basso)
+  const unverifiedCount = answered - Object.keys(feedbacks).length;
+  const answerCredit = unverifiedCount > 0
+    ? Math.min(0.8, (unverifiedCount / nTotal) * 0.8) : 0;
+
   // Regole di combinazione:
-  // • Il quiz da solo vale al massimo 1 barra (segnale di "avviato")
-  // • Il feedback aperto è il segnale primario (peso 85%)
-  // • Il quiz è un bonus secondario (peso 15%), mai decisivo da solo
+  // • Verifica (feedback) è il segnale primario (peso 80%)
+  // • Quiz: bonus secondario (peso 15%), max 1 barra senza feedback
+  // • Risposte scritte non verificate: mini credito (max 1 barra) per mostrare engagement
   const hasFB  = Object.values(feedbacks).length > 0;
   const hasQZ  = quizLevel !== null;
   let rawLevel = 0;
-  if      (hasFB && hasQZ) rawLevel = feedbackLevel * 0.85 + quizLevel * 0.15;
-  else if (hasFB)           rawLevel = feedbackLevel;
-  else if (hasQZ)           rawLevel = Math.min(1, quizLevel * 0.25); // max 1 barra senza feedback
+  if      (hasFB && hasQZ) rawLevel = feedbackLevel * 0.80 + quizLevel * 0.15 + Math.min(0.2, answerCredit * 0.05);
+  else if (hasFB)           rawLevel = feedbackLevel * 0.95 + Math.min(0.2, answerCredit * 0.05);
+  else if (hasQZ)           rawLevel = Math.min(1, quizLevel * 0.25) + answerCredit * 0.3;
+  else                      rawLevel = answerCredit; // max 0.8 → mai oltre 1a barra senza verifica
 
   const prepLevel = Math.min(4, Math.floor(rawLevel + 0.05));
   return { answered, total: nTotal, prepLevel };
