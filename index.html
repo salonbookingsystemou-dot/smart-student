@@ -845,6 +845,97 @@
     color: var(--text-2);
   }
 
+  /* ── Session Progress Ring ──────────────────────────────────── */
+  .session-ring-wrap {
+    display: flex; align-items: center; gap: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+  }
+  .prog-ring-container {
+    position: relative; width: 88px; height: 88px; flex-shrink: 0;
+  }
+  .prog-ring-svg { transform: rotate(-90deg); display: block; }
+  .prog-ring-bg   { fill: none; stroke: var(--border); stroke-width: 7; }
+  .prog-ring-fill {
+    fill: none; stroke-width: 7; stroke-linecap: round;
+    transition: stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1), stroke 0.5s;
+  }
+  .prog-ring-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .prog-ring-pct {
+    font-family: 'Inter', sans-serif;
+    font-size: 20px; font-weight: 800; line-height: 1;
+    transition: color 0.5s;
+  }
+  .prog-ring-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 8px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-3); margin-top: 2px;
+  }
+  .prog-ring-info { flex: 1; min-width: 0; }
+  .prog-ring-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 700; color: var(--text-1);
+    margin-bottom: 10px; line-height: 1.3;
+  }
+  .prog-ring-stats {
+    display: flex; gap: 14px; flex-wrap: wrap;
+  }
+  .prog-stat {
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .prog-stat-val {
+    font-family: 'Inter', sans-serif;
+    font-size: 17px; font-weight: 800; color: var(--text-1); line-height: 1;
+  }
+  .prog-stat-lbl {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--text-3);
+  }
+  .prog-stat-sep {
+    width: 1px; background: var(--border); align-self: stretch; margin: 0 4px;
+  }
+  .prog-ring-dots {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;
+  }
+  .prog-q-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    transition: background 0.4s, border-color 0.4s, transform 0.3s;
+    flex-shrink: 0;
+  }
+  .prog-q-dot.answered  { background: var(--border); border-color: var(--border); }
+  .prog-q-dot.poor      { background: #c0392b; border-color: #c0392b; }
+  .prog-q-dot.partial   { background: #f39c12; border-color: #f39c12; }
+  .prog-q-dot.good      { background: #27ae60; border-color: #27ae60; transform: scale(1.2); }
+  @keyframes dot-pop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.6); }
+    100% { transform: scale(1.2); }
+  }
+  .prog-q-dot.good.just-updated  { animation: dot-pop 0.4s ease forwards; }
+  @keyframes ring-glow {
+    0%   { filter: drop-shadow(0 0 0px currentColor); }
+    50%  { filter: drop-shadow(0 0 8px currentColor); }
+    100% { filter: drop-shadow(0 0 0px currentColor); }
+  }
+  .prog-ring-fill.pulse { animation: ring-glow 0.8s ease; }
+  @media (max-width: 600px) {
+    .session-ring-wrap { flex-direction: column; align-items: flex-start; gap: 14px; padding: 16px; }
+    .prog-ring-container { width: 76px; height: 76px; }
+    .prog-ring-pct { font-size: 17px; }
+  }
+
   /* legacy icon kept for safety, hidden in new layout */
   .tip-icon { display: none; }
 
@@ -1147,12 +1238,15 @@
     max-width: 340px; margin-left: auto; margin-right: auto;
   }
   .session-dot {
-    height: 5px; flex: 1 1 18px; max-width: 32px;
+    height: 6px; flex: 1 1 18px; max-width: 32px;
     border-radius: 3px;
     background: var(--border); flex-shrink: 0;
-    transition: background 0.3s;
+    transition: background 0.35s, transform 0.2s;
   }
-  .session-dot.done { background: var(--done-border); }
+  .session-dot.answered { background: var(--border-subtle); filter: brightness(1.4); }
+  .session-dot.poor     { background: #c0392b; }
+  .session-dot.partial  { background: #f39c12; }
+  .session-dot.done, .session-dot.good { background: #27ae60; }
   .session-progress-label {
     font-size: 11px; color: var(--text-3); margin-bottom: 14px;
     font-family: 'Inter', sans-serif; letter-spacing: 0.02em;
@@ -4624,6 +4718,106 @@ function renderDayReadiness(dayId) {
     `<span class="day-completion-text">${r.answered}/${r.total}</span>`;
 }
 
+// ── Session Progress Ring ────────────────────────────────────
+function _renderSessionRing(dayId, animate) {
+  const wrap = document.getElementById('day-ring-' + dayId);
+  if (!wrap) return;
+
+  const dayState  = state[dayId] || {};
+  const feedbacks = dayState.feedbacks || {};
+  const answers   = dayState.answers   || {};
+  const day       = getActiveDays().find(d => d.id === dayId);
+  if (!day) return;
+
+  const qList = dayState.aiQuestions || day.questions || [];
+  const total = qList.length;
+  if (!total) { wrap.style.display = 'none'; return; }
+
+  // Weighted coverage: good=1.0, partial=0.6, poor=0.25, answered-unverified=0.08, unanswered=0
+  const WEIGHT = { good: 1.0, partial: 0.6, poor: 0.25 };
+  let weightedSum = 0;
+  const dotStates = qList.map((q, i) => {
+    const fb  = feedbacks[i];
+    const ans = answers[i];
+    if (fb) {
+      weightedSum += WEIGHT[fb.grade] || 0;
+      return fb.grade; // 'good' | 'partial' | 'poor'
+    }
+    if (ans && ans.trim().length > 15) {
+      weightedSum += 0.08;
+      return 'answered';
+    }
+    return 'empty';
+  });
+
+  const coveragePct = Math.round((weightedSum / total) * 100);
+  const verified    = Object.keys(feedbacks).length;
+  const quizBest    = dayState.quizBestScore;
+
+  // Color gradient: red → orange → yellow → green
+  const ringColor =
+    coveragePct >= 75 ? '#27ae60' :
+    coveragePct >= 50 ? '#2ecc71' :
+    coveragePct >= 30 ? '#f39c12' :
+    coveragePct >= 10 ? '#d35400' : 'var(--border)';
+
+  // SVG arc
+  const R = 38;
+  const C = +(2 * Math.PI * R).toFixed(2);
+  const offset = +(C * (1 - coveragePct / 100)).toFixed(2);
+
+  // Progress label
+  const label =
+    coveragePct === 0  ? 'Inizia la sessione per registrare i progressi' :
+    coveragePct < 25   ? 'Hai iniziato — continua a rispondere e a verificare' :
+    coveragePct < 50   ? `Buon inizio — ${total - verified} domande ancora da verificare` :
+    coveragePct < 75   ? 'Stai andando bene — mantieni la qualità delle risposte' :
+    coveragePct < 90   ? 'Ottima progressione — quasi alla copertura completa' :
+                         'Giornata quasi completata — consolida i punti deboli';
+
+  const quizHtml = quizBest
+    ? `<div class="prog-stat"><span class="prog-stat-val" style="font-size:14px">${quizBest.score}<small style="font-size:10px;font-weight:500"> pt</small></span><span class="prog-stat-lbl">miglior quiz</span></div>`
+    : '';
+
+  const dotsHtml = dotStates.map((s, i) =>
+    `<span class="prog-q-dot ${s !== 'empty' ? s : ''}" title="${qList[i]?.text?.substring(0,60) || ''}"></span>`
+  ).join('');
+
+  wrap.style.display = '';
+  wrap.innerHTML = `
+    <div class="session-ring-wrap">
+      <div class="prog-ring-container">
+        <svg class="prog-ring-svg" width="88" height="88" viewBox="0 0 88 88">
+          <circle class="prog-ring-bg" cx="44" cy="44" r="${R}"/>
+          <circle class="prog-ring-fill${animate ? ' pulse' : ''}" cx="44" cy="44" r="${R}"
+            stroke="${ringColor}"
+            stroke-dasharray="${C}" stroke-dashoffset="${offset}"/>
+        </svg>
+        <div class="prog-ring-center">
+          <span class="prog-ring-pct" style="color:${ringColor}">${coveragePct}%</span>
+          <span class="prog-ring-sub">giornata</span>
+        </div>
+      </div>
+      <div class="prog-ring-info">
+        <div class="prog-ring-label">${label}</div>
+        <div class="prog-ring-stats">
+          <div class="prog-stat">
+            <span class="prog-stat-val">${verified}</span>
+            <span class="prog-stat-lbl">verificate</span>
+          </div>
+          <div class="prog-stat-sep"></div>
+          <div class="prog-stat">
+            <span class="prog-stat-val">${total}</span>
+            <span class="prog-stat-lbl">domande</span>
+          </div>
+          ${quizBest ? '<div class="prog-stat-sep"></div>' : ''}
+          ${quizHtml}
+        </div>
+        <div class="prog-ring-dots">${dotsHtml}</div>
+      </div>
+    </div>`;
+}
+
 function updateProgress() {
   const activeDays = getActiveDays();
   const studyDays = activeDays.filter(d => d.type !== 'rest' && d.type !== 'exam');
@@ -5001,6 +5195,7 @@ function startDaySession(dayId) {
   const gqWrap = document.getElementById('genq-wrap-' + dayId);
   if (gqWrap) gqWrap.style.display = '';
   if (!wasStarted) _renderQsPanel(dayId);
+  _renderSessionRing(dayId, false);
 }
 
 function advanceQuestion(dayId) {
@@ -5081,7 +5276,7 @@ function _renderQsPanel(dayId) {
   if (!sessionStarted) {
     const btnLabel = completedCount > 0 ? '<i data-lucide="play" style="width:13px;height:13px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i> Riprendi sessione' : '<i data-lucide="play" style="width:13px;height:13px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i> Inizia sessione';
     const dots = qList.map((q, i) =>
-      `<span class="session-dot${feedbacks[i] ? ' done' : ''}"></span>`
+      `<span class="session-dot${feedbacks[i] ? ' done ' + feedbacks[i].grade : (answers[i] && answers[i].trim().length > 15 ? ' answered' : '')}"></span>`
     ).join('');
     const progressLabel = completedCount > 0
       ? `${completedCount} di ${qList.length} domande completate`
@@ -5347,6 +5542,7 @@ function buildDays() {
           </div>
         </div>
         ${day.tip ? `<div class="tip-box"><div class="tip-label"><i data-lucide="lightbulb" style="width:11px;height:11px;stroke-width:2.2;flex-shrink:0"></i>Metodo di studio</div><div class="tip-text">${day.tip}</div></div>` : ''}
+        <div id="day-ring-${day.id}" style="display:none"></div>
         <div class="section-card">
           <div class="section-head">
             <span class="section-tag tag-retrieval">retrieval practice</span>
@@ -5373,6 +5569,10 @@ function buildDays() {
     // Populate the dynamic questions panel after block is in DOM
     if (day.type !== 'rest' && day.type !== 'exam') {
       _renderQsPanel(day.id);
+      // Show ring if session already started or has any progress
+      if (dayState.sessionStarted || Object.keys(dayState.feedbacks || {}).length > 0) {
+        _renderSessionRing(day.id, false);
+      }
     }
   });
   lucide.createIcons();
@@ -6017,6 +6217,7 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
     renderDayReadiness(dayId);
     renderReadinessPanel();
     _autoSetStatus(dayId); // may promote to 'done' if all questions verified
+    _renderSessionRing(dayId, true);
 
     // Show coach modal with CTA that also advances the question
     const _qListNow = (state[dayId]?.aiQuestions) ||
@@ -6155,6 +6356,7 @@ Tono da mantenere:
     renderDayReadiness(dayId);
     renderReadinessPanel();
     _autoSetStatus(dayId);
+    _renderSessionRing(dayId, true);
 
     // Close edit area, show coach modal
     closeImproveAnswer(dayId, qIdx);
@@ -6810,6 +7012,7 @@ function _showQuizResults() {
 
   // Aggiorna l'indicatore di preparazione nella sidebar
   renderDayReadiness(dayId);
+  _renderSessionRing(dayId, true);
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
