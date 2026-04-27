@@ -2166,9 +2166,13 @@
   .quiz-close-btn:hover { border-color: var(--text-2); color: var(--text); }
 
   /* Launch button inside day block */
+  .section-head-actions {
+    display: flex; align-items: center; gap: 7px;
+    margin-left: auto; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;
+  }
   .quiz-launch-btn {
     display: inline-flex; align-items: center; gap: 6px;
-    margin-left: auto; flex-shrink: 0;
+    flex-shrink: 0;
     padding: 5px 12px;
     background: var(--accent);
     border: none;
@@ -2180,6 +2184,21 @@
     letter-spacing: 0.01em;
     transition: opacity 0.15s, transform 0.1s;
   }
+  .genq-launch-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    flex-shrink: 0;
+    padding: 5px 11px;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    color: var(--text-2);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .genq-launch-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
   .quiz-launch-btn:hover {
     opacity: 0.88;
     transform: translateY(-1px);
@@ -3077,9 +3096,12 @@
     /* ── Section head: stack on mobile ── */
     .section-head { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 12px; }
     .section-head .section-title { font-size: 14px; }
+    .section-head-actions { margin-left: 0; width: 100%; justify-content: stretch; }
+    .quiz-launch-btn, .genq-launch-btn {
+      flex: 1; justify-content: center; padding: 9px 12px;
+      font-size: 12px; min-height: 40px;
+    }
     .quiz-launch-btn {
-      width: 100%; justify-content: center; padding: 9px 12px;
-      font-size: 12px; margin-left: 0; min-height: 40px;
       background: transparent; border: 1.5px solid var(--accent); color: var(--accent);
     }
     .quiz-launch-btn:hover { background: var(--accent-bg); }
@@ -5227,11 +5249,9 @@ function startDaySession(dayId) {
   const tb = document.getElementById('timer-' + dayId);
   if (tb) { tb.style.display = ''; tb.classList.remove('timer-idle'); tb.classList.add('timer-active'); }
   timerStart(dayId);
-  // Reveal quiz + gen-q buttons (hidden until session starts)
-  const qzBtn = document.getElementById('quiz-btn-' + dayId);
-  if (qzBtn) qzBtn.style.display = '';
-  const gqWrap = document.getElementById('genq-wrap-' + dayId);
-  if (gqWrap) gqWrap.style.display = '';
+  // Reveal action bar (quiz + gen-q buttons) when session starts
+  const sAct = document.getElementById('section-actions-' + dayId);
+  if (sAct) sAct.style.display = '';
   if (!wasStarted) _renderQsPanel(dayId);
   _renderSessionRing(dayId, false);
 }
@@ -5544,13 +5564,7 @@ function buildDays() {
           </div>
         </div>`).join('');
 
-      // Button to generate questions from sources
-      const isAiQ  = !!dayState.aiQuestions;
-      const genQBtn = day.questions ? `
-        <button class="gen-q-btn" id="genq-btn-${day.id}" onclick="generateQuestionsFromSource('${day.id}')">
-          <i data-lucide="sparkles" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i>
-          ${isAiQ ? 'Rigenera domande dalle fonti' : 'Genera domande dalle fonti'}
-        </button>` : '';
+      const isAiQ = !!dayState.aiQuestions;
 
       const _statusLabel = { done: '✓ Completata', partial: '· In corso', skip: '✕ Saltata' };
       const _curStatus   = dayState.status || 'none';
@@ -5585,16 +5599,21 @@ function buildDays() {
             <div class="section-head">
               <span class="section-tag tag-retrieval">retrieval practice</span>
               <span class="section-title">Domande per questa giornata</span>
-              <button class="quiz-launch-btn" id="quiz-btn-${day.id}"
-                style="${dayState.sessionStarted ? '' : 'display:none'}"
-                onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
-                <i data-lucide="zap" style="width:12px;height:12px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i>
-                Genera Quiz
-              </button>
+              <div class="section-head-actions" id="section-actions-${day.id}" style="${dayState.sessionStarted ? '' : 'display:none'}">
+                ${day.questions ? `<button class="genq-launch-btn" id="genq-btn-${day.id}" onclick="generateQuestionsFromSource('${day.id}')">
+                  <i data-lucide="sparkles" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
+                  ${isAiQ ? 'Rigenera domande' : 'Genera domande'}
+                </button>` : ''}
+                <button class="quiz-launch-btn" id="quiz-btn-${day.id}"
+                  onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
+                  <i data-lucide="zap" style="width:12px;height:12px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i>
+                  Genera Quiz
+                </button>
+              </div>
             </div>
             <div class="section-body">
               <div id="qs-panel-${day.id}"></div>
-              <div id="genq-wrap-${day.id}" style="${dayState.sessionStarted ? '' : 'display:none'}">${genQBtn}</div>
+              <div id="genq-wrap-${day.id}" style="display:none"></div>
               <div class="notes-area" style="margin-top:14px;">
                 <label>Note e punti deboli emersi</label>
                 <textarea placeholder="Scrivi qui cosa non ricordavi, cosa devi ripassare, concetti da approfondire..." onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
@@ -5852,11 +5871,9 @@ function timerStop(dayId) {
     // Hide timer block entirely — pre-session view has its own hours badge
     tb.style.display = 'none';
   }
-  // Hide quiz / gen-q buttons (only visible during session)
-  var ql = document.querySelector('#day-' + dayId + ' .quiz-launch-btn');
-  if (ql) ql.style.display = 'none';
-  var gw = document.getElementById('genq-wrap-' + dayId);
-  if (gw) gw.style.display = 'none';
+  // Hide action bar (only visible during session)
+  var sAct = document.getElementById('section-actions-' + dayId);
+  if (sAct) sAct.style.display = 'none';
 
   _focusModeOff();
   _clearInactivity();
@@ -7580,7 +7597,7 @@ async function generateQuestionsFromSource(dayId) {
   const topic = day.sections?.map(s => s.title).join(', ') || day.title || dayId;
 
   const btn = document.getElementById('genq-btn-' + dayId);
-  if (btn) { btn.classList.add('loading'); btn.innerHTML = '<i data-lucide="loader-circle" style="width:12px;height:12px;stroke-width:2;flex-shrink:0;animation:spin 1s linear infinite"></i> Generazione in corso…'; lucide.createIcons(); }
+  if (btn) { btn.classList.add('loading'); btn.innerHTML = '<i data-lucide="loader-circle" style="width:11px;height:11px;stroke-width:2;flex-shrink:0;animation:spin 1s linear infinite"></i> Generazione…'; lucide.createIcons(); }
 
   const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.
 
@@ -7641,7 +7658,7 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
     alert('Errore nella generazione:\n' + e.message);
   } finally {
     const b = document.getElementById('genq-btn-' + dayId);
-    if (b) { b.classList.remove('loading'); b.innerHTML = '<i data-lucide="sparkles" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i> Rigenera domande dalle fonti'; lucide.createIcons(); }
+    if (b) { b.classList.remove('loading'); b.innerHTML = '<i data-lucide="sparkles" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i> Rigenera domande'; lucide.createIcons(); }
   }
 }
 
