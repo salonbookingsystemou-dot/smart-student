@@ -4003,9 +4003,11 @@ window._reinitApp = function() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
   if (typeof _refreshNavLocks === 'function') _refreshNavLocks();
 
-  // Navigate to first day
-  const first = typeof getActiveDays === 'function' ? getActiveDays()[0] : null;
-  if (first && typeof showDay === 'function') showDay(first.id);
+  // Restore last worked day after data sync
+  if (typeof _resolveStartDay === 'function' && typeof showDay === 'function') {
+    const target = _resolveStartDay();
+    if (target) showDay(target.id);
+  }
 };
 // ── End Supabase Auth ─────────────────────────────────────────
 
@@ -5520,6 +5522,30 @@ function showDay(id) {
   document.getElementById('block-' + id)?.classList.add('visible');
   document.querySelector(`[data-id="${id}"]`)?.classList.add('active');
   if (window.innerWidth <= 768) { updateMobileDayNav(id); closeMobileSidebar(); }
+  // Persist last visited day so we can restore it on next open
+  try { localStorage.setItem('psico_last_day', id); } catch(e) {}
+}
+
+function _resolveStartDay() {
+  const active = getActiveDays();
+  if (!active.length) return null;
+  const saved = localStorage.getItem('psico_last_day');
+  if (saved) {
+    const match = active.find(d => d.id === saved);
+    if (match && isDayNavigable(match.id)) return match;
+  }
+  // Fallback: most recent day that has any work (feedbacks or session started)
+  const worked = active
+    .filter(d => d.type !== 'rest' && d.type !== 'exam')
+    .filter(d => {
+      const ds = state[d.id] || {};
+      return ds.sessionStarted || Object.keys(ds.feedbacks || {}).length > 0;
+    });
+  if (worked.length) {
+    const last = worked[worked.length - 1];
+    if (isDayNavigable(last.id)) return last;
+  }
+  return active[0];
 }
 
 // Mappa tipo-domanda → Tassonomia di Bloom + difficoltà
@@ -7151,11 +7177,10 @@ renderReadinessPanel();
   });
   _refreshNavLocks();
 })();
-// Show first day of active plan (hardcoded or AI-generated)
+// Restore last worked day (or fall back to first)
 (function() {
-  const active = getActiveDays();
-  const first = active[0];
-  if (first) showDay(first.id);
+  const target = _resolveStartDay();
+  if (target) showDay(target.id);
 })();
 // Initialize Lucide icons (after all DOM is set up)
 if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -7965,7 +7990,8 @@ REGOLE ASSOLUTE (non derogabili):
     _setPlanGenUI('Piano completato ✓', `${normalizedDays.length} giorni pianificati fino all\'esame.`, 100, 'Caricamento…');
     await new Promise(r => setTimeout(r, 800));
 
-    // Rebuild UI
+    // Rebuild UI — new plan starts fresh from day 1
+    try { localStorage.removeItem('psico_last_day'); } catch(e) {}
     buildDays();
     buildNav();
     updateGenPlanStatus();
