@@ -2531,6 +2531,9 @@
   body.focus-mode .mobile-day-nav {
     pointer-events: none; opacity: 0.2;
   }
+  body.focus-mode .mobile-exam-banner {
+    pointer-events: none; opacity: 0.2;
+  }
   /* Keep timer controls interactive */
   body.focus-mode .timer-block { pointer-events: auto !important; }
 
@@ -3194,8 +3197,11 @@
   }
   .sidebar-backdrop.open { display: block; }
 
-  /* Bottom day navigation bar (mobile only) */
+  /* Bottom day navigation bar + exam reminder banner (mobile only) */
   .mobile-day-nav {
+    display: none;
+  }
+  .mobile-exam-banner {
     display: none;
   }
 
@@ -3302,7 +3308,7 @@
       min-width: 0;
       box-sizing: border-box;
       min-height: calc(100dvh - 112px);
-      padding: 1rem 1rem 5rem;
+      padding: 1rem 1rem 6.5rem; /* extra room for banner + bottom nav */
       overflow-x: hidden;
     }
     /* Day block stretches to fill main */
@@ -3490,6 +3496,33 @@
       text-overflow: ellipsis;
     }
 
+    /* ── Mobile exam reminder banner (sits above bottom nav) ── */
+    .mobile-exam-banner {
+      display: flex;
+      position: fixed;
+      bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+      left: 0; right: 0;
+      z-index: 99;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 7px 16px;
+      background: color-mix(in srgb, var(--accent) 10%, var(--surface2) 90%);
+      border-top: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border) 80%);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: var(--text-1);
+      pointer-events: none;
+      transition: background 0.4s;
+    }
+    .meb-days { color: var(--accent); font-weight: 700; font-size: 12px; }
+    .meb-days.urgent { color: #e05c5c; }
+    .meb-days.soon   { color: #e07b2f; }
+    .meb-sep  { color: var(--text-3); font-size: 10px; }
+    .meb-progress { color: var(--text-2); font-size: 12px; }
+
     /* ── Readiness panel in sidebar ── */
     .readiness-panel { margin: 0 0.75rem 1rem; }
     .readiness-detail { max-height: 60vh; overflow-y: auto; }
@@ -3517,7 +3550,7 @@
 
   @media (max-width: 480px) {
     .header h1 { font-size: 0.78rem; }
-    .main { padding: 0.75rem 0.75rem 5rem; }
+    .main { padding: 0.75rem 0.75rem 6.5rem; }
     .quiz-question-text { font-size: 15px; }
     /* FIX: correct class is .quiz-opt */
     .quiz-opt  { font-size: 13px; padding: 12px; }
@@ -3832,6 +3865,12 @@
 </div>
 
 <!-- Mobile bottom day navigation bar -->
+<div class="mobile-exam-banner" id="mobileExamBanner" aria-live="polite">
+  <span class="meb-days" id="mebDays">—</span>
+  <span class="meb-sep">·</span>
+  <span class="meb-progress" id="mebProgress">—</span>
+</div>
+
 <div class="mobile-day-nav" id="mobileDayNav">
   <button class="mobile-nav-btn" id="mobilePrevBtn" onclick="mobileNavDay(-1)">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -5165,6 +5204,57 @@ function updateProgress() {
   const pct = Math.round((done / total) * 100);
   document.getElementById('progressFill').style.width = pct + '%';
   document.getElementById('progressLabel').textContent = done + ' / ' + total + ' giorni';
+  updateMobileExamBanner();
+}
+
+function updateMobileExamBanner() {
+  const banner = document.getElementById('mobileExamBanner');
+  if (!banner) return;
+
+  // Days to exam
+  let daysLeft = null;
+  const info = JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
+  if (info.date) {
+    const exam = new Date(info.date);
+    const today = new Date(); today.setHours(0,0,0,0);
+    daysLeft = Math.ceil((exam - today) / 86400000);
+  } else {
+    const examDay = getActiveDays().find(d => d.type === 'exam');
+    if (examDay?.date) {
+      const exam = new Date(examDay.date);
+      const today = new Date(); today.setHours(0,0,0,0);
+      daysLeft = Math.ceil((exam - today) / 86400000);
+    }
+  }
+
+  // Readiness
+  const r = calculateGlobalReadiness();
+  const readiness = r?.score ?? 0;
+
+  // Days element
+  const mebDays = document.getElementById('mebDays');
+  if (mebDays) {
+    if (daysLeft === null) {
+      mebDays.textContent = '— giorni';
+      mebDays.className = 'meb-days';
+    } else if (daysLeft <= 0) {
+      mebDays.textContent = 'Oggi è l\'esame!';
+      mebDays.className = 'meb-days urgent';
+    } else if (daysLeft === 1) {
+      mebDays.textContent = '1 giorno all\'esame';
+      mebDays.className = 'meb-days urgent';
+    } else {
+      const cls = daysLeft <= 3 ? 'urgent' : daysLeft <= 7 ? 'soon' : '';
+      mebDays.textContent = `${daysLeft} giorni all'esame`;
+      mebDays.className = `meb-days ${cls}`.trim();
+    }
+  }
+
+  // Progress element
+  const mebProg = document.getElementById('mebProgress');
+  if (mebProg) {
+    mebProg.textContent = readiness + '% preparazione';
+  }
 }
 
 // ── Global Readiness System ──────────────────────────────────
