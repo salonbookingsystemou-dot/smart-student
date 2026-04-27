@@ -5030,8 +5030,13 @@ function _renderQsPanel(dayId) {
   const allDone    = activeIdx === -1;
 
   // ── Completed questions HTML (collapsed cards) ──────────────
-  const _completedHtml = () => qList.map((q, i) => {
-    if (!feedbacks[i]) return '';
+  const _completedHtml = () => {
+    // Build index list of completed questions sorted newest → oldest
+    const completedIdxs = qList
+      .map((q, i) => ({ q, i, ts: feedbacks[i]?.ts || 0 }))
+      .filter(({ i }) => !!feedbacks[i])
+      .sort((a, b) => b.ts - a.ts);
+    return completedIdxs.map(({ q, i }) => {
     const fb = feedbacks[i];
       const gradeIcon = { good: '✓', partial: '◑', poor: '✗' }[fb.grade] || '?';
     const ans = answers[i] || '';
@@ -5069,7 +5074,8 @@ function _renderQsPanel(dayId) {
           </div>
         </div>
       </div>`;
-  }).join('');
+    }).join('');
+  };
 
   // ── Pre-session state ────────────────────────────────────────
   if (!sessionStarted) {
@@ -6004,7 +6010,8 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
     state[dayId].feedbacks[qIdx] = {
       grade,
       text: _fbText.slice(0, 1200),
-      html: _fbHtml.length < 3000 ? _fbHtml : null  // skip large HTML to save space
+      html: _fbHtml.length < 3000 ? _fbHtml : null,  // skip large HTML to save space
+      ts: Date.now()
     };
     saveState();
     renderDayReadiness(dayId);
@@ -6141,7 +6148,8 @@ Tono da mantenere:
     const _fbTmp = document.createElement('div'); _fbTmp.innerHTML = fbHtml;
     state[dayId].feedbacks[qIdx] = {
       grade, text: (_fbTmp.textContent||'').slice(0,1200),
-      html: fbHtml.length < 3000 ? fbHtml : null
+      html: fbHtml.length < 3000 ? fbHtml : null,
+      ts: Date.now()
     };
     saveState();
     renderDayReadiness(dayId);
