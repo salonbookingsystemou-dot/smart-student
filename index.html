@@ -762,9 +762,6 @@
 
   .section-body {
     padding: 14px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
   }
 
   .lesson-ref {
@@ -807,9 +804,6 @@
 
   .notes-area {
     margin-top: 10px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
   }
 
   .notes-area label {
@@ -832,7 +826,7 @@
     padding: 8px 10px;
     resize: vertical;
     min-height: 80px;
-    flex: 1;             /* grow to fill remaining card space */
+    max-height: 180px;
     outline: none;
     transition: border-color 0.15s;
     box-sizing: border-box;
