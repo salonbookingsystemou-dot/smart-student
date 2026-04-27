@@ -5856,6 +5856,8 @@ function timerTick(dayId) {
   timerState[dayId].elapsed = elapsed;
   var el = document.getElementById('timerDisplay-' + dayId);
   if (el) el.textContent = formatSeconds(elapsed);
+  // Keep global hours counter in sync with live session
+  updateTotalHours();
 }
 
 function timerPause(dayId) {
@@ -5938,6 +5940,10 @@ function timerStop(dayId) {
 function updateTotalHours() {
   var total = 0;
   Object.values(state).forEach(function(d) { total += d.totalSeconds || 0; });
+  // Include live elapsed from the currently running session (not yet saved to state)
+  if (_activeTimerDayId && timerState[_activeTimerDayId]) {
+    total += timerState[_activeTimerDayId].elapsed || 0;
+  }
   var el = document.getElementById('totalHoursDisplay');
   if (el) el.textContent = formatHoursMinutes(total);
 }
@@ -5994,6 +6000,7 @@ function _autoSetStatus(dayId) {
     else delete state[dayId].status;
     _updateDayStatusDisplay(dayId);
     _syncNavStatus(dayId, newStatus);
+    updateProgress(); // keep the header progress bar in sync
   }
 }
 
