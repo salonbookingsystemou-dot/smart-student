@@ -381,17 +381,15 @@
   .layout {
     display: grid;
     grid-template-columns: 260px 1fr;
-    min-height: calc(100vh - 56px);
+    height: calc(100vh - 56px);   /* fixed height → children fill it */
     max-width: 100%;
-    overflow-x: hidden;
+    overflow: hidden;              /* each column scrolls independently */
   }
 
   .sidebar {
     border-right: 1px solid var(--border);
     padding: 1.5rem 0;
-    position: sticky;
-    top: 56px;
-    height: calc(100vh - 56px);
+    height: 100%;
     overflow-y: auto;
   }
 
@@ -620,10 +618,13 @@
   .status-skip .day-dot { background: var(--skip-border); }
 
   .main {
-    padding: 2rem 2.5rem;
-    max-width: 900px;
-    min-width: 0; /* prevents grid blowout */
+    padding: 1.75rem 2.5rem 2rem;
+    max-width: 1000px;
+    min-width: 0;
+    height: 100%;
+    overflow-y: auto;
     overflow-x: hidden;
+    box-sizing: border-box;
   }
 
   .day-block {
@@ -631,7 +632,11 @@
     animation: fadeIn 0.2s ease;
   }
 
-  .day-block.visible { display: block; }
+  .day-block.visible {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
 
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -707,6 +712,14 @@
     margin-bottom: 1rem;
     overflow: hidden;
   }
+  /* The questions card also has .day-content-main — make it fill height */
+  .section-card.day-content-main {
+    margin-bottom: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;  /* allow sticky ring aside to work */
+  }
 
   /* Topic title — primary heading (was subtitle, now promoted to h1 role) */
   .day-subtitle {
@@ -749,6 +762,9 @@
 
   .section-body {
     padding: 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   .lesson-ref {
@@ -791,6 +807,9 @@
 
   .notes-area {
     margin-top: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   .notes-area label {
@@ -812,9 +831,11 @@
     font-size: 13px;
     padding: 8px 10px;
     resize: vertical;
-    min-height: 60px;
+    min-height: 80px;
+    flex: 1;             /* grow to fill remaining card space */
     outline: none;
     transition: border-color 0.15s;
+    box-sizing: border-box;
   }
 
   .notes-area textarea:focus { border-color: var(--accent); }
@@ -847,13 +868,19 @@
 
   /* ── Day content: questions + ring side-by-side ─────────────── */
   .day-content-row {
-    display: flex; align-items: flex-start; gap: 16px;
+    display: flex; align-items: stretch; gap: 16px;
+    flex: 1;  /* fill day-block vertical space */
   }
-  .day-content-main { flex: 1; min-width: 0; margin-bottom: 0; }
+  .day-content-main {
+    flex: 1; min-width: 0; margin-bottom: 0;
+    display: flex; flex-direction: column;
+  }
   .day-ring-aside {
-    width: 196px; flex-shrink: 0;
-    position: sticky; top: 80px;
+    width: 200px; flex-shrink: 0;
+    position: sticky; top: 0;
     align-self: flex-start;
+    height: calc(100vh - 56px - 3.75rem); /* viewport minus header minus day-header */
+    display: flex; flex-direction: column;
   }
 
   /* ── Session Progress Ring ──────────────────────────────────── */
@@ -864,6 +891,8 @@
     border-radius: 16px;
     padding: 24px 20px 20px;
     text-align: center;
+    flex: 1;             /* fill .day-ring-aside height */
+    justify-content: center;
   }
   .prog-ring-container {
     position: relative; width: 130px; height: 130px; flex-shrink: 0;
@@ -3287,7 +3316,9 @@
       display: block;
       width: 100%;
       max-width: 100vw;
+      height: auto;        /* override desktop fixed height */
       min-height: calc(100dvh - 48px);
+      overflow: visible;   /* override desktop overflow:hidden */
     }
 
     /* ── Sidebar: slide-in overlay (out of flow) ── */
@@ -3317,8 +3348,10 @@
       max-width: 100%;
       min-width: 0;
       box-sizing: border-box;
+      height: auto;         /* override desktop height:100% */
+      overflow-y: visible;  /* override desktop overflow-y:auto */
       min-height: calc(100dvh - 112px);
-      padding: 1rem 1rem 9rem; /* room for exam banner (~80px) + bottom nav (~60px) */
+      padding: 1rem 1rem 9rem;
       overflow-x: hidden;
     }
     /* Day block stretches to fill main */
