@@ -3065,9 +3065,10 @@
     #logoutBtn { display: none; } /* moved to sidebar on mobile */
     .theme-switch { scale: 0.85; flex-shrink: 0; }
 
-    /* ── Layout: single column ── */
+    /* ── Layout: single column, full height flex ── */
     .layout {
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
       min-height: calc(100dvh - 48px);
       width: 100%;
       max-width: 100vw;
@@ -3092,14 +3093,52 @@
     /* Readiness panel compact on mobile */
     .readiness-panel { margin: 0 0.75rem 1rem; }
 
-    /* ── Main content ── */
+    /* ── Main content: fills remaining height ── */
     .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       padding: 1rem 1rem 5rem;
       max-width: 100%;
       width: 100%;
       min-width: 0;
       overflow-x: hidden;
     }
+    /* Day block stretches to fill main */
+    .day-block.visible {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    /* Content row fills day block */
+    .day-content-row { flex: 1; }
+    /* Section card fills content row */
+    .day-content-main {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .section-card {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      margin-bottom: 0;
+    }
+    .section-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Session prompt fills and centers content vertically */
+    .session-prompt {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Notes area stays natural height at bottom */
+    .notes-area { flex-shrink: 0; }
 
     /* Ensure all content cards don't overflow */
     .day-block, .q-item, .tip-box, .session-prompt,
