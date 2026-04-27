@@ -217,6 +217,18 @@
     text-transform: uppercase;
     white-space: nowrap;
   }
+  .header-exam-date {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem; font-weight: 500;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+    display: none; /* hidden until populated */
+  }
+  .header-exam-date.visible { display: inline; }
   .header p { display: none; } /* subtitle moved out */
 
   /* Vertical divider between header zones */
@@ -3302,6 +3314,7 @@
     .header-hide-mobile { display: none !important; }
     .header > .header-vdiv { display: none; }
     .header-app-name { display: none; }
+    .header-exam-date { display: none !important; }
     .sync-chip { display: none; }
 
     /* Uniform icon-only buttons: same size, same border, same radius */
@@ -3765,6 +3778,7 @@
       <img class="header-app-name-img" src="logo-full.png" alt="Mnesti" onerror="this.style.display='none'">
     </div>
     <h1 id="headerTitle">Psicologia Cognitiva — Prof. Serra</h1>
+    <span class="header-exam-date" id="headerExamDate"></span>
   </div>
 
   <!-- Divider -->
@@ -4490,6 +4504,7 @@ window._reinitApp = function() {
   if (typeof updateProgress     === 'function') updateProgress();
   if (typeof updateTotalHours   === 'function') updateTotalHours();
   if (typeof updateApiIndicator === 'function') updateApiIndicator();
+  if (typeof updateHeaderTitle  === 'function') updateHeaderTitle();
   if (typeof renderReadinessPanel === 'function') renderReadinessPanel();
   if (typeof updateSourcesBtn   === 'function') updateSourcesBtn();
 
@@ -5399,6 +5414,25 @@ function _renderSessionRing(dayId, animate) {
         <div class="prog-ring-dots">${dotsHtml}</div>
       </div>
     </div>`;
+}
+
+function updateHeaderTitle() {
+  try {
+    const info = JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
+    const titleEl = document.getElementById('headerTitle');
+    const dateEl  = document.getElementById('headerExamDate');
+    if (titleEl && info.subject) {
+      const parts = [info.subject];
+      if (info.professor) parts.push('Prof. ' + info.professor);
+      titleEl.textContent = parts.join(' — ');
+    }
+    if (dateEl && info.date) {
+      const d = new Date(info.date);
+      const months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+      dateEl.textContent = 'Esame: ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      dateEl.classList.add('visible');
+    }
+  } catch(e) {}
 }
 
 function updateProgress() {
@@ -8145,6 +8179,7 @@ buildDays();
 updateProgress();
 updateTotalHours();
 updateApiIndicator();
+updateHeaderTitle();
 renderReadinessPanel();
 // Recompute auto-status for all study days based on actual work done
 (function() {
