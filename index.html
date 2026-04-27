@@ -3550,6 +3550,21 @@
 </div>
 
 <script>
+// ── Accent color constants (declared first to avoid TDZ errors) ──
+const _ACCENT_DEFAULT = '#d97757';
+const _ACCENT_PRESETS = [
+  '#d97757', // terracotta (default)
+  '#e05c5c', // red
+  '#e07b2f', // amber
+  '#c0a030', // gold
+  '#3ea06c', // green
+  '#3b82f6', // blue
+  '#6366f1', // indigo
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#0ea5e9', // sky
+];
+
 // ── Supabase Auth + Cloud Sync ───────────────────────────────
 (function() {
 
@@ -7326,19 +7341,7 @@ function switchSetupTab(tab) {
 }
 
 // ── Accent color system ───────────────────────────────────────
-const _ACCENT_DEFAULT = '#d97757';
-const _ACCENT_PRESETS = [
-  '#d97757', // terracotta (default)
-  '#e05c5c', // red
-  '#e07b2f', // amber
-  '#c0a030', // gold
-  '#3ea06c', // green
-  '#3b82f6', // blue
-  '#6366f1', // indigo
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-  '#0ea5e9', // sky
-];
+// (moved to top of script — see below)
 
 function _hexToRgb(hex) {
   const h = hex.replace('#','');
