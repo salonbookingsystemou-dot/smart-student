@@ -5776,6 +5776,11 @@ function _showStillThereModal(reason, awayMs) {
   const iconEl   = document.getElementById('stIcon');
   const countEl  = document.getElementById('stCountdown');
   if (!modal) return;
+  // Clear any lingering timers from a previous invocation
+  clearTimeout(_stAutoStopTimer);
+  clearInterval(_stCountdownInterval);
+  _stAutoStopTimer = null;
+  _stCountdownInterval = null;
 
   if (reason === 'hidden') {
     const awayMin = Math.round(awayMs / 60000);
@@ -5906,12 +5911,11 @@ function timerStop(dayId) {
   state[dayId].totalSeconds = (state[dayId].totalSeconds || 0) + sessionSecs;
   timerState[dayId] = { elapsed: 0, running: false };
   var disp = document.getElementById('timerDisplay-' + dayId);
-  disp.textContent = '00:00:00';
-  disp.classList.remove('running', 'paused');
+  if (disp) { disp.textContent = '00:00:00'; disp.classList.remove('running', 'paused'); }
   var pauseBtn = document.getElementById('timerPauseBtn-' + dayId);
-  pauseBtn.style.display = 'none';
-  pauseBtn.textContent = 'Pausa';
-  document.getElementById('timerStopBtn-' + dayId).style.display = 'none';
+  if (pauseBtn) { pauseBtn.style.display = 'none'; pauseBtn.textContent = 'Pausa'; }
+  var stopBtn2 = document.getElementById('timerStopBtn-' + dayId);
+  if (stopBtn2) stopBtn2.style.display = 'none';
   var savedEl = document.getElementById('timerSaved-' + dayId);
   if (savedEl) savedEl.textContent = formatSeconds(state[dayId].totalSeconds);
   // Reset session: go back to pre-session state
