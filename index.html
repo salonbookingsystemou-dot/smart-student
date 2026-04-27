@@ -6274,32 +6274,106 @@ function _onTimerInactive() {
   _showStillThereModal('inactivity', 0);
 }
 
-// Page Visibility API
+// ── Page Visibility API (desktop + Android) ─────────────────
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'hidden') {
     if (_timerIsRunning()) {
       _hiddenAt = Date.now();
+      sessionStorage.setItem('_timerHiddenAt', String(_hiddenAt));
+      sessionStorage.setItem('_timerHiddenDay', _activeTimerDayId || '');
       timerPause(_activeTimerDayId);
     }
   } else {
-    // Tab visible again
-    if (_hiddenAt !== null && _activeTimerDayId) {
-      const awayMs = Date.now() - _hiddenAt;
-      _hiddenAt = null;
-      if (awayMs < HIDDEN_GRACE_MS) {
-        // Brief switch — resume silently
-        timerResume(_activeTimerDayId);
-      } else {
-        _showStillThereModal('hidden', awayMs);
-      }
-    }
+    _onPageVisible();
   }
 });
 
-// Track user interactions to reset inactivity timer
-['mousemove','keydown','click','touchstart','scroll'].forEach(function(evt) {
+// ── pagehide / pageshow — extra coverage for iOS PWA ────────
+// iOS fires pagehide more reliably than visibilitychange when
+// the app is backgrounded or terminated.
+window.addEventListener('pagehide', function() {
+  if (_timerIsRunning()) {
+    _hiddenAt = Date.now();
+    // Use sessionStorage so it survives a PWA page-restore
+    try {
+      sessionStorage.setItem('_timerHiddenAt', String(_hiddenAt));
+      sessionStorage.setItem('_timerHiddenDay', _activeTimerDayId || '');
+    } catch(e) {}
+    timerPause(_activeTimerDayId);
+  }
+});
+
+window.addEventListener('pageshow', function(e) {
+  // e.persisted = true means restored from bfcache
+  if (e.persisted) _onPageVisible();
+});
+
+// ── Shared "back to visible" handler ─────────────────────────
+function _onPageVisible() {
+  // Prefer in-memory timestamp; fall back to sessionStorage
+  // (covers PWA restarts where in-memory state is lost)
+  let hiddenAt = _hiddenAt;
+  let hiddenDay = _activeTimerDayId;
+
+  if (hiddenAt === null) {
+    const stored = sessionStorage.getItem('_timerHiddenAt');
+    const storedDay = sessionStorage.getItem('_timerHiddenDay');
+    if (stored && storedDay) {
+      hiddenAt = parseInt(stored, 10);
+      hiddenDay = storedDay;
+    }
+  }
+
+  // Clean up session storage
+  try {
+    sessionStorage.removeItem('_timerHiddenAt');
+    sessionStorage.removeItem('_timerHiddenDay');
+  } catch(e) {}
+  _hiddenAt = null;
+
+  if (hiddenAt !== null && hiddenDay) {
+    const awayMs = Date.now() - hiddenAt;
+    if (awayMs < HIDDEN_GRACE_MS) {
+      // Brief switch — resume silently if timer was running
+      if (_activeTimerDayId === hiddenDay) timerResume(hiddenDay);
+    } else {
+      // Away long enough to ask — ensure timer is paused for the right day
+      _activeTimerDayId = _activeTimerDayId || hiddenDay;
+      _showStillThereModal('hidden', awayMs);
+    }
+  }
+}
+
+// ── Track user interactions to reset inactivity timer ────────
+// touchstart + touchend both registered: touchend more reliable
+// on some iOS builds; pointerdown covers stylus/mouse/touch
+['mousemove','keydown','click','touchstart','touchend','pointerdown','scroll'].forEach(function(evt) {
   document.addEventListener(evt, _resetInactivity, { passive: true });
 });
+
+// ── On app start: check for an uncleared "hidden" marker ─────
+// Handles the case where iOS killed the PWA while hidden
+(function _checkRestoredSession() {
+  const stored = sessionStorage.getItem('_timerHiddenAt');
+  const storedDay = sessionStorage.getItem('_timerHiddenDay');
+  if (stored && storedDay) {
+    const awayMs = Date.now() - parseInt(stored, 10);
+    sessionStorage.removeItem('_timerHiddenAt');
+    sessionStorage.removeItem('_timerHiddenDay');
+    // Only surface the modal if the gap is material (> grace period)
+    // and the session state suggests a timer was active
+    let savedState = {};
+    try { savedState = JSON.parse(localStorage.getItem('psico_state') || '{}'); } catch(e) {}
+    const dayState = savedState[storedDay];
+    if (awayMs > HIDDEN_GRACE_MS && dayState?.sessionStarted && dayState?.totalSeconds) {
+      // Defer until the UI is ready
+      _activeTimerDayId = storedDay;
+      setTimeout(function() {
+        _showStillThereModal('hidden', awayMs);
+      }, 1200);
+    }
+  }
+})();
 
 // ── Brain Dump ────────────────────────────────────────────────
 const BD_DURATION = 180; // seconds
@@ -6508,6 +6582,8 @@ window._debugInactivity = function(action) {
     timerRunning: running,
     activeDay: _activeTimerDayId,
     inactivityTimerSet: !!_inactivityTimer,
+    hiddenAt: _hiddenAt ? new Date(_hiddenAt).toLocaleTimeString() : null,
+    sessionStorageHiddenAt: sessionStorage.getItem('_timerHiddenAt'),
     elapsed: _activeTimerDayId && timerState[_activeTimerDayId]
       ? timerState[_activeTimerDayId].elapsed + 's' : '—',
     INACTIVITY_MIN: INACTIVITY_MS / 60000,
