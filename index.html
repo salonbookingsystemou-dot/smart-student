@@ -5609,7 +5609,8 @@ function buildDays() {
     if (day.type !== 'rest' && day.type !== 'exam') {
       _renderQsPanel(day.id);
       // Show ring if session already started or has any progress
-      if (dayState.sessionStarted || Object.keys(dayState.feedbacks || {}).length > 0) {
+      const _ds = state[day.id] || {};
+      if (_ds.sessionStarted || Object.keys(_ds.feedbacks || {}).length > 0) {
         _renderSessionRing(day.id, false);
       }
     }
