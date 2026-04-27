@@ -3708,6 +3708,10 @@ const _ACCENT_PRESETS = [
           localStorage.setItem('anthropic_api_key', s.__apiKey);
           delete s.__apiKey; // strip before writing to state storage
         }
+        if (s.__lastDay) {
+          localStorage.setItem('psico_last_day', s.__lastDay);
+          delete s.__lastDay; // strip before writing to state storage
+        }
         localStorage.setItem('psico_state', JSON.stringify(s));
         loaded = true;
       }
@@ -3727,7 +3731,6 @@ const _ACCENT_PRESETS = [
         localStorage.setItem('psico_objective', data.psico_objective);
         loaded = true;
       }
-
       return loaded;
     } catch(e) {
       console.warn('[Supabase] Load exception:', e);
@@ -3751,6 +3754,10 @@ const _ACCENT_PRESETS = [
     const statePayload = _parseLS('psico_state') || {};
     const apiKey = localStorage.getItem('anthropic_api_key');
     if (apiKey) statePayload.__apiKey = apiKey;
+
+    // Piggyback last visited day inside psico_state (no extra DB column needed)
+    const lastDay = localStorage.getItem('psico_last_day');
+    if (lastDay) statePayload.__lastDay = lastDay;
 
     const payload = {
       user_id:         session.user.id,
@@ -5529,12 +5536,25 @@ function showDay(id) {
 function _resolveStartDay() {
   const active = getActiveDays();
   if (!active.length) return null;
+
+  // 1. Current active study day — first incomplete non-rest day (correct across all devices)
+  for (const d of active) {
+    if (d.type === 'rest' || d.type === 'exam') continue;
+    const s = state[d.id]?.status;
+    if (s !== 'done' && s !== 'skip') {
+      if (isDayNavigable(d.id)) return d;
+      break; // locked — fall through to saved/fallback
+    }
+  }
+
+  // 2. Last explicitly visited day (synced from cloud via psico_last_day)
   const saved = localStorage.getItem('psico_last_day');
   if (saved) {
     const match = active.find(d => d.id === saved);
     if (match && isDayNavigable(match.id)) return match;
   }
-  // Fallback: most recent day that has any work (feedbacks or session started)
+
+  // 3. Last day with any recorded work
   const worked = active
     .filter(d => d.type !== 'rest' && d.type !== 'exam')
     .filter(d => {
@@ -5545,6 +5565,7 @@ function _resolveStartDay() {
     const last = worked[worked.length - 1];
     if (isDayNavigable(last.id)) return last;
   }
+
   return active[0];
 }
 
