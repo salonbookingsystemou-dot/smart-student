@@ -845,23 +845,33 @@
     color: var(--text-2);
   }
 
+  /* ── Day content: questions + ring side-by-side ─────────────── */
+  .day-content-row {
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+  .day-content-main { flex: 1; min-width: 0; margin-bottom: 0; }
+  .day-ring-aside {
+    width: 196px; flex-shrink: 0;
+    position: sticky; top: 80px;
+    align-self: flex-start;
+  }
+
   /* ── Session Progress Ring ──────────────────────────────────── */
   .session-ring-wrap {
-    display: flex; align-items: center; gap: 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 18px 22px;
-    margin-bottom: 1.2rem;
-    overflow: hidden;
+    padding: 20px 16px 18px;
+    text-align: center;
   }
   .prog-ring-container {
-    position: relative; width: 88px; height: 88px; flex-shrink: 0;
+    position: relative; width: 110px; height: 110px; flex-shrink: 0;
   }
   .prog-ring-svg { transform: rotate(-90deg); display: block; }
-  .prog-ring-bg   { fill: none; stroke: var(--border); stroke-width: 7; }
+  .prog-ring-bg   { fill: none; stroke: var(--border); stroke-width: 8; }
   .prog-ring-fill {
-    fill: none; stroke-width: 7; stroke-linecap: round;
+    fill: none; stroke-width: 8; stroke-linecap: round;
     transition: stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1), stroke 0.5s;
   }
   .prog-ring-center {
@@ -872,68 +882,80 @@
   }
   .prog-ring-pct {
     font-family: 'Inter', sans-serif;
-    font-size: 20px; font-weight: 800; line-height: 1;
+    font-size: 24px; font-weight: 800; line-height: 1;
     transition: color 0.5s;
   }
   .prog-ring-sub {
     font-family: 'Inter', sans-serif;
     font-size: 8px; font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--text-3); margin-top: 2px;
+    text-transform: uppercase; color: var(--text-3); margin-top: 3px;
   }
-  .prog-ring-info { flex: 1; min-width: 0; }
+  .prog-ring-info { width: 100%; }
   .prog-ring-label {
     font-family: 'Inter', sans-serif;
-    font-size: 13px; font-weight: 700; color: var(--text-1);
-    margin-bottom: 10px; line-height: 1.3;
+    font-size: 11px; font-weight: 600; color: var(--text-2);
+    line-height: 1.45; margin-bottom: 12px;
   }
   .prog-ring-stats {
-    display: flex; gap: 14px; flex-wrap: wrap;
+    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
   }
   .prog-stat {
-    display: flex; flex-direction: column; gap: 1px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
   }
   .prog-stat-val {
     font-family: 'Inter', sans-serif;
-    font-size: 17px; font-weight: 800; color: var(--text-1); line-height: 1;
+    font-size: 18px; font-weight: 800; color: var(--text-1); line-height: 1;
   }
   .prog-stat-lbl {
     font-family: 'Inter', sans-serif;
-    font-size: 9px; font-weight: 600; letter-spacing: 0.07em;
+    font-size: 8px; font-weight: 600; letter-spacing: 0.07em;
     text-transform: uppercase; color: var(--text-3);
   }
   .prog-stat-sep {
-    width: 1px; background: var(--border); align-self: stretch; margin: 0 4px;
+    width: 1px; background: var(--border); align-self: stretch; margin: 0 2px;
   }
   .prog-ring-dots {
-    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-top: 12px;
+    padding-top: 12px; border-top: 1px solid var(--border-subtle);
   }
   .prog-q-dot {
-    width: 8px; height: 8px; border-radius: 50%;
+    width: 9px; height: 9px; border-radius: 50%;
     border: 1.5px solid var(--border);
     background: transparent;
     transition: background 0.4s, border-color 0.4s, transform 0.3s;
     flex-shrink: 0;
+    cursor: default;
   }
-  .prog-q-dot.answered  { background: var(--border); border-color: var(--border); }
+  .prog-q-dot.answered  { background: rgba(127,127,127,0.25); border-color: var(--border); }
   .prog-q-dot.poor      { background: #c0392b; border-color: #c0392b; }
   .prog-q-dot.partial   { background: #f39c12; border-color: #f39c12; }
-  .prog-q-dot.good      { background: #27ae60; border-color: #27ae60; transform: scale(1.2); }
+  .prog-q-dot.good      { background: #27ae60; border-color: #27ae60; transform: scale(1.15); }
   @keyframes dot-pop {
     0%   { transform: scale(1); }
-    50%  { transform: scale(1.6); }
-    100% { transform: scale(1.2); }
+    50%  { transform: scale(1.7); }
+    100% { transform: scale(1.15); }
   }
-  .prog-q-dot.good.just-updated  { animation: dot-pop 0.4s ease forwards; }
+  .prog-q-dot.good.just-updated { animation: dot-pop 0.4s ease forwards; }
   @keyframes ring-glow {
     0%   { filter: drop-shadow(0 0 0px currentColor); }
-    50%  { filter: drop-shadow(0 0 8px currentColor); }
+    50%  { filter: drop-shadow(0 0 10px currentColor); }
     100% { filter: drop-shadow(0 0 0px currentColor); }
   }
-  .prog-ring-fill.pulse { animation: ring-glow 0.8s ease; }
-  @media (max-width: 600px) {
-    .session-ring-wrap { flex-direction: column; align-items: flex-start; gap: 14px; padding: 16px; }
-    .prog-ring-container { width: 76px; height: 76px; }
-    .prog-ring-pct { font-size: 17px; }
+  .prog-ring-fill.pulse { animation: ring-glow 0.9s ease; }
+
+  /* Mobile: ring stacks below questions */
+  @media (max-width: 720px) {
+    .day-content-row { flex-direction: column; }
+    .day-ring-aside {
+      width: 100%; position: static;
+    }
+    .session-ring-wrap {
+      flex-direction: row; align-items: center; text-align: left; padding: 14px 16px; gap: 16px;
+    }
+    .prog-ring-container { width: 80px; height: 80px; }
+    .prog-ring-pct { font-size: 18px; }
+    .prog-ring-info { flex: 1; }
+    .prog-ring-dots { justify-content: flex-start; padding-top: 8px; margin-top: 8px; }
   }
 
   /* legacy icon kept for safety, hidden in new layout */
@@ -5542,26 +5564,28 @@ function buildDays() {
           </div>
         </div>
         ${day.tip ? `<div class="tip-box"><div class="tip-label"><i data-lucide="lightbulb" style="width:11px;height:11px;stroke-width:2.2;flex-shrink:0"></i>Metodo di studio</div><div class="tip-text">${day.tip}</div></div>` : ''}
-        <div id="day-ring-${day.id}" style="display:none"></div>
-        <div class="section-card">
-          <div class="section-head">
-            <span class="section-tag tag-retrieval">retrieval practice</span>
-            <span class="section-title">Domande per questa giornata</span>
-            <button class="quiz-launch-btn" id="quiz-btn-${day.id}"
-              style="${dayState.sessionStarted ? '' : 'display:none'}"
-              onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
-              <i data-lucide="zap" style="width:12px;height:12px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i>
-              Genera Quiz
-            </button>
-          </div>
-          <div class="section-body">
-            <div id="qs-panel-${day.id}"></div>
-            <div id="genq-wrap-${day.id}" style="${dayState.sessionStarted ? '' : 'display:none'}">${genQBtn}</div>
-            <div class="notes-area" style="margin-top:14px;">
-              <label>Note e punti deboli emersi</label>
-              <textarea placeholder="Scrivi qui cosa non ricordavi, cosa devi ripassare, concetti da approfondire..." onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
+        <div class="day-content-row">
+          <div class="section-card day-content-main">
+            <div class="section-head">
+              <span class="section-tag tag-retrieval">retrieval practice</span>
+              <span class="section-title">Domande per questa giornata</span>
+              <button class="quiz-launch-btn" id="quiz-btn-${day.id}"
+                style="${dayState.sessionStarted ? '' : 'display:none'}"
+                onclick="startQuiz('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
+                <i data-lucide="zap" style="width:12px;height:12px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i>
+                Genera Quiz
+              </button>
+            </div>
+            <div class="section-body">
+              <div id="qs-panel-${day.id}"></div>
+              <div id="genq-wrap-${day.id}" style="${dayState.sessionStarted ? '' : 'display:none'}">${genQBtn}</div>
+              <div class="notes-area" style="margin-top:14px;">
+                <label>Note e punti deboli emersi</label>
+                <textarea placeholder="Scrivi qui cosa non ricordavi, cosa devi ripassare, concetti da approfondire..." onchange="saveNotes('${day.id}', this.value)">${notes}</textarea>
+              </div>
             </div>
           </div>
+          <div class="day-ring-aside" id="day-ring-${day.id}" style="display:none"></div>
         </div>`;
     }
 
