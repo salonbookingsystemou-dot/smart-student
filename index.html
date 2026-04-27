@@ -5770,6 +5770,36 @@ document.addEventListener('visibilitychange', function() {
   document.addEventListener(evt, _resetInactivity, { passive: true });
 });
 
+// ── Debug/test helper (available in browser console) ─────────
+// Usage: _debugInactivity()        → print state
+// Usage: _debugInactivity(true)    → simulate inactivity NOW
+// Usage: _debugInactivity('tab')   → simulate tab-hidden for 5 min
+window._debugInactivity = function(action) {
+  const running = _timerIsRunning();
+  const info = {
+    timerRunning: running,
+    activeDay: _activeTimerDayId,
+    inactivityTimerSet: !!_inactivityTimer,
+    elapsed: _activeTimerDayId && timerState[_activeTimerDayId]
+      ? timerState[_activeTimerDayId].elapsed + 's' : '—',
+    INACTIVITY_MIN: INACTIVITY_MS / 60000,
+    HIDDEN_GRACE_SEC: HIDDEN_GRACE_MS / 1000,
+    AUTO_STOP_SEC: ST_AUTO_STOP_MS / 1000
+  };
+  console.table(info);
+  if (action === true) {
+    if (!running) { console.warn('[inactivity] Timer not running — start a session first'); return; }
+    console.log('[inactivity] Triggering inactivity NOW…');
+    _onTimerInactive();
+  } else if (action === 'tab') {
+    if (!running) { console.warn('[inactivity] Timer not running — start a session first'); return; }
+    console.log('[inactivity] Simulating 5-min tab-hidden away…');
+    _hiddenAt = Date.now() - (5 * 60 * 1000); // pretend hidden 5 min ago
+    timerPause(_activeTimerDayId);
+    _showStillThereModal('hidden', 5 * 60 * 1000);
+  }
+};
+
 function _showStillThereModal(reason, awayMs) {
   const modal    = document.getElementById('stillThereModal');
   const bodyEl   = document.getElementById('stBody');
