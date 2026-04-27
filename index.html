@@ -4141,16 +4141,49 @@ const _ACCENT_PRESETS = [
 
       // API key is piggybacked inside psico_state as __apiKey
       if (data.psico_state) {
-        const s = data.psico_state;
-        if (s.__apiKey) {
-          localStorage.setItem('anthropic_api_key', s.__apiKey);
-          delete s.__apiKey; // strip before writing to state storage
+        const remote = data.psico_state;
+        if (remote.__apiKey) {
+          localStorage.setItem('anthropic_api_key', remote.__apiKey);
+          delete remote.__apiKey;
         }
-        if (s.__lastDay) {
-          localStorage.setItem('psico_last_day', s.__lastDay);
-          delete s.__lastDay; // strip before writing to state storage
+        if (remote.__lastDay) {
+          localStorage.setItem('psico_last_day', remote.__lastDay);
+          delete remote.__lastDay;
         }
-        localStorage.setItem('psico_state', JSON.stringify(s));
+
+        // ── Merge: never discard local progress with stale cloud data ──
+        // For each day take the max of: totalSeconds, feedbacks, answers.
+        // This protects against page refresh overwriting a live session.
+        let local = {};
+        try { local = JSON.parse(localStorage.getItem('psico_state') || '{}'); } catch(e) {}
+        const STATUS_RANK = { done: 3, partial: 2, skip: 1, '': 0 };
+        Object.keys(local).forEach(dayId => {
+          if (!remote[dayId]) { remote[dayId] = local[dayId]; return; }
+          const L = local[dayId], R = remote[dayId];
+          // Hours: always keep the higher value
+          R.totalSeconds = Math.max(L.totalSeconds || 0, R.totalSeconds || 0);
+          // Status: keep the most advanced
+          const lRank = STATUS_RANK[L.status || ''] || 0;
+          const rRank = STATUS_RANK[R.status  || ''] || 0;
+          if (lRank > rRank) R.status = L.status;
+          // Feedbacks / answers: keep whichever set is larger
+          const lFB = Object.keys(L.feedbacks || {}).length;
+          const rFB = Object.keys(R.feedbacks || {}).length;
+          if (lFB > rFB) R.feedbacks = L.feedbacks;
+          const lAns = Object.keys(L.answers || {}).length;
+          const rAns = Object.keys(R.answers || {}).length;
+          if (lAns > rAns) R.answers = L.answers;
+          // Quiz best score: keep higher
+          const lQS = L.quizBestScore?.score || 0;
+          const rQS = R.quizBestScore?.score || 0;
+          if (lQS > rQS) R.quizBestScore = L.quizBestScore;
+          // Brain dump best: keep higher
+          const lBD = L.brainDumpBest || 0;
+          const rBD = R.brainDumpBest || 0;
+          if (lBD > rBD) R.brainDumpBest = lBD;
+        });
+
+        localStorage.setItem('psico_state', JSON.stringify(remote));
         loaded = true;
       }
       if (data.psico_sources && Array.isArray(data.psico_sources) && data.psico_sources.length) {
@@ -4424,10 +4457,12 @@ window._reinitApp = function() {
   // Repopulate in-memory state from localStorage (written by _loadFromSupabase)
   try {
     const remote = JSON.parse(localStorage.getItem('psico_state') || '{}');
-    // Clear and re-assign keys so existing references to `state` still work
     Object.keys(state).forEach(k => delete state[k]);
     Object.assign(state, remote);
   } catch(e) { console.warn('[reinit] state parse failed', e); }
+
+  // Recover any elapsed time from a session that ended without timerStop
+  if (typeof _restoreTimerCheckpoint === 'function') _restoreTimerCheckpoint();
 
   // Rebuild all UI components from fresh localStorage
   applyTheme(localStorage.getItem('psico_theme') || 'dark');
@@ -6729,6 +6764,43 @@ function timerTick(dayId) {
   if (el) el.textContent = formatSeconds(elapsed);
   // Keep global hours counter in sync with live session
   updateTotalHours();
+  // Checkpoint: persist elapsed every 60s so PWA kills don't lose time
+  if (elapsed > 0 && elapsed % 60 === 0) {
+    _saveTimerCheckpoint(dayId, elapsed);
+  }
+}
+
+function _saveTimerCheckpoint(dayId, elapsed) {
+  try {
+    sessionStorage.setItem('_timerCheckpoint', JSON.stringify({
+      dayId, elapsed, savedAt: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function _restoreTimerCheckpoint() {
+  try {
+    const raw = sessionStorage.getItem('_timerCheckpoint');
+    if (!raw) return;
+    const cp = JSON.parse(raw);
+    sessionStorage.removeItem('_timerCheckpoint');
+    if (!cp || !cp.dayId || !cp.elapsed) return;
+    // Only restore if the checkpoint is recent (< 2 hours old) and meaningful
+    const ageMs = Date.now() - (cp.savedAt || 0);
+    if (ageMs > 2 * 60 * 60 * 1000) return;
+    if (!state[cp.dayId]) state[cp.dayId] = {};
+    const alreadySaved = state[cp.dayId].totalSeconds || 0;
+    // Only add if the checkpoint has MORE seconds than what's already saved
+    // (avoids double-counting if timerStop was already called)
+    if (cp.elapsed > alreadySaved) {
+      const extra = cp.elapsed - alreadySaved;
+      if (extra > 60) { // ignore tiny deltas (< 1 min) from normal stops
+        state[cp.dayId].totalSeconds = (state[cp.dayId].totalSeconds || 0) + extra;
+        saveState();
+        console.log('[Timer] Restored', extra + 's from checkpoint for', cp.dayId);
+      }
+    }
+  } catch(e) {}
 }
 
 function timerPause(dayId) {
@@ -6803,6 +6875,9 @@ function timerStop(dayId) {
   _hiddenAt = null;
   saveState();
   updateTotalHours();
+  // Force immediate cloud sync on session end (don't rely on debounce)
+  clearTimeout(_syncTimer);
+  if (typeof window._syncToSupabase === 'function') window._syncToSupabase();
   // Rebuild questions panel back to pre-session prompt
   if (typeof _renderQsPanel === 'function') _renderQsPanel(dayId);
 }
@@ -8040,6 +8115,9 @@ let _mobileSidebarOpen = false;
 
 // Applica il tema salvato (o dark di default)
 applyTheme(localStorage.getItem('psico_theme') || 'dark');
+
+// Recover any elapsed time from a session that ended without timerStop
+_restoreTimerCheckpoint();
 
 buildNav();
 buildDays();
