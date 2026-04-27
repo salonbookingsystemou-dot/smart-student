@@ -1060,6 +1060,7 @@
     border-color: var(--border); color: var(--text-3);
     background: transparent;
   }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes mic-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(217, 84, 84, 0.45); }
     50%       { box-shadow: 0 0 0 6px rgba(217, 84, 84, 0); }
@@ -4571,7 +4572,7 @@ function _syncVerifyBtn(dayId, qIdx, value) {
 }
 
 function calcDayReadiness(dayId) {
-  const day = days.find(d => d.id === dayId);
+  const day = getActiveDays().find(d => d.id === dayId);
   if (!day || !day.questions || !day.questions.length) return null;
   const nTotal    = day.questions.length;
   const dayState  = state[dayId] || {};
@@ -5630,7 +5631,7 @@ function updateTotalHours() {
 function resetTotalHours() {
   if (!confirm("Azzerare il contatore delle ore totali? I progressi salvati nelle singole giornate verranno mantenuti.")) return;
   Object.keys(state).forEach(function(k) { state[k].totalSeconds = 0; });
-  days.forEach(function(d) {
+  getActiveDays().forEach(function(d) {
     var el = document.getElementById("timerSaved-" + d.id);
     if (el) el.textContent = "00:00:00";
   });
@@ -6898,7 +6899,7 @@ function addSource(title, content, sizeBytes) {
 function removeSource(id) {
   saveSources(getSources().filter(s => s.id !== id));
   // invalidate ai questions for all days (source context changed)
-  days.forEach(d => {
+  getActiveDays().forEach(d => {
     if (state[d.id]?.aiQuestions) {
       delete state[d.id].aiQuestions;
     }
@@ -7334,12 +7335,12 @@ async function generateQuestionsFromSource(dayId) {
     alert('Carica prima almeno una fonte PDF nel pannello Fonti.');
     return;
   }
-  const day = days.find(d => d.id === dayId);
+  const day = getActiveDays().find(d => d.id === dayId);
   if (!day) return;
   const topic = day.sections?.map(s => s.title).join(', ') || day.title || dayId;
 
   const btn = document.getElementById('genq-btn-' + dayId);
-  if (btn) { btn.classList.add('loading'); btn.textContent = '⏳ Generazione in corso…'; }
+  if (btn) { btn.classList.add('loading'); btn.innerHTML = '<i data-lucide="loader-circle" style="width:12px;height:12px;stroke-width:2;flex-shrink:0;animation:spin 1s linear infinite"></i> Generazione in corso…'; lucide.createIcons(); }
 
   const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.
 
@@ -7400,7 +7401,7 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
     alert('Errore nella generazione:\n' + e.message);
   } finally {
     const b = document.getElementById('genq-btn-' + dayId);
-    if (b) { b.classList.remove('loading'); b.textContent = '✦ Rigenera domande dalle fonti'; }
+    if (b) { b.classList.remove('loading'); b.innerHTML = '<i data-lucide="sparkles" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i> Rigenera domande dalle fonti'; lucide.createIcons(); }
   }
 }
 
