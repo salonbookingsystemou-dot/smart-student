@@ -1293,15 +1293,20 @@
     margin-top: 12px;
     padding: 7px 13px;
     background: none;
-    border: 1.5px solid var(--skip-text);
+    border: 1.5px solid var(--text-2);
     border-radius: 7px;
-    color: var(--skip-text);
+    color: var(--text-2);
     font-family: 'Inter', sans-serif;
     font-size: 12px; font-weight: 600;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
-  .q-show-answer-btn:hover { background: var(--skip-bg); }
+  .q-feedback.poor .q-show-answer-btn {
+    border-color: var(--skip-text);
+    color: var(--skip-text);
+  }
+  .q-feedback.poor .q-show-answer-btn:hover { background: var(--skip-bg); }
+  .q-show-answer-btn:hover { background: rgba(128,128,128,0.08); }
   .q-show-answer-btn:disabled { opacity: 0.5; cursor: default; }
   .q-correct-answer-panel {
     margin-top: 10px;
@@ -7368,7 +7373,7 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
         `<span class="q-rating-label ${gradeClass}">${gradeLabel}</span>` +
       `</div>` +
       `<div class="q-review-text">${rest.replace(/\n/g, '<br>')}</div>` +
-      (grade === 'poor'
+      (grade === 'poor' || grade === 'partial'
         ? `<button class="q-show-answer-btn" id="show-ans-${dayId}-${qIdx}"
               onclick="showCorrectAnswer('${dayId}',${qIdx},${JSON.stringify(questionText)},${JSON.stringify(qType)})">
             <i data-lucide="lightbulb" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i>
