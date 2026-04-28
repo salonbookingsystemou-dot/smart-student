@@ -1327,6 +1327,15 @@
     color: var(--accent);
     margin-bottom: 6px;
   }
+  /* Sources-consulted badge in rating row */
+  .q-srcs-badge {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--text-2);
+    opacity: 0.7;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+  }
   /* Source reference hint inside feedback text */
   .q-review-text .q-src-ref {
     display: block;
@@ -7341,11 +7350,14 @@ async function verifyAnswer(dayId, qIdx, questionText, qType) {
 
   // Gather available sources for reference
   const _verifySrcs = JSON.parse(localStorage.getItem('psico_sources') || '[]');
-  const _srcContext = _verifySrcs.length
-    ? '\n\nFONTI DI STUDIO DISPONIBILI:\n' +
-      _verifySrcs.map((s, i) => `[Fonte ${i+1}${s.name ? ' — ' + s.name : ''}]: ${(s.text || '').slice(0, 2500)}`).join('\n\n')
+  // Only consider sources that actually have extractable text content
+  const _verifySrcsWithText = _verifySrcs.filter(s => (s.text || '').trim().length > 100);
+  const _hasSrcs = _verifySrcsWithText.length > 0;
+  const _srcContext = _hasSrcs
+    ? '\n\nFONTI DI STUDIO DISPONIBILI (usa queste come unico riferimento per valutare la risposta e indicare cosa ripassare):\n' +
+      _verifySrcsWithText.map((s, i) => `[Fonte ${i+1}${s.name ? ' — ' + s.name : ''}]:\n${(s.text || '').slice(0, 4000)}`).join('\n\n---\n\n')
     : '';
-  const _hasSrcs = _verifySrcs.length > 0;
+  console.log(`[verify] Fonti disponibili: ${_verifySrcs.length} totali, ${_verifySrcsWithText.length} con testo`, _verifySrcsWithText.map(s=>s.name));
 
   const systemPrompt = `Sei un coach universitario esperto di Psicologia Cognitiva. Il tuo ruolo non è solo valutare — è far crescere lo studente.
 Il corso è "Psicologia Cognitiva" della Prof. Laura Serra (UNINETTUNO).
@@ -7420,11 +7432,16 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
       ? `<span class="q-src-ref">${_srcRefMatch[0].replace(/\n/g, '<br>')}</span>`
       : '';
 
+    const _srcsUsedBadge = _hasSrcs
+      ? `<span class="q-srcs-badge"><i data-lucide="book-open" style="width:10px;height:10px;stroke-width:2;vertical-align:middle;margin-right:3px"></i>${_verifySrcsWithText.length} font${_verifySrcsWithText.length===1?'e':'i'} consultate</span>`
+      : '';
+
     feedbackEl.className = 'q-feedback ' + grade + ' visible';
     feedbackEl.innerHTML =
       `<div class="q-rating-row">` +
         `<span class="q-rating-dots">${dots}</span>` +
         `<span class="q-rating-label ${gradeClass}">${gradeLabel}</span>` +
+        _srcsUsedBadge +
       `</div>` +
       `<div class="q-review-text">${_mainReview.replace(/\n/g, '<br>')}${_srcRefBlock}</div>` +
       (grade === 'poor' || grade === 'partial'
