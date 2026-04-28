@@ -1327,6 +1327,18 @@
     color: var(--accent);
     margin-bottom: 6px;
   }
+  /* Source reference hint inside feedback text */
+  .q-review-text .q-src-ref {
+    display: block;
+    margin-top: 10px;
+    padding: 7px 10px;
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface2) 92%);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    font-size: 12px;
+    color: var(--text-1);
+    white-space: pre-line;
+  }
   .q-rating-label {
     font-family: 'Inter', sans-serif;
     font-size: 10px;
@@ -7300,6 +7312,14 @@ async function verifyAnswer(dayId, qIdx, questionText, qType) {
   feedbackEl.className = 'q-feedback loading visible';
   feedbackEl.innerHTML = '<div class="q-feedback-label">Claude sta valutando...</div>';
 
+  // Gather available sources for reference
+  const _verifySrcs = JSON.parse(localStorage.getItem('psico_sources') || '[]');
+  const _srcContext = _verifySrcs.length
+    ? '\n\nFONTI DI STUDIO DISPONIBILI:\n' +
+      _verifySrcs.map((s, i) => `[Fonte ${i+1}${s.name ? ' — ' + s.name : ''}]: ${(s.text || '').slice(0, 2500)}`).join('\n\n')
+    : '';
+  const _hasSrcs = _verifySrcs.length > 0;
+
   const systemPrompt = `Sei un coach universitario esperto di Psicologia Cognitiva. Il tuo ruolo non è solo valutare — è far crescere lo studente.
 Il corso è "Psicologia Cognitiva" della Prof. Laura Serra (UNINETTUNO).
 Rispondi SEMPRE in italiano.
@@ -7308,6 +7328,7 @@ Struttura la risposta così:
 1. Prima riga: SOLO il giudizio: OTTIMO / BUONO / PARZIALE / INSUFFICIENTE
 2. 2-4 frasi di feedback chirurgico: cosa è corretto (con precisione), cosa manca (specifica il concetto esatto), cosa è impreciso (perché è sbagliato).
 3. Se mancano concetti chiave, elencali in modo conciso.
+${_hasSrcs ? `4. Per giudizi PARZIALE o INSUFFICIENTE: aggiungi una riga "📖 Rivedi:" seguita dalle referenze specifiche nelle fonti (es. capitolo, titolo di sezione, numero di pagina se disponibile) dove lo studente può trovare i concetti mancanti. Cita solo referenze effettivamente presenti nelle fonti fornite. Formato: "📖 Rivedi: [Fonte X] — [Titolo sezione / pag. N]". Se più sezioni sono rilevanti, elencale su righe separate.` : ''}
 
 Tono da mantenere:
 - Per OTTIMO: riconosci l'eccellenza in modo specifico — non essere vago. Indica cosa rende la risposta davvero buona.
@@ -7317,8 +7338,7 @@ Tono da mantenere:
 
 Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, motivante.`;
 
-
-  const userPrompt = `Domanda (tipo: ${qType}): ${questionText}\n\nRisposta dello studente: ${answer}`;
+  const userPrompt = `Domanda (tipo: ${qType}): ${questionText}\n\nRisposta dello studente: ${answer}${_srcContext}`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -7331,7 +7351,7 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 400,
+        max_tokens: 600,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
       })
@@ -7366,13 +7386,20 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
       `<span class="q-dot${i < score ? ' filled' : ''}"></span>`
     ).join('');
 
+    // Split out "📖 Rivedi:" reference lines from the main review text
+    const _srcRefMatch = rest.match(/(📖\s*Rivedi[\s\S]*)/);
+    const _mainReview  = _srcRefMatch ? rest.slice(0, rest.indexOf(_srcRefMatch[0])).trim() : rest;
+    const _srcRefBlock = _srcRefMatch
+      ? `<span class="q-src-ref">${_srcRefMatch[0].replace(/\n/g, '<br>')}</span>`
+      : '';
+
     feedbackEl.className = 'q-feedback ' + grade + ' visible';
     feedbackEl.innerHTML =
       `<div class="q-rating-row">` +
         `<span class="q-rating-dots">${dots}</span>` +
         `<span class="q-rating-label ${gradeClass}">${gradeLabel}</span>` +
       `</div>` +
-      `<div class="q-review-text">${rest.replace(/\n/g, '<br>')}</div>` +
+      `<div class="q-review-text">${_mainReview.replace(/\n/g, '<br>')}${_srcRefBlock}</div>` +
       (grade === 'poor' || grade === 'partial'
         ? `<button class="q-show-answer-btn" id="show-ans-${dayId}-${qIdx}"
               onclick="showCorrectAnswer('${dayId}',${qIdx},${JSON.stringify(questionText)},${JSON.stringify(qType)})">
