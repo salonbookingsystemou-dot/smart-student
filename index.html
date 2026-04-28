@@ -7372,7 +7372,7 @@ async function verifyAnswer(dayId, qIdx, questionText, qType) {
   const _hasSrcs = _verifySrcsWithText.length > 0;
   const _srcContext = _hasSrcs
     ? '\n\nFONTI DI STUDIO DISPONIBILI (usa queste come unico riferimento per valutare la risposta e per indicare cosa ripassare):\n' +
-      _verifySrcsWithText.map((s, i) => `[Fonte ${i+1} — ${s.title || 'senza titolo'}]:\n${(s.content || '').slice(0, 4000)}`).join('\n\n---\n\n')
+      _verifySrcsWithText.map((s, i) => `[Fonte ${i+1} — ${s.title || 'senza titolo'}]:\n${(s.content || '').slice(0, 8000)}`).join('\n\n---\n\n')
     : '';
   console.log(`[verify] Fonti disponibili: ${_verifySrcs.length} totali, ${_verifySrcsWithText.length} con contenuto`, _verifySrcsWithText.map(s => s.title + ' (' + Math.round((s.content||'').length/1000) + 'k chars)'));
 
@@ -7384,7 +7384,7 @@ Struttura la risposta così:
 1. Prima riga: SOLO il giudizio: OTTIMO / BUONO / PARZIALE / INSUFFICIENTE
 2. 2-4 frasi di feedback chirurgico: cosa è corretto (con precisione), cosa manca (specifica il concetto esatto), cosa è impreciso (perché è sbagliato).
 3. Se mancano concetti chiave, elencali in modo conciso.
-${_hasSrcs ? `4. Per giudizi PARZIALE o INSUFFICIENTE: OBBLIGATORIO aggiungere un blocco separato su nuova riga che inizia ESATTAMENTE con "📖 Rivedi:" seguito dalle referenze specifiche nelle fonti (capitolo, titolo di sezione, numero di pagina). Cita SOLO referenze presenti nelle fonti fornite. Esempio esatto: "📖 Rivedi: [Fonte 1] — Cap. 3 / Correlazione gene-ambiente (pag. 47)". Se più sezioni, una per riga sempre iniziando con "📖 Rivedi:".` : ''}
+${_hasSrcs ? `4. Per giudizi PARZIALE o INSUFFICIENTE: OBBLIGATORIO. Dopo il feedback, aggiungi un blocco che inizia ESATTAMENTE con "📖 Rivedi:" su una nuova riga. Indica le sezioni delle fonti fornite dove lo studente può trovare i concetti mancanti. Usa il riferimento più specifico disponibile: numero di pagina, titolo di slide, titolo di capitolo o sezione. Se nelle fonti non ci sono pagine esplicite usa il titolo della slide o del paragrafo. Formato: "📖 Rivedi: [Fonte 1] — [titolo sezione o pag. N]". Più sezioni = più righe, ognuna con "📖 Rivedi:". Non inventare: cita solo ciò che è nelle fonti.` : ''}
 
 Tono da mantenere:
 - Per OTTIMO: riconosci l'eccellenza in modo specifico — non essere vago. Indica cosa rende la risposta davvero buona.
@@ -7407,7 +7407,7 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 900,
+        max_tokens: 1000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
       })
@@ -7445,9 +7445,14 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
     // Split out "📖 Rivedi:" reference lines from the main review text
     const _srcRefMatch = rest.match(/(📖\s*Rivedi[\s\S]*)/);
     const _mainReview  = _srcRefMatch ? rest.slice(0, rest.indexOf(_srcRefMatch[0])).trim() : rest;
-    const _srcRefBlock = _srcRefMatch
-      ? `<span class="q-src-ref">${_srcRefMatch[0].replace(/\n/g, '<br>')}</span>`
-      : '';
+    let _srcRefBlock = '';
+    if (_srcRefMatch) {
+      _srcRefBlock = `<span class="q-src-ref">${_srcRefMatch[0].replace(/\n/g, '<br>')}</span>`;
+    } else if (_hasSrcs && (grade === 'poor' || grade === 'partial')) {
+      // Fallback: sources exist but Claude didn't include the reference block
+      const _srcNames = _verifySrcsWithText.map(s => s.title || 'Fonte').join(', ');
+      _srcRefBlock = `<span class="q-src-ref" style="opacity:0.7">📖 Rivedi le fonti caricate per approfondire i concetti mancanti: ${escHtml(_srcNames)}</span>`;
+    }
 
     const _srcsUsedBadge = _hasSrcs
       ? `<span class="q-srcs-badge"><i data-lucide="book-open" style="width:10px;height:10px;stroke-width:2;vertical-align:middle;margin-right:3px"></i>${_verifySrcsWithText.length} font${_verifySrcsWithText.length===1?'e':'i'} consultate</span>`
