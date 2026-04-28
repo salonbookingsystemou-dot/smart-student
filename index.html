@@ -1286,6 +1286,42 @@
   .q-feedback.good   .q-dot.filled { background: var(--accent); }
   .q-feedback.partial .q-dot.filled { background: var(--text-2); }
   .q-feedback.poor   .q-dot.filled { background: var(--skip-text); }
+
+  /* ── "Fornisci risposta corretta" button + panel ── */
+  .q-show-answer-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 12px;
+    padding: 7px 13px;
+    background: none;
+    border: 1.5px solid var(--skip-text);
+    border-radius: 7px;
+    color: var(--skip-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .q-show-answer-btn:hover { background: var(--skip-bg); }
+  .q-show-answer-btn:disabled { opacity: 0.5; cursor: default; }
+  .q-correct-answer-panel {
+    margin-top: 10px;
+    padding: 12px 14px;
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface2) 93%);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border) 75%);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-1);
+  }
+  .q-correct-answer-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
   .q-rating-label {
     font-family: 'Inter', sans-serif;
     font-size: 10px;
@@ -7331,7 +7367,15 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
         `<span class="q-rating-dots">${dots}</span>` +
         `<span class="q-rating-label ${gradeClass}">${gradeLabel}</span>` +
       `</div>` +
-      `<div class="q-review-text">${rest.replace(/\n/g, '<br>')}</div>`;
+      `<div class="q-review-text">${rest.replace(/\n/g, '<br>')}</div>` +
+      (grade === 'poor'
+        ? `<button class="q-show-answer-btn" id="show-ans-${dayId}-${qIdx}"
+              onclick="showCorrectAnswer('${dayId}',${qIdx},${JSON.stringify(questionText)},${JSON.stringify(qType)})">
+            <i data-lucide="lightbulb" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i>
+            Fornisci la risposta corretta
+          </button>
+          <div id="correct-ans-${dayId}-${qIdx}"></div>`
+        : '');
 
     if (!state[dayId]) state[dayId] = {};
     if (!state[dayId].feedbacks) state[dayId].feedbacks = {};
@@ -7350,6 +7394,9 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
     renderReadinessPanel();
     _autoSetStatus(dayId); // may promote to 'done' if all questions verified
     _renderSessionRing(dayId, true);
+
+    // Render Lucide icons inside the feedback (incl. "lightbulb" in show-answer btn)
+    if (window.lucide) lucide.createIcons({ nodes: [feedbackEl] });
 
     // Show coach modal; good scores auto-advance with animation
     const _autoAdv = grade === 'good';
@@ -7394,6 +7441,61 @@ function closeImproveAnswer(dayId, qIdx) {
 function _syncReverifyBtn(dayId, qIdx, val) {
   const btn = document.getElementById(`done-reverify-btn-${dayId}-${qIdx}`);
   if (btn) btn.disabled = val.trim().length < MIN_ANSWER_CHARS;
+}
+
+async function showCorrectAnswer(dayId, qIdx, questionText, qType) {
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  const btn    = document.getElementById(`show-ans-${dayId}-${qIdx}`);
+  const panel  = document.getElementById(`correct-ans-${dayId}-${qIdx}`);
+  if (!panel) return;
+  if (!apiKey) {
+    panel.innerHTML = `<div class="q-correct-answer-panel"><div class="q-correct-answer-label">Risposta Corretta</div>Chiave API non configurata. Aggiungila nelle impostazioni (Setup).</div>`;
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Recupero risposta…'; }
+
+  const sourcesCtx = (() => {
+    const srcs = JSON.parse(localStorage.getItem('psico_sources') || '[]');
+    if (!srcs.length) return '';
+    return '\n\nFONTI DISPONIBILI:\n' + srcs.map((s,i) => `[${i+1}] ${s.name || s.type}: ${(s.text||'').slice(0,3000)}`).join('\n\n');
+  })();
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 800,
+        system: `Sei un docente universitario di Psicologia Cognitiva. Fornisci una risposta modello completa, chiara e accademica alla domanda dello studente. Usa le fonti disponibili come riferimento principale. Scrivi in italiano. Rispondi direttamente, senza preamboli.`,
+        messages: [{
+          role: 'user',
+          content: `Domanda: "${questionText}"\nTipo: ${qType || 'concettuale'}${sourcesCtx}\n\nFornisci la risposta corretta e completa a questa domanda.`
+        }]
+      })
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const answerText = data.content[0].text.trim();
+
+    panel.innerHTML =
+      `<div class="q-correct-answer-panel">` +
+        `<div class="q-correct-answer-label"><i data-lucide="lightbulb" style="width:10px;height:10px;display:inline-block;vertical-align:middle;margin-right:4px"></i>Risposta Corretta</div>` +
+        `<div>${answerText.replace(/\n/g, '<br>')}</div>` +
+      `</div>`;
+
+    if (window.lucide) lucide.createIcons({ nodes: [panel] });
+    if (btn) btn.remove();
+  } catch(err) {
+    panel.innerHTML = `<div class="q-correct-answer-panel"><div class="q-correct-answer-label">Errore</div>${err.message}</div>`;
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="lightbulb" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i> Fornisci la risposta corretta'; if(window.lucide) lucide.createIcons({nodes:[btn]}); }
+  }
 }
 
 async function reverifyAnswer(dayId, qIdx, questionText, qType) {
