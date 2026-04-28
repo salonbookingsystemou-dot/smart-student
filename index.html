@@ -1802,6 +1802,23 @@
     transition: color 0.15s, background 0.15s; flex-shrink: 0;
   }
   .source-item-del:hover { color: var(--skip-text); background: var(--border-subtle); }
+  .source-item.src-error { opacity: 0.8; border-left: 3px solid #e74c3c; }
+  .src-diag-preview {
+    margin-top: 5px;
+    font-family: 'Inter', sans-serif;
+    font-size: 10.5px;
+    color: var(--text-3);
+    line-height: 1.5;
+    background: var(--surface1, var(--bg));
+    border-radius: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    max-height: 36px;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+    border: 1px solid var(--border);
+  }
+  .src-diag-preview.expanded { max-height: 200px; overflow-y: auto; }
   .sources-empty {
     text-align: center; padding: 32px 16px;
     font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-3);
@@ -7349,15 +7366,15 @@ async function verifyAnswer(dayId, qIdx, questionText, qType) {
   feedbackEl.innerHTML = '<div class="q-feedback-label">Claude sta valutando...</div>';
 
   // Gather available sources for reference
-  const _verifySrcs = JSON.parse(localStorage.getItem('psico_sources') || '[]');
-  // Only consider sources that actually have extractable text content
-  const _verifySrcsWithText = _verifySrcs.filter(s => (s.text || '').trim().length > 100);
+  const _verifySrcs = getSources();  // uses correct SOURCES_KEY and s.content field
+  // Only consider sources that actually have text content
+  const _verifySrcsWithText = _verifySrcs.filter(s => (s.content || '').trim().length > 100);
   const _hasSrcs = _verifySrcsWithText.length > 0;
   const _srcContext = _hasSrcs
-    ? '\n\nFONTI DI STUDIO DISPONIBILI (usa queste come unico riferimento per valutare la risposta e indicare cosa ripassare):\n' +
-      _verifySrcsWithText.map((s, i) => `[Fonte ${i+1}${s.name ? ' — ' + s.name : ''}]:\n${(s.text || '').slice(0, 4000)}`).join('\n\n---\n\n')
+    ? '\n\nFONTI DI STUDIO DISPONIBILI (usa queste come unico riferimento per valutare la risposta e per indicare cosa ripassare):\n' +
+      _verifySrcsWithText.map((s, i) => `[Fonte ${i+1} — ${s.title || 'senza titolo'}]:\n${(s.content || '').slice(0, 4000)}`).join('\n\n---\n\n')
     : '';
-  console.log(`[verify] Fonti disponibili: ${_verifySrcs.length} totali, ${_verifySrcsWithText.length} con testo`, _verifySrcsWithText.map(s=>s.name));
+  console.log(`[verify] Fonti disponibili: ${_verifySrcs.length} totali, ${_verifySrcsWithText.length} con contenuto`, _verifySrcsWithText.map(s => s.title + ' (' + Math.round((s.content||'').length/1000) + 'k chars)'));
 
   const systemPrompt = `Sei un coach universitario esperto di Psicologia Cognitiva. Il tuo ruolo non è solo valutare — è far crescere lo studente.
 Il corso è "Psicologia Cognitiva" della Prof. Laura Serra (UNINETTUNO).
@@ -7532,9 +7549,10 @@ async function showCorrectAnswer(dayId, qIdx, questionText, qType, context) {
   if (btn) { btn.disabled = true; btn.textContent = 'Recupero risposta…'; }
 
   const sourcesCtx = (() => {
-    const srcs = JSON.parse(localStorage.getItem('psico_sources') || '[]');
-    if (!srcs.length) return '';
-    return '\n\nFONTI DISPONIBILI:\n' + srcs.map((s,i) => `[${i+1}] ${s.name || s.type}: ${(s.text||'').slice(0,3000)}`).join('\n\n');
+    const srcs = getSources();
+    const srcsWithContent = srcs.filter(s => (s.content || '').trim().length > 100);
+    if (!srcsWithContent.length) return '';
+    return '\n\nFONTI DISPONIBILI:\n' + srcsWithContent.map((s,i) => `[${i+1}] ${s.title || 'Fonte'}: ${(s.content||'').slice(0,4000)}`).join('\n\n---\n\n');
   })();
 
   try {
@@ -8552,23 +8570,66 @@ function renderSourcesList() {
     el.innerHTML = `<div class="sources-empty">Nessuna fonte caricata.<br>Carica le tue dispense PDF per generare<br>domande basate sul tuo programma.</div>`;
     return;
   }
-  el.innerHTML = sources.map(s => {
-    const isText = s.type === 'text';
-    const icon   = isText
+
+  const totalUsableChars = sources.reduce((acc, s) => acc + (s.content || '').length, 0);
+  const usableSrcs = sources.filter(s => (s.content || '').trim().length > 100);
+  const allOk = usableSrcs.length === sources.length;
+
+  // Diagnostic summary bar
+  const diagColor = allOk ? 'var(--accent)' : '#e67e22';
+  const diagIcon  = allOk ? 'check-circle' : 'alert-triangle';
+  const diagMsg   = allOk
+    ? `${usableSrcs.length} font${usableSrcs.length===1?'e':'i'} disponibili · ${Math.round(totalUsableChars/1000)}k caratteri · domande e verifiche basate su queste fonti`
+    : `${usableSrcs.length}/${sources.length} font${sources.length===1?'e':'i'} con contenuto estraibile — le altre vengono ignorate`;
+
+  const diagHtml = `<div class="src-diag-bar" style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:10px;border-radius:8px;border:1px solid ${diagColor}20;background:${diagColor}0d;font-size:11.5px;font-family:'Inter',sans-serif;color:var(--text-1);">
+    <i data-lucide="${diagIcon}" style="width:13px;height:13px;stroke-width:2;flex-shrink:0;color:${diagColor}"></i>
+    <span style="color:${diagColor};font-weight:600">${diagMsg}</span>
+  </div>`;
+
+  el.innerHTML = diagHtml + sources.map(s => {
+    const isText   = s.type === 'text';
+    const charLen  = (s.content || '').length;
+    const hasContent = charLen > 100;
+
+    const icon = isText
       ? `<i data-lucide="clipboard-list" style="width:16px;height:16px;stroke-width:2"></i>`
       : `<i data-lucide="file-text" style="width:16px;height:16px;stroke-width:2"></i>`;
-    const chars  = s.content.length.toLocaleString('it-IT');
-    const meta   = isText
-      ? `${chars} caratteri · usato come timone principale`
-      : `${(s.sizeBytes/1024).toFixed(0)} KB · ${chars} caratteri estratti`;
-    const badge  = isText
+
+    // Status indicator
+    let statusDot, statusText;
+    if (!hasContent) {
+      statusDot = `<span style="width:7px;height:7px;border-radius:50%;background:#e74c3c;flex-shrink:0;display:inline-block"></span>`;
+      statusText = `<span style="color:#e74c3c;font-weight:600">Testo non estratto — ricarica il file</span>`;
+    } else if (charLen < 500) {
+      statusDot = `<span style="width:7px;height:7px;border-radius:50%;background:#e67e22;flex-shrink:0;display:inline-block"></span>`;
+      statusText = `<span style="color:#e67e22">${charLen.toLocaleString('it-IT')} caratteri (contenuto limitato)</span>`;
+    } else {
+      statusDot = `<span style="width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;display:inline-block"></span>`;
+      statusText = `<span style="color:var(--accent);font-weight:500">${charLen.toLocaleString('it-IT')} caratteri estratti</span>`;
+    }
+
+    const textBadge = isText
       ? `<span style="font-size:9px;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.07em;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:1px 6px;margin-left:6px;">timone</span>`
       : '';
-    return `<div class="source-item${isText ? ' text-type' : ''}">
+
+    // Short preview of extracted text
+    const preview = hasContent
+      ? `<div class="src-diag-preview" onclick="this.classList.toggle('expanded')" title="Clicca per espandere">${escHtml((s.content||'').slice(0, 200))}…</div>`
+      : '';
+
+    const sizeInfo = !isText && s.sizeBytes
+      ? `${(s.sizeBytes/1024).toFixed(0)} KB · ` : '';
+
+    return `<div class="source-item${isText ? ' text-type' : ''}${!hasContent ? ' src-error' : ''}">
       <div class="source-item-icon">${icon}</div>
-      <div class="source-item-info">
-        <div class="source-item-title" title="${s.title}">${s.title}${badge}</div>
-        <div class="source-item-meta">${meta}</div>
+      <div class="source-item-info" style="min-width:0">
+        <div class="source-item-title" title="${escHtml(s.title||'')}">${escHtml(s.title||'Senza titolo')}${textBadge}</div>
+        <div class="source-item-meta" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          ${statusDot}${statusText}
+          ${sizeInfo ? `<span style="color:var(--text-3)">· ${sizeInfo.replace(' · ','')}</span>` : ''}
+        </div>
+        ${preview}
       </div>
       <button class="source-item-del" onclick="removeSource('${s.id}')" title="Rimuovi"><i data-lucide="trash-2" style="width:12px;height:12px;stroke-width:2"></i></button>
     </div>`;
