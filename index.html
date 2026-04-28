@@ -6017,9 +6017,11 @@ function _renderQsPanel(dayId) {
     const _fbSrcRef = fb.srcRef
       ? `<span class="q-src-ref">${escHtml(fb.srcRef).replace(/\n/g,'<br>')}</span>`
       : '';
+    const _qt2Esc = (q.text||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const _qt2TypeEsc = (q.type||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const _fbShowAnswerBtn = (fb.grade === 'poor' || fb.grade === 'partial')
       ? `<button class="q-show-answer-btn" id="done-show-ans-${dayId}-${i}"
-            onclick="showCorrectAnswer('${dayId}',${i},${JSON.stringify(q.text)},${JSON.stringify(q.type||'')}, 'done')">
+            onclick="showCorrectAnswer('${dayId}',${i},'${_qt2Esc}','${_qt2TypeEsc}','done')">
           <i data-lucide="lightbulb" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i>
           Fornisci la risposta corretta
         </button>
@@ -7353,7 +7355,7 @@ Struttura la risposta così:
 1. Prima riga: SOLO il giudizio: OTTIMO / BUONO / PARZIALE / INSUFFICIENTE
 2. 2-4 frasi di feedback chirurgico: cosa è corretto (con precisione), cosa manca (specifica il concetto esatto), cosa è impreciso (perché è sbagliato).
 3. Se mancano concetti chiave, elencali in modo conciso.
-${_hasSrcs ? `4. Per giudizi PARZIALE o INSUFFICIENTE: aggiungi una riga "📖 Rivedi:" seguita dalle referenze specifiche nelle fonti (es. capitolo, titolo di sezione, numero di pagina se disponibile) dove lo studente può trovare i concetti mancanti. Cita solo referenze effettivamente presenti nelle fonti fornite. Formato: "📖 Rivedi: [Fonte X] — [Titolo sezione / pag. N]". Se più sezioni sono rilevanti, elencale su righe separate.` : ''}
+${_hasSrcs ? `4. Per giudizi PARZIALE o INSUFFICIENTE: OBBLIGATORIO aggiungere un blocco separato su nuova riga che inizia ESATTAMENTE con "📖 Rivedi:" seguito dalle referenze specifiche nelle fonti (capitolo, titolo di sezione, numero di pagina). Cita SOLO referenze presenti nelle fonti fornite. Esempio esatto: "📖 Rivedi: [Fonte 1] — Cap. 3 / Correlazione gene-ambiente (pag. 47)". Se più sezioni, una per riga sempre iniziando con "📖 Rivedi:".` : ''}
 
 Tono da mantenere:
 - Per OTTIMO: riconosci l'eccellenza in modo specifico — non essere vago. Indica cosa rende la risposta davvero buona.
@@ -7376,7 +7378,7 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 600,
+        max_tokens: 900,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
       })
@@ -7427,7 +7429,7 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
       `<div class="q-review-text">${_mainReview.replace(/\n/g, '<br>')}${_srcRefBlock}</div>` +
       (grade === 'poor' || grade === 'partial'
         ? `<button class="q-show-answer-btn" id="show-ans-${dayId}-${qIdx}"
-              onclick="showCorrectAnswer('${dayId}',${qIdx},${JSON.stringify(questionText)},${JSON.stringify(qType)})">
+              onclick="showCorrectAnswer('${dayId}',${qIdx},'${questionText.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}','${(qType||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
             <i data-lucide="lightbulb" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i>
             Fornisci la risposta corretta
           </button>
