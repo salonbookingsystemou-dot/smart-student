@@ -7442,16 +7442,19 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
       `<span class="q-dot${i < score ? ' filled' : ''}"></span>`
     ).join('');
 
-    // Split out "📖 Rivedi:" reference lines from the main review text
-    const _srcRefMatch = rest.match(/(📖\s*Rivedi[\s\S]*)/);
+    // Split out source reference block — match several patterns Claude might use
+    // Supports: "📖 Rivedi:", "Rivedi:", "**Rivedi**:", "📖 **Rivedi**:", etc.
+    const _srcRefMatch = rest.match(/((?:📖\s*)?(?:\*{0,2})Rivedi(?:\*{0,2})\s*:[\s\S]*)/i);
     const _mainReview  = _srcRefMatch ? rest.slice(0, rest.indexOf(_srcRefMatch[0])).trim() : rest;
     let _srcRefBlock = '';
     if (_srcRefMatch) {
-      _srcRefBlock = `<span class="q-src-ref">${_srcRefMatch[0].replace(/\n/g, '<br>')}</span>`;
+      // Normalise: ensure the emoji is present
+      const _rawRef = _srcRefMatch[0].replace(/^(?!\📖)/, '📖 ');
+      _srcRefBlock = `<span class="q-src-ref">${_rawRef.replace(/\n/g, '<br>').replace(/\*{1,2}([^*]+)\*{1,2}/g, '<strong>$1</strong>')}</span>`;
     } else if (_hasSrcs && (grade === 'poor' || grade === 'partial')) {
       // Fallback: sources exist but Claude didn't include the reference block
       const _srcNames = _verifySrcsWithText.map(s => s.title || 'Fonte').join(', ');
-      _srcRefBlock = `<span class="q-src-ref" style="opacity:0.7">📖 Rivedi le fonti caricate per approfondire i concetti mancanti: ${escHtml(_srcNames)}</span>`;
+      _srcRefBlock = `<span class="q-src-ref" style="opacity:0.75">📖 Rivedi le fonti caricate per approfondire i concetti mancanti: <em>${_srcNames}</em></span>`;
     }
 
     const _srcsUsedBadge = _hasSrcs
@@ -8566,9 +8569,30 @@ function _renderStorageUsage() {
     ${pct > 80 ? `<div style="color:#c0392b;font-size:10px;margin-top:4px">⚠️ Spazio quasi esaurito. Rimuovi alcune fonti per liberare spazio.</div>` : ''}`;
 }
 
+function _renderSrcDiagSummary() {
+  const el = document.getElementById('srcDiagSummary');
+  if (!el) return;
+  const all = getSources();
+  const withContent = all.filter(s => (s.content || '').trim().length > 100);
+  const totalChars = withContent.reduce((a, s) => a + (s.content || '').length, 0);
+
+  if (!all.length) {
+    el.innerHTML = `<i data-lucide="alert-circle" style="width:13px;height:13px;stroke-width:2;flex-shrink:0;color:var(--text-3)"></i><span style="color:var(--text-3)">Nessuna fonte caricata — le domande saranno generiche</span>`;
+  } else if (!withContent.length) {
+    el.innerHTML = `<i data-lucide="alert-triangle" style="width:13px;height:13px;stroke-width:2;flex-shrink:0;color:#e67e22"></i><span style="color:#e67e22;font-weight:600">${all.length} font${all.length>1?'i':'e'} caricata${all.length>1?'e':''} ma nessun testo estratto — ricarica i PDF</span>`;
+  } else {
+    const kb = Math.round(totalChars / 1000);
+    el.innerHTML = `<i data-lucide="check-circle" style="width:13px;height:13px;stroke-width:2;flex-shrink:0;color:var(--accent)"></i>
+      <span style="color:var(--accent);font-weight:600">${withContent.length}/${all.length} font${all.length>1?'i':'e'} attive · ${kb}k caratteri</span>
+      <span style="color:var(--text-3);font-size:11px;margin-left:auto">domande e feedback usano queste fonti</span>`;
+  }
+  if (window.lucide) lucide.createIcons({ nodes: [el] });
+}
+
 function renderSourcesList() {
   const el = document.getElementById('sourcesList');
   if (!el) return;
+  _renderSrcDiagSummary();
   _renderStorageUsage();
   const sources = getSources();
   if (!sources.length) {
@@ -9428,6 +9452,7 @@ updateSourcesBtn();
 
       <!-- ── FONTI ───────────────────────────────────── -->
       <div class="setup-pane active" id="setupPaneFonti">
+        <div id="srcDiagSummary" style="font-family:'Inter',sans-serif;font-size:12px;margin-bottom:8px;padding:8px 10px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;gap:8px;flex-wrap:wrap;"></div>
         <div class="sources-header-sub" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--text-3);margin-bottom:4px;">Carica le dispense PDF — le domande saranno generate dal tuo materiale</div>
         <div class="sources-body" style="padding:0">
       <!-- Upload area -->
