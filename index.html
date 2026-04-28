@@ -1802,7 +1802,9 @@
     transition: color 0.15s, background 0.15s; flex-shrink: 0;
   }
   .source-item-del:hover { color: var(--skip-text); background: var(--border-subtle); }
-  .source-item.src-error { opacity: 0.8; border-left: 3px solid #e74c3c; }
+  .source-item.src-error    { opacity: 0.8; border-left: 3px solid #e74c3c; }
+  .source-item.textbook-type { border-left: 3px solid #8e44ad22; }
+  .source-item.textbook-type .source-item-icon { color: #8e44ad; }
   .src-diag-preview {
     margin-top: 5px;
     font-family: 'Inter', sans-serif;
@@ -7370,9 +7372,18 @@ async function verifyAnswer(dayId, qIdx, questionText, qType) {
   // Only consider sources that actually have text content
   const _verifySrcsWithText = _verifySrcs.filter(s => (s.content || '').trim().length > 100);
   const _hasSrcs = _verifySrcsWithText.length > 0;
+  // Order: text/syllabus first (compass), then PDFs, then textbook-ref (secondary AI)
+  const _orderedSrcs = [
+    ..._verifySrcsWithText.filter(s => s.type === 'text'),
+    ..._verifySrcsWithText.filter(s => s.type !== 'text' && s.type !== 'textbook-ref'),
+    ..._verifySrcsWithText.filter(s => s.type === 'textbook-ref')
+  ];
   const _srcContext = _hasSrcs
-    ? '\n\nFONTI DI STUDIO DISPONIBILI (usa queste come unico riferimento per valutare la risposta e per indicare cosa ripassare):\n' +
-      _verifySrcsWithText.map((s, i) => `[Fonte ${i+1} — ${s.title || 'senza titolo'}]:\n${(s.content || '').slice(0, 8000)}`).join('\n\n---\n\n')
+    ? '\n\nFONTI DI STUDIO DISPONIBILI:\n' +
+      _orderedSrcs.map((s, i) => {
+        const priority = s.type === 'textbook-ref' ? '[FONTE SECONDARIA — riferimento libro AI]' : '[FONTE PRIMARIA]';
+        return `${priority} [Fonte ${i+1} — ${s.title || 'senza titolo'}]:\n${(s.content || '').slice(0, 8000)}`;
+      }).join('\n\n---\n\n')
     : '';
   console.log(`[verify] Fonti disponibili: ${_verifySrcs.length} totali, ${_verifySrcsWithText.length} con contenuto`, _verifySrcsWithText.map(s => s.title + ' (' + Math.round((s.content||'').length/1000) + 'k chars)'));
 
@@ -8617,13 +8628,16 @@ function renderSourcesList() {
   </div>`;
 
   el.innerHTML = diagHtml + sources.map(s => {
-    const isText   = s.type === 'text';
-    const charLen  = (s.content || '').length;
-    const hasContent = charLen > 100;
+    const isText      = s.type === 'text';
+    const isTextbook  = s.type === 'textbook-ref';
+    const charLen     = (s.content || '').length;
+    const hasContent  = charLen > 100;
 
-    const icon = isText
-      ? `<i data-lucide="clipboard-list" style="width:16px;height:16px;stroke-width:2"></i>`
-      : `<i data-lucide="file-text" style="width:16px;height:16px;stroke-width:2"></i>`;
+    const icon = isTextbook
+      ? `<i data-lucide="book-marked" style="width:16px;height:16px;stroke-width:2"></i>`
+      : isText
+        ? `<i data-lucide="clipboard-list" style="width:16px;height:16px;stroke-width:2"></i>`
+        : `<i data-lucide="file-text" style="width:16px;height:16px;stroke-width:2"></i>`;
 
     // Status indicator
     let statusDot, statusText;
@@ -8635,25 +8649,27 @@ function renderSourcesList() {
       statusText = `<span style="color:#e67e22">${charLen.toLocaleString('it-IT')} caratteri (contenuto limitato)</span>`;
     } else {
       statusDot = `<span style="width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;display:inline-block"></span>`;
-      statusText = `<span style="color:var(--accent);font-weight:500">${charLen.toLocaleString('it-IT')} caratteri estratti</span>`;
+      const label = isTextbook ? 'caratteri · fonte secondaria AI' : isText ? 'caratteri · fonte primaria' : 'caratteri estratti';
+      statusText = `<span style="color:var(--accent);font-weight:500">${charLen.toLocaleString('it-IT')} ${label}</span>`;
     }
 
-    const textBadge = isText
-      ? `<span style="font-size:9px;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.07em;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:1px 6px;margin-left:6px;">timone</span>`
-      : '';
+    const badge = isTextbook
+      ? `<span style="font-size:9px;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.07em;color:#8e44ad;border:1px solid #8e44ad;border-radius:10px;padding:1px 6px;margin-left:6px;">libro AI</span>`
+      : isText
+        ? `<span style="font-size:9px;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.07em;color:var(--accent);border:1px solid var(--accent);border-radius:10px;padding:1px 6px;margin-left:6px;">timone</span>`
+        : '';
 
-    // Short preview of extracted text
     const preview = hasContent
       ? `<div class="src-diag-preview" onclick="this.classList.toggle('expanded')" title="Clicca per espandere">${escHtml((s.content||'').slice(0, 200))}…</div>`
       : '';
 
-    const sizeInfo = !isText && s.sizeBytes
+    const sizeInfo = !isText && !isTextbook && s.sizeBytes
       ? `${(s.sizeBytes/1024).toFixed(0)} KB · ` : '';
 
-    return `<div class="source-item${isText ? ' text-type' : ''}${!hasContent ? ' src-error' : ''}">
+    return `<div class="source-item${isText ? ' text-type' : ''}${isTextbook ? ' textbook-type' : ''}${!hasContent ? ' src-error' : ''}">
       <div class="source-item-icon">${icon}</div>
       <div class="source-item-info" style="min-width:0">
-        <div class="source-item-title" title="${escHtml(s.title||'')}">${escHtml(s.title||'Senza titolo')}${textBadge}</div>
+        <div class="source-item-title" title="${escHtml(s.title||'')}">${escHtml(s.title||'Senza titolo')}${badge}</div>
         <div class="source-item-meta" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
           ${statusDot}${statusText}
           ${sizeInfo ? `<span style="color:var(--text-3)">· ${sizeInfo.replace(' · ','')}</span>` : ''}
@@ -8876,6 +8892,104 @@ function handlePdfDrop(e) {
 }
 
 // ── Free text source ────────────────────────────────────────
+function toggleTextbookInput() {
+  const body    = document.getElementById('textbookInputBody');
+  const chevron = document.getElementById('textbookChevron');
+  const isOpen  = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : '';
+  chevron.classList.toggle('open', !isOpen);
+}
+
+async function generateTextbookReference() {
+  const title   = (document.getElementById('textbookTitle')?.value || '').trim();
+  const author  = (document.getElementById('textbookAuthor')?.value || '').trim();
+  const edition = (document.getElementById('textbookEdition')?.value || '').trim();
+  if (!title) { alert('Inserisci almeno il titolo del libro.'); return; }
+
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) { showApiModal(); return; }
+
+  const btn    = document.getElementById('textbookGenBtn');
+  const status = document.getElementById('textbookGenStatus');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="quiz-spinner" style="width:13px;height:13px;border-width:2px;flex-shrink:0"></div> Generazione in corso…';
+  status.style.display = 'flex';
+  status.innerHTML = '<div class="quiz-spinner" style="width:11px;height:11px;border-width:2px;flex-shrink:0"></div> Claude sta elaborando il riferimento bibliografico…';
+
+  const bookRef = [title, author && `di ${author}`, edition].filter(Boolean).join(' — ');
+  const examInfo = JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
+  const courseCtx = examInfo.subject ? `Il corso è "${examInfo.subject}"${examInfo.professor ? ` (Prof. ${examInfo.professor})` : ''}.` : '';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 3000,
+        system: `Sei un esperto di letteratura accademica universitaria italiana e internazionale. ${courseCtx}
+Genera un riferimento strutturato e dettagliato del libro di testo indicato, basandoti sulla tua conoscenza del testo.
+Il riferimento deve coprire:
+1. Panoramica generale del libro (approccio, struttura, edizione)
+2. Per ogni capitolo principale: titolo, argomenti trattati, concetti chiave, termini tecnici rilevanti
+3. Teorie principali, autori citati, esperimenti e studi di riferimento
+4. Glossario dei termini fondamentali con breve definizione
+
+Se non conosci con certezza il contenuto esatto del libro, indica chiaramente cosa sai con certezza e cosa è inferito. Non inventare capitoli o contenuti specifici se non ne sei sicuro.
+Scrivi in italiano. Sii preciso e accademico. Questo contenuto servirà come fonte secondaria per generare domande d'esame universitarie.`,
+        messages: [{
+          role: 'user',
+          content: `Genera il riferimento strutturato per: "${bookRef}"\n\nSe hai conoscenza diretta di questo libro, fornisci i dettagli capitolo per capitolo. Se è una versione italiana di un testo straniero, includi anche la struttura dell'edizione originale.`
+        }]
+      })
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const content = data.content[0].text.trim();
+
+    // Save as a secondary source (type: 'textbook-ref')
+    const sources = getSources();
+    // Remove any previous textbook-ref with same title to avoid duplicates
+    const filtered = sources.filter(s => !(s.type === 'textbook-ref' && s.textbookTitle === title));
+    filtered.push({
+      id:             Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      title:          `📚 ${bookRef}`,
+      textbookTitle:  title,
+      textbookAuthor: author,
+      content:        content.slice(0, SOURCE_MAX_CHARS),
+      sizeBytes:      content.length,
+      type:           'textbook-ref',
+      addedAt:        Date.now()
+    });
+    saveSources(filtered);
+
+    // Reset UI
+    document.getElementById('textbookTitle').value   = '';
+    document.getElementById('textbookAuthor').value  = '';
+    document.getElementById('textbookEdition').value = '';
+    document.getElementById('textbookInputBody').style.display = 'none';
+    document.getElementById('textbookChevron').classList.remove('open');
+    status.style.display = 'none';
+    renderSourcesList();
+    updateSourcesBtn();
+    _renderSrcDiagSummary();
+
+  } catch(err) {
+    status.innerHTML = `<i data-lucide="alert-triangle" style="width:12px;height:12px;stroke-width:2;flex-shrink:0;color:#e74c3c"></i><span style="color:#e74c3c">Errore: ${err.message}</span>`;
+    if (window.lucide) lucide.createIcons({ nodes: [status] });
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="sparkles" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Genera riferimento con AI';
+    if (window.lucide) lucide.createIcons({ nodes: [btn] });
+  }
+}
+
 function toggleTextInput() {
   const body    = document.getElementById('textInputBody');
   const chevron = document.getElementById('textChevron');
@@ -9489,6 +9603,30 @@ updateSourcesBtn();
           <textarea class="sources-text-area" id="textSourceContent"
                     placeholder="Incolla qui la lista delle lezioni, il programma del corso, il syllabus o qualsiasi testo che vuoi usare come riferimento per la generazione delle domande…" rows="8"></textarea>
           <button class="sources-text-save" onclick="saveTextSource()">Aggiungi come fonte</button>
+        </div>
+      </div>
+
+      <!-- Textbook reference section -->
+      <div class="sources-text-section">
+        <div class="sources-text-toggle" onclick="toggleTextbookInput()" id="textbookToggleBtn">
+          <span><i data-lucide="book-marked" style="width:13px;height:13px;stroke-width:2;flex-shrink:0;vertical-align:middle;margin-right:5px"></i> Indica un libro di testo</span>
+          <span class="sources-text-chevron" id="textbookChevron">›</span>
+        </div>
+        <div class="sources-text-body" id="textbookInputBody" style="display:none">
+          <p style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--text-2);margin:0 0 10px;line-height:1.5;">
+            Indica il libro di testo del corso. L'AI genererà un riferimento strutturato (capitoli e concetti chiave) basato sulla sua conoscenza del testo, che verrà usato come fonte secondaria rispetto al materiale caricato fisicamente.
+          </p>
+          <input type="text" class="sources-text-title" id="textbookTitle"
+                 placeholder="Titolo (es. Introduzione alla Psicologia)" maxlength="120">
+          <input type="text" class="sources-text-title" id="textbookAuthor"
+                 placeholder="Autore/i (es. Robert S. Feldman)" maxlength="100" style="margin-top:6px">
+          <input type="text" class="sources-text-title" id="textbookEdition"
+                 placeholder="Edizione e anno (es. 7ª ed. italiana, 2020)" maxlength="60" style="margin-top:6px">
+          <div id="textbookGenStatus" style="display:none;font-family:'Inter',sans-serif;font-size:12px;color:var(--text-2);margin-top:8px;display:flex;align-items:center;gap:8px;"></div>
+          <button class="sources-text-save" id="textbookGenBtn" onclick="generateTextbookReference()" style="margin-top:10px;display:flex;align-items:center;gap:7px;justify-content:center;">
+            <i data-lucide="sparkles" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i>
+            Genera riferimento con AI
+          </button>
         </div>
       </div>
 
