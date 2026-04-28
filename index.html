@@ -6006,9 +6006,34 @@ function _renderQsPanel(dayId) {
     const ans = answers[i] || '';
     const ansPreview = escHtml(ans.length > 300 ? ans.substring(0,300) + '…' : ans);
     // Support both full HTML feedback and compacted text-only feedback
-    const fbContent = fb.html
-      ? fb.html
-      : `<div class="q-review-text">${escHtml(fb.text || '')}</div>`;
+    // Reconstruct feedback HTML from stored components (never rely on saved raw HTML)
+    const _fbScore = fb.score || { good: 4, partial: 2, poor: 1 }[fb.grade] || 2;
+    const _fbDots = Array.from({length: 5}, (_, di) =>
+      `<span class="q-dot${di < _fbScore ? ' filled' : ''}"></span>`).join('');
+    const _fbGradeLabel = { good: 'BUONO', partial: 'PARZIALE', poor: 'INSUFFICIENTE' }[fb.grade] || 'PARZIALE';
+    const _fbGradeClass = { good: 'feedback-good', partial: 'feedback-partial', poor: 'feedback-poor' }[fb.grade] || 'feedback-partial';
+    // Support legacy (text/html) and new (reviewText) formats
+    const _fbReviewRaw = fb.reviewText || fb.text || '';
+    const _fbSrcRef = fb.srcRef
+      ? `<span class="q-src-ref">${escHtml(fb.srcRef).replace(/\n/g,'<br>')}</span>`
+      : '';
+    const _fbShowAnswerBtn = (fb.grade === 'poor' || fb.grade === 'partial')
+      ? `<button class="q-show-answer-btn" id="done-show-ans-${dayId}-${i}"
+            onclick="showCorrectAnswer('${dayId}',${i},${JSON.stringify(q.text)},${JSON.stringify(q.type||'')}, 'done')">
+          <i data-lucide="lightbulb" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i>
+          Fornisci la risposta corretta
+        </button>
+        <div id="done-correct-ans-${dayId}-${i}"></div>`
+      : '';
+    const fbContent = fb.html && !fb.reviewText
+      // Legacy path: saved HTML (old format) — keep but append button if missing
+      ? fb.html + (!(fb.html.includes('q-show-answer-btn')) && (fb.grade==='poor'||fb.grade==='partial') ? _fbShowAnswerBtn : '')
+      : `<div class="q-rating-row">` +
+          `<span class="q-rating-dots">${_fbDots}</span>` +
+          `<span class="q-rating-label ${_fbGradeClass}">${_fbGradeLabel}</span>` +
+        `</div>` +
+        `<div class="q-review-text">${escHtml(_fbReviewRaw).replace(/\n/g,'<br>')}${_fbSrcRef}</div>` +
+        _fbShowAnswerBtn;
     const qTypeEscaped = (q.type || '').replace(/'/g, "\\'");
     const qTextEscaped = q.text.replace(/'/g, "\\'");
     return `
@@ -7411,14 +7436,13 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
 
     if (!state[dayId]) state[dayId] = {};
     if (!state[dayId].feedbacks) state[dayId].feedbacks = {};
-    // Store compact text + grade (html is regenerable); keep html only if small
-    const _fbHtml = feedbackEl.innerHTML;
-    const _fbTmp  = document.createElement('div'); _fbTmp.innerHTML = _fbHtml;
-    const _fbText = _fbTmp.textContent || '';
+    // Save review text separately so it can be fully restored without truncation
+    // Do NOT save the show-answer button — it is always re-added dynamically on render
     state[dayId].feedbacks[qIdx] = {
       grade,
-      text: _fbText.slice(0, 1200),
-      html: _fbHtml.length < 3000 ? _fbHtml : null,  // skip large HTML to save space
+      score,
+      reviewText: _mainReview,   // plain text of AI review (no HTML)
+      srcRef: _srcRefMatch ? _srcRefMatch[0] : null,  // "📖 Rivedi:…" block if present
       ts: Date.now()
     };
     saveState();
@@ -7475,10 +7499,11 @@ function _syncReverifyBtn(dayId, qIdx, val) {
   if (btn) btn.disabled = val.trim().length < MIN_ANSWER_CHARS;
 }
 
-async function showCorrectAnswer(dayId, qIdx, questionText, qType) {
+async function showCorrectAnswer(dayId, qIdx, questionText, qType, context) {
   const apiKey = localStorage.getItem('anthropic_api_key');
-  const btn    = document.getElementById(`show-ans-${dayId}-${qIdx}`);
-  const panel  = document.getElementById(`correct-ans-${dayId}-${qIdx}`);
+  const prefix = context === 'done' ? 'done-' : '';
+  const btn    = document.getElementById(`${prefix}show-ans-${dayId}-${qIdx}`);
+  const panel  = document.getElementById(`${prefix}correct-ans-${dayId}-${qIdx}`);
   if (!panel) return;
   if (!apiKey) {
     panel.innerHTML = `<div class="q-correct-answer-panel"><div class="q-correct-answer-label">Risposta Corretta</div>Chiave API non configurata. Aggiungila nelle impostazioni (Setup).</div>`;
