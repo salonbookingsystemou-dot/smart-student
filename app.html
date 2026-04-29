@@ -4182,7 +4182,7 @@
       <div class="ob-api-row" id="obApiRow">
         <span class="ob-api-icon">⚡</span>
         <span class="ob-api-text">Serve una chiave API Anthropic per generare il piano con l'AI.</span>
-        <a href="#" class="ob-api-link" onclick="showApiModal();return false;">Configura →</a>
+        <!-- API key managed server-side, no config needed -->
       </div>
 
       <div class="ob-error" id="obError"></div>
@@ -4379,11 +4379,18 @@ const _ACCENT_PRESETS = [
   const SB_URL  = 'https://olagntawajefdjrkkvcc.supabase.co';
   const SB_KEY  = 'sb_publishable_azsXEe4uMlPAbKNZ1seQuA_6uVieV_c';
 
-  // Keys synced to cloud
+  // Expose for _callClaude() helper (defined outside this IIFE)
+  window._SB_URL = SB_URL;
+  window._getSBToken = async () => {
+    if (!_sb) return null;
+    const { data: { session } } = await _sb.auth.getSession();
+    return session?.access_token || null;
+  };
+
+  // Keys synced to cloud (anthropic_api_key removed — managed server-side)
   const SYNC_KEYS = [
     'psico_state', 'psico_sources', 'psico_exam_info',
-    'psico_ai_plan', 'psico_objective', 'psico_theme',
-    'anthropic_api_key'
+    'psico_ai_plan', 'psico_objective', 'psico_theme'
   ];
 
   /* ── Init client ── */
@@ -6183,6 +6190,36 @@ function closeWelcomeModal() {
   sessionStorage.setItem('ss_welcome_shown', '1');
 }
 
+// ── Claude API proxy helper ───────────────────────────────────
+// All AI calls go through this function. The API key lives server-side.
+async function _callClaude(payload) {
+  const token = window._getSBToken ? await window._getSBToken() : null;
+  if (!token) throw new Error('Sessione scaduta — effettua di nuovo il login.');
+
+  const res = await fetch(`${window._SB_URL}/functions/v1/claude-proxy`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    if (data.code === 'RATE_LIMIT') {
+      throw new Error('⚠️ Limite giornaliero raggiunto (150 chiamate). Riprova domani.');
+    }
+    if (data.code === 'UNAUTHORIZED') {
+      throw new Error('Sessione scaduta — effettua di nuovo il login.');
+    }
+    throw new Error(data.error?.message || data.error || `Errore API (${res.status})`);
+  }
+
+  return data;
+}
+
 // ── Session-based question panel ─────────────────────────────
 
 const MIN_ANSWER_CHARS = 40;
@@ -7017,9 +7054,6 @@ async function _submitBrainDump() {
   document.getElementById('bdLoadingView').style.display = '';
   lucide.createIcons();
 
-  const apiKey = localStorage.getItem('anthropic_api_key');
-  if (!apiKey) { _closeBrainDump(); showApiModal(); return; }
-
   const sourceCtx = getAllSourcesContext ? getAllSourcesContext() : '';
   const day = getActiveDays().find(d => d.id === _bdDayId);
   const qList = (state[_bdDayId]?.aiQuestions) || (day?.questions) || [];
@@ -7040,24 +7074,12 @@ Rispondi ESCLUSIVAMENTE con JSON valido, nessun altro testo:
 }`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 800,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: `Argomento: ${_bdTopic}\n\nBrain dump dello studente:\n${text || '(nessun testo inserito)'}` }]
-      })
+    const data = await _callClaude({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 800,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: `Argomento: ${_bdTopic}\n\nBrain dump dello studente:\n${text || '(nessun testo inserito)'}` }]
     });
-
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
-    const data = await res.json();
     let raw = data.content[0].text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     const result = JSON.parse(raw);
     _showBrainDumpResults(result.score || 0, result.covered || [], result.missing || [], result.feedback || '');
@@ -7667,11 +7689,6 @@ function _dismissCoachModal(advance) {
 }
 
 async function verifyAnswer(dayId, qIdx, questionText, qType) {
-  const apiKey = localStorage.getItem('anthropic_api_key');
-  if (!apiKey) {
-    showApiModal();
-    return;
-  }
   const answerEl = document.getElementById('answer-' + dayId + '-' + qIdx);
   const feedbackEl = document.getElementById('feedback-' + dayId + '-' + qIdx);
   const btn = document.getElementById('verify-' + dayId + '-' + qIdx) || answerEl.parentElement.querySelector('.q-verify-btn');
@@ -7729,28 +7746,12 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
   const userPrompt = `Domanda (tipo: ${qType}): ${questionText}\n\nRisposta dello studente: ${answer}${_srcContext}`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
+    const data = await _callClaude({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || 'Errore API');
-    }
-
-    const data = await response.json();
     const text = data.content[0].text.trim();
     const firstLine = text.split('\n')[0].toUpperCase();
     const rest = text.split('\n').slice(1).join('\n').trim();
@@ -7876,15 +7877,10 @@ function _syncReverifyBtn(dayId, qIdx, val) {
 }
 
 async function showCorrectAnswer(dayId, qIdx, questionText, qType, context) {
-  const apiKey = localStorage.getItem('anthropic_api_key');
   const prefix = context === 'done' ? 'done-' : '';
   const btn    = document.getElementById(`${prefix}show-ans-${dayId}-${qIdx}`);
   const panel  = document.getElementById(`${prefix}correct-ans-${dayId}-${qIdx}`);
   if (!panel) return;
-  if (!apiKey) {
-    panel.innerHTML = `<div class="q-correct-answer-panel"><div class="q-correct-answer-label">Risposta Corretta</div>Chiave API non configurata. Aggiungila nelle impostazioni (Setup).</div>`;
-    return;
-  }
 
   if (btn) { btn.disabled = true; btn.textContent = 'Recupero risposta…'; }
 
@@ -7896,26 +7892,15 @@ async function showCorrectAnswer(dayId, qIdx, questionText, qType, context) {
   })();
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 800,
-        system: `Sei un docente universitario di Psicologia Cognitiva. Fornisci una risposta modello completa, chiara e accademica alla domanda dello studente. Usa le fonti disponibili come riferimento principale. Scrivi in italiano. Rispondi direttamente, senza preamboli.`,
-        messages: [{
-          role: 'user',
-          content: `Domanda: "${questionText}"\nTipo: ${qType || 'concettuale'}${sourcesCtx}\n\nFornisci la risposta corretta e completa a questa domanda.`
-        }]
-      })
+    const data = await _callClaude({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 800,
+      system: `Sei un docente universitario di Psicologia Cognitiva. Fornisci una risposta modello completa, chiara e accademica alla domanda dello studente. Usa le fonti disponibili come riferimento principale. Scrivi in italiano. Rispondi direttamente, senza preamboli.`,
+      messages: [{
+        role: 'user',
+        content: `Domanda: "${questionText}"\nTipo: ${qType || 'concettuale'}${sourcesCtx}\n\nFornisci la risposta corretta e completa a questa domanda.`
+      }]
     });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
     const answerText = data.content[0].text.trim();
 
     panel.innerHTML =
@@ -7933,8 +7918,6 @@ async function showCorrectAnswer(dayId, qIdx, questionText, qType, context) {
 }
 
 async function reverifyAnswer(dayId, qIdx, questionText, qType) {
-  const apiKey = localStorage.getItem('anthropic_api_key');
-  if (!apiKey) { showApiModal(); return; }
 
   const ta   = document.getElementById(`done-edit-ta-${dayId}-${qIdx}`);
   const fbEl = document.getElementById(`done-fb-${dayId}-${qIdx}`);
@@ -7965,22 +7948,11 @@ Tono da mantenere:
 - Per INSUFFICIENTE: non demolire, ma non edulcorare. Aiuta a capire perché e cosa fare subito.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6', max_tokens: 400,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: `Domanda (tipo: ${qType}): ${questionText}\n\nRisposta dello studente: ${answer}` }]
-      })
+    const data = await _callClaude({
+      model: 'claude-sonnet-4-6', max_tokens: 400,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: `Domanda (tipo: ${qType}): ${questionText}\n\nRisposta dello studente: ${answer}` }]
     });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
-    const data = await res.json();
     const text = data.content[0].text.trim();
     const firstLine = text.split('\n')[0].toUpperCase();
     const rest = text.split('\n').slice(1).join('\n').trim();
@@ -8294,8 +8266,6 @@ function _setMicPauseIcon(isPlaying) {
 let _quiz = null;
 
 async function startQuiz(dayId, topic) {
-  const apiKey = localStorage.getItem('anthropic_api_key');
-  if (!apiKey) { showApiModal(); return; }
 
   _quiz = null;
   const modal   = document.getElementById('quizModal');
@@ -8405,32 +8375,16 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo prima o dop
 Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4200,
-        temperature: 1,
-        system: systemPrompt,
-        messages: [{
-          role: 'user',
-          content: `Argomento: ${topic}\n\n[Sessione #${Date.now()}-${Math.random().toString(36).slice(2,7)}] Genera un set di domande COMPLETAMENTE NUOVO e DIVERSO rispetto a qualsiasi sessione precedente. Varia i concetti scelti, le formulazioni e i distrattori.\n\nRicorda: le domande devono riguardare concetti, modelli, autori ed esperimenti SPECIFICI di questo argomento${hasSources ? ', presenti nelle fonti fornite' : ''}. Evita domande generiche, metodologiche o metadisciplinari.\n\nOBBLIGATORIO: includi "sourceRef" per ogni domanda con la citazione della sezione/slide specifica e l'estratto testuale dalle fonti.`
-        }]
-      })
+    const data = await _callClaude({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4200,
+      temperature: 1,
+      system: systemPrompt,
+      messages: [{
+        role: 'user',
+        content: `Argomento: ${topic}\n\n[Sessione #${Date.now()}-${Math.random().toString(36).slice(2,7)}] Genera un set di domande COMPLETAMENTE NUOVO e DIVERSO rispetto a qualsiasi sessione precedente. Varia i concetti scelti, le formulazioni e i distrattori.\n\nRicorda: le domande devono riguardare concetti, modelli, autori ed esperimenti SPECIFICI di questo argomento${hasSources ? ', presenti nelle fonti fornite' : ''}. Evita domande generiche, metodologiche o metadisciplinari.\n\nOBBLIGATORIO: includi "sourceRef" per ogni domanda con la citazione della sezione/slide specifica e l'estratto testuale dalle fonti.`
+      }]
     });
-
-    if (!res.ok) {
-      const e = await res.json();
-      throw new Error(e.error?.message || 'Errore API');
-    }
-
-    const data = await res.json();
     let raw = data.content[0].text.trim();
     raw = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     const questions = JSON.parse(raw);
@@ -9242,8 +9196,6 @@ async function generateTextbookReference() {
   const edition = (document.getElementById('textbookEdition')?.value || '').trim();
   if (!title) { alert('Inserisci almeno il titolo del libro.'); return; }
 
-  const apiKey = localStorage.getItem('anthropic_api_key');
-  if (!apiKey) { showApiModal(); return; }
 
   const btn    = document.getElementById('textbookGenBtn');
   const status = document.getElementById('textbookGenStatus');
@@ -9257,18 +9209,10 @@ async function generateTextbookReference() {
   const courseCtx = examInfo.subject ? `Il corso è "${examInfo.subject}"${examInfo.professor ? ` (Prof. ${examInfo.professor})` : ''}.` : '';
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 3000,
-        system: `Sei un esperto di letteratura accademica universitaria italiana e internazionale. ${courseCtx}
+    const data = await _callClaude({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 3000,
+      system: `Sei un esperto di letteratura accademica universitaria italiana e internazionale. ${courseCtx}
 Genera un riferimento strutturato e dettagliato del libro di testo indicato, basandoti sulla tua conoscenza del testo.
 Il riferimento deve coprire:
 1. Panoramica generale del libro (approccio, struttura, edizione)
@@ -9278,15 +9222,11 @@ Il riferimento deve coprire:
 
 Se non conosci con certezza il contenuto esatto del libro, indica chiaramente cosa sai con certezza e cosa è inferito. Non inventare capitoli o contenuti specifici se non ne sei sicuro.
 Scrivi in italiano. Sii preciso e accademico. Questo contenuto servirà come fonte secondaria per generare domande d'esame universitarie.`,
-        messages: [{
-          role: 'user',
-          content: `Genera il riferimento strutturato per: "${bookRef}"\n\nSe hai conoscenza diretta di questo libro, fornisci i dettagli capitolo per capitolo. Se è una versione italiana di un testo straniero, includi anche la struttura dell'edizione originale.`
-        }]
-      })
+      messages: [{
+        role: 'user',
+        content: `Genera il riferimento strutturato per: "${bookRef}"\n\nSe hai conoscenza diretta di questo libro, fornisci i dettagli capitolo per capitolo. Se è una versione italiana di un testo straniero, includi anche la struttura dell'edizione originale.`
+      }]
     });
-
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
     const content = data.content[0].text.trim();
 
     // Save as a secondary source (type: 'textbook-ref')
@@ -9378,8 +9318,6 @@ function getAllSourcesContext() {
 
 // ── Generate open-ended questions from sources ─────────────
 async function generateQuestionsFromSource(dayId) {
-  const apiKey = localStorage.getItem('anthropic_api_key');
-  if (!apiKey) { showApiModal(); return; }
   const sourceCtx = getAllSourcesContext();
   if (!sourceCtx) {
     alert('Carica prima almeno una fonte PDF nel pannello Fonti.');
@@ -9437,30 +9375,19 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
 [{"text":"testo della domanda","type":"definizione|meccanismo|connessione","sourceRef":"NomeFonte — Sezione: «estratto dal testo»"}]`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4000,
-        temperature: 1,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: (() => {
-          const existingQs = state[dayId]?.aiQuestions || [];
-          const existingList = existingQs.length
-            ? `\n\nDOMINADE GIÀ PRESENTI (NON ripetere, NON riformulare, NON sovrapporre concettualmente — ogni nuova domanda deve esplorare un aspetto non ancora coperto):\n${existingQs.map((q,i) => `${i+1}. ${q.text}`).join('\n')}`
-            : '';
-          return `Argomento: ${topic}${existingList}\n\nGenera le domande coprendo TUTTE le sezioni elencate nella mappa di copertura. Ogni domanda deve testare un concetto DISTINTO e fare riferimento a una sezione/slide DIVERSA. Esegui la validazione anti-duplicati prima di produrre il JSON.\n\nOBBLIGATORIO: includi "sourceRef" per ogni domanda con sezione/slide e estratto testuale specifico.`;
-        })() }]
-      })
+    const data = await _callClaude({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4000,
+      temperature: 1,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: (() => {
+        const existingQs = state[dayId]?.aiQuestions || [];
+        const existingList = existingQs.length
+          ? `\n\nDOMINADE GIÀ PRESENTI (NON ripetere, NON riformulare, NON sovrapporre concettualmente — ogni nuova domanda deve esplorare un aspetto non ancora coperto):\n${existingQs.map((q,i) => `${i+1}. ${q.text}`).join('\n')}`
+          : '';
+        return `Argomento: ${topic}${existingList}\n\nGenera le domande coprendo TUTTE le sezioni elencate nella mappa di copertura. Ogni domanda deve testare un concetto DISTINTO e fare riferimento a una sezione/slide DIVERSA. Esegui la validazione anti-duplicati prima di produrre il JSON.\n\nOBBLIGATORIO: includi "sourceRef" per ogni domanda con sezione/slide e estratto testuale specifico.`;
+      })() }]
     });
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
-    const data = await res.json();
     let raw = data.content[0].text.trim();
     raw = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     const questions = JSON.parse(raw);
@@ -9598,8 +9525,6 @@ function _isoDate(d) {
 }
 
 async function generateStudyPlan(fromOnboarding = false) {
-  const apiKey = localStorage.getItem('anthropic_api_key');
-  if (!apiKey) { showApiModal(); return; }
 
   const info = getExamInfo();
   if (!info.date) { alert('Inserisci prima la data dell\'esame.'); return; }
@@ -9686,27 +9611,15 @@ REGOLE ASSOLUTE (non derogabili):
   _setPlanGenUI('Generazione piano…', 'Claude sta costruendo il calendario e le domande…', 30, 'Chiamata API…');
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 12000,
-        temperature: 0.7,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: `Genera il piano di studio completo per ${subject}, da oggi (${_isoDate(today)}) al giorno dell'esame (${info.date}). Rispondi solo con il JSON.` }]
-      })
+    const data = await _callClaude({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 12000,
+      temperature: 0.7,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: `Genera il piano di studio completo per ${subject}, da oggi (${_isoDate(today)}) al giorno dell'esame (${info.date}). Rispondi solo con il JSON.` }]
     });
 
     _setPlanGenUI('Elaborazione risposta…', 'Analisi e validazione del piano generato…', 70, 'Parsing JSON…');
-
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
-    const data = await res.json();
     let raw = data.content[0].text.trim();
     raw = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
 
@@ -9931,7 +9844,7 @@ updateSourcesBtn();
     <div class="setup-drawer-top">
       <div class="setup-tabs">
         <button class="setup-tab active" id="setupTabFonti"  onclick="switchSetupTab('fonti')"><i data-lucide="book-open" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Fonti</button>
-        <button class="setup-tab"        id="setupTabApi"    onclick="switchSetupTab('api')"><i data-lucide="key-round" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Chiave API</button>
+        <!-- API tab removed — key managed server-side -->
         <button class="setup-tab"        id="setupTabTema"   onclick="switchSetupTab('tema')"><i data-lucide="palette" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Tema</button>
       </div>
       <button class="setup-close-btn" onclick="closeSetupDrawer()"><i data-lucide="x" style="width:16px;height:16px;stroke-width:2.2"></i></button>
@@ -10059,14 +9972,7 @@ updateSourcesBtn();
       </div><!-- /setupPaneFonti -->
 
       <!-- ── CHIAVE API ────────────────────────────────── -->
-      <div class="setup-pane" id="setupPaneApi">
-        <div class="setup-section-title">Chiave API Anthropic</div>
-        <p class="setup-api-desc">Inserisci la tua API key di Anthropic per abilitare la verifica delle risposte e la generazione quiz in tempo reale. La chiave viene salvata nel tuo browser e non trasmessa altrove.</p>
-        <input class="modal-input" type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" style="margin-top:4px"/>
-        <button class="modal-btn setup-api-save" onclick="saveApiKey()">Salva e connetti</button>
-        <div id="setupApiStatus" class="setup-api-status" style="display:none"></div>
-        <p class="setup-api-desc" style="margin-top:8px;">⚠️ Non condividere mai la tua API key con nessuno.</p>
-      </div>
+      <div class="setup-pane" id="setupPaneApi" style="display:none"><!-- API key managed server-side --></div>
 
       <!-- ── TEMA ──────────────────────────────────────── -->
       <div class="setup-pane" id="setupPaneTema">
