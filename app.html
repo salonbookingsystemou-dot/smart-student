@@ -345,6 +345,86 @@
   .setup-pane { display: none; padding: 20px 16px; flex-direction: column; gap: 16px; }
   .setup-pane.active { display: flex; }
 
+  /* ── Account pane ───────────────────────────────────────────── */
+  .acct-section { display: flex; flex-direction: column; gap: 10px; }
+  .acct-section-title {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .acct-email-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .acct-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .acct-value { font-size: 13px; color: var(--text-1); font-family: 'Inter', sans-serif; }
+  .acct-pw-block { display: flex; flex-direction: column; gap: 7px; }
+  .acct-input {
+    font-family: 'Inter', sans-serif; font-size: 13px;
+    padding: 9px 12px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--surface2);
+    color: var(--text-1); outline: none; width: 100%; box-sizing: border-box;
+    transition: border-color 0.15s;
+  }
+  .acct-input:focus { border-color: var(--accent); }
+  .acct-btn {
+    padding: 9px 16px; border-radius: 8px; border: none;
+    background: var(--accent); color: #fff; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.02em; transition: opacity 0.15s;
+    align-self: flex-start;
+  }
+  .acct-btn:hover { opacity: 0.85; }
+  .acct-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .acct-msg { font-size: 12px; min-height: 16px; }
+  .acct-msg.ok  { color: #27ae60; }
+  .acct-msg.err { color: #e74c3c; }
+
+  .acct-usage-loading { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-3); }
+  .acct-usage-row { display: flex; align-items: center; justify-content: space-between; }
+  .acct-usage-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .acct-usage-bar { flex: 1; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+  .acct-usage-fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.4s ease; }
+  .acct-usage-pct { font-size: 10px; color: var(--text-3); flex-shrink: 0; width: 28px; text-align: right; }
+
+  .acct-stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-top: 4px;
+  }
+  .acct-stat-cell {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .acct-stat-val { font-size: 17px; font-weight: 700; color: var(--text-1); font-family: 'Inter', sans-serif; letter-spacing: -0.02em; }
+  .acct-stat-lbl { font-size: 10px; color: var(--text-3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .acct-plan-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .acct-plan-badge {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+    padding: 3px 8px; border-radius: 5px;
+    background: var(--accent); color: #fff; flex-shrink: 0;
+  }
+  .acct-plan-name { font-size: 13px; font-weight: 700; color: var(--text-1); }
+  .acct-plan-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  .acct-plan-upgrade { margin-top: 6px; }
+  .acct-plan-upgrade-title { font-size: 11px; font-weight: 700; color: var(--text-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .acct-plan-options { display: flex; flex-direction: column; gap: 8px; }
+  .acct-plan-option {
+    border: 1.5px solid var(--border); border-radius: 9px;
+    padding: 11px 13px; background: var(--surface2);
+  }
+  .acct-plan-option-name { font-size: 12px; font-weight: 700; color: var(--text-1); }
+  .acct-plan-option-price { font-size: 16px; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; margin: 2px 0; }
+  .acct-plan-option-price span { font-size: 11px; font-weight: 500; color: var(--text-3); }
+  .acct-plan-option-desc { font-size: 11px; color: var(--text-3); }
+  .acct-plan-coming {
+    margin-top: 10px; font-size: 11px; color: var(--text-3);
+    text-align: center; padding: 8px;
+    border: 1px dashed var(--border); border-radius: 7px;
+  }
+
   /* API pane */
   .setup-section-title {
     font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
@@ -9147,15 +9227,9 @@ function openSetupDrawer(tab) {
   if (!overlay) return;
   overlay.classList.add('open');
   switchSetupTab(tab);
-  // populate fields
-  if (tab === 'fonti') { renderSourcesList(); loadExamInfoUI(); }
-  if (tab === 'api') {
-    const inp = document.getElementById('apiKeyInput');
-    if (inp) inp.value = localStorage.getItem('anthropic_api_key') || '';
-    const statusEl = document.getElementById('setupApiStatus');
-    if (statusEl) statusEl.style.display = 'none';
-  }
-  if (tab === 'tema') _renderColorPresets();
+  if (tab === 'fonti')   { renderSourcesList(); loadExamInfoUI(); }
+  if (tab === 'tema')    { _renderColorPresets(); }
+  if (tab === 'account') { _loadAccountPane(); }
 }
 
 function closeSetupDrawer() {
@@ -9164,13 +9238,127 @@ function closeSetupDrawer() {
 }
 
 function switchSetupTab(tab) {
-  ['fonti','api','tema'].forEach(t => {
-    const btn  = document.getElementById('setupTab' + t.charAt(0).toUpperCase() + t.slice(1));
-    const pane = document.getElementById('setupPane' + t.charAt(0).toUpperCase() + t.slice(1));
+  ['fonti', 'tema', 'account'].forEach(t => {
+    const key  = t.charAt(0).toUpperCase() + t.slice(1);
+    const btn  = document.getElementById('setupTab'  + key);
+    const pane = document.getElementById('setupPane' + key);
     if (btn)  btn.classList.toggle('active',  t === tab);
     if (pane) pane.classList.toggle('active', t === tab);
   });
   if (tab === 'tema') _renderColorPresets();
+}
+
+// ── Account pane ─────────────────────────────────────────────
+async function _loadAccountPane() {
+  // Email
+  const emailEl = document.getElementById('acctEmail');
+  if (emailEl && window._currentUserId) {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (user) emailEl.textContent = user.email || '—';
+  }
+
+  // API usage
+  const usageLoad = document.getElementById('acctUsageLoading');
+  const usageCont = document.getElementById('acctUsageContent');
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const monthStart = today.slice(0, 7) + '-01';
+
+    const { data: rows } = await _sb
+      .from('api_usage')
+      .select('date, call_count, input_tokens, output_tokens')
+      .gte('date', monthStart);
+
+    const todayRow   = (rows || []).find(r => r.date === today);
+    const callsToday = todayRow?.call_count ?? 0;
+
+    const { data: planRow } = await _sb.from('user_plans').select('plan_type').maybeSingle();
+    const limit = planRow && planRow.plan_type !== 'free' ? 500 : 150;
+
+    const callsMonth  = (rows || []).reduce((s, r) => s + (r.call_count     || 0), 0);
+    const tokensIn    = (rows || []).reduce((s, r) => s + (r.input_tokens   || 0), 0);
+    const tokensOut   = (rows || []).reduce((s, r) => s + (r.output_tokens  || 0), 0);
+
+    const pct = Math.min(100, Math.round(callsToday / limit * 100));
+    const fmt = n => n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
+
+    document.getElementById('acctCallsToday').textContent  = callsToday;
+    document.getElementById('acctCallsLimit').textContent  = limit;
+    document.getElementById('acctUsageBarFill').style.width = pct + '%';
+    document.getElementById('acctUsagePct').textContent    = pct + '%';
+    document.getElementById('acctCallsMonth').textContent  = fmt(callsMonth);
+    document.getElementById('acctTokensIn').textContent    = fmt(tokensIn);
+    document.getElementById('acctTokensOut').textContent   = fmt(tokensOut);
+
+    const srcs = JSON.parse(localStorage.getItem('psico_sources') || '[]');
+    const totalKB = Math.round(srcs.reduce((s, r) => s + (r.sizeBytes || (r.content||'').length), 0) / 1024);
+    document.getElementById('acctSources').textContent = srcs.length + (totalKB > 0 ? ` · ${totalKB}KB` : '');
+
+    if (usageLoad) usageLoad.style.display = 'none';
+    if (usageCont) usageCont.style.display = 'block';
+  } catch {
+    if (usageLoad) usageLoad.textContent = 'Dati non disponibili';
+  }
+
+  // Piano
+  const planLoad = document.getElementById('acctPlanLoading');
+  const planCont = document.getElementById('acctPlanContent');
+  try {
+    const { data: plan } = await _sb.from('user_plans')
+      .select('plan_type, valid_until').maybeSingle();
+
+    const type = plan?.plan_type || 'free';
+    const planMeta = {
+      free:    { badge: 'FREE',    name: 'Piano gratuito',       desc: '150 chiamate AI al giorno · 1 esame attivo', color: 'var(--text-3)' },
+      exam:    { badge: 'ESAME',   name: 'Piano per esame',      desc: '500 chiamate AI al giorno · 1 esame sbloccato', color: '#27ae60' },
+      monthly: { badge: 'PRO',     name: 'Abbonamento mensile',  desc: '500 chiamate AI al giorno · esami illimitati', color: 'var(--accent)' },
+    };
+    const meta = planMeta[type] || planMeta.free;
+
+    document.getElementById('acctPlanBadge').textContent     = meta.badge;
+    document.getElementById('acctPlanBadge').style.background = meta.color;
+    document.getElementById('acctPlanName').textContent      = meta.name;
+    document.getElementById('acctPlanDesc').textContent      = meta.desc;
+
+    if (plan?.valid_until) {
+      const exp = new Date(plan.valid_until).toLocaleDateString('it-IT');
+      document.getElementById('acctPlanDesc').textContent += ` · scade il ${exp}`;
+    }
+
+    // Hide upgrade section for paid plans
+    const upgradeEl = document.getElementById('acctPlanUpgrade');
+    if (upgradeEl) upgradeEl.style.display = (type === 'free') ? 'block' : 'none';
+
+    if (planLoad) planLoad.style.display = 'none';
+    if (planCont) planCont.style.display = 'block';
+  } catch {
+    if (planLoad) planLoad.textContent = 'Dati non disponibili';
+  }
+}
+
+async function _acctChangePassword() {
+  const pw1   = document.getElementById('acctNewPw')?.value || '';
+  const pw2   = document.getElementById('acctNewPwConfirm')?.value || '';
+  const msgEl = document.getElementById('acctPwMsg');
+  const btn   = document.getElementById('acctPwBtn');
+
+  msgEl.className = 'acct-msg';
+  if (pw1.length < 8) { msgEl.className = 'acct-msg err'; msgEl.textContent = 'La password deve avere almeno 8 caratteri.'; return; }
+  if (pw1 !== pw2)    { msgEl.className = 'acct-msg err'; msgEl.textContent = 'Le due password non coincidono.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Aggiornamento…';
+  const { error } = await _sb.auth.updateUser({ password: pw1 });
+  btn.disabled = false; btn.textContent = 'Aggiorna password';
+
+  if (error) {
+    msgEl.className = 'acct-msg err';
+    msgEl.textContent = error.message;
+  } else {
+    msgEl.className = 'acct-msg ok';
+    msgEl.textContent = '✓ Password aggiornata con successo';
+    document.getElementById('acctNewPw').value = '';
+    document.getElementById('acctNewPwConfirm').value = '';
+  }
 }
 
 // ── Accent color system ───────────────────────────────────────
@@ -10008,9 +10196,9 @@ updateSourcesBtn();
 
     <div class="setup-drawer-top">
       <div class="setup-tabs">
-        <button class="setup-tab active" id="setupTabFonti"  onclick="switchSetupTab('fonti')"><i data-lucide="book-open" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Fonti</button>
-        <!-- API tab removed — key managed server-side -->
-        <button class="setup-tab"        id="setupTabTema"   onclick="switchSetupTab('tema')"><i data-lucide="palette" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Tema</button>
+        <button class="setup-tab active" id="setupTabFonti"   onclick="switchSetupTab('fonti')"><i data-lucide="book-open" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Fonti</button>
+        <button class="setup-tab"        id="setupTabTema"    onclick="switchSetupTab('tema')"><i data-lucide="palette" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Tema</button>
+        <button class="setup-tab"        id="setupTabAccount" onclick="switchSetupTab('account')"><i data-lucide="user" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Account</button>
       </div>
       <button class="setup-close-btn" onclick="closeSetupDrawer()"><i data-lucide="x" style="width:16px;height:16px;stroke-width:2.2"></i></button>
     </div>
@@ -10174,6 +10362,102 @@ updateSourcesBtn();
         </div>
 
       </div><!-- /setupPaneTema -->
+
+      <!-- ── ACCOUNT ──────────────────────────────────── -->
+      <div class="setup-pane" id="setupPaneAccount">
+
+        <!-- Dati personali -->
+        <div class="acct-section">
+          <div class="acct-section-title"><i data-lucide="user-circle" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Dati personali</div>
+          <div class="acct-email-row">
+            <span class="acct-label">Email</span>
+            <span class="acct-value" id="acctEmail">—</span>
+          </div>
+          <div class="acct-pw-block">
+            <div class="acct-label" style="margin-bottom:6px">Cambia password</div>
+            <input class="acct-input" type="password" id="acctNewPw" placeholder="Nuova password (min. 8 caratteri)" autocomplete="new-password">
+            <input class="acct-input" type="password" id="acctNewPwConfirm" placeholder="Conferma nuova password" autocomplete="new-password">
+            <button class="acct-btn" id="acctPwBtn" onclick="_acctChangePassword()">Aggiorna password</button>
+            <div class="acct-msg" id="acctPwMsg"></div>
+          </div>
+        </div>
+
+        <div class="setup-tab-border"></div>
+
+        <!-- Utilizzo API -->
+        <div class="acct-section">
+          <div class="acct-section-title"><i data-lucide="zap" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Utilizzo API</div>
+          <div class="acct-usage-loading" id="acctUsageLoading">
+            <div class="quiz-spinner" style="width:13px;height:13px;border-width:2px"></div>
+            Caricamento…
+          </div>
+          <div id="acctUsageContent" style="display:none">
+            <div class="acct-usage-row">
+              <span class="acct-label">Oggi</span>
+              <span class="acct-value"><span id="acctCallsToday">—</span> / <span id="acctCallsLimit">150</span> chiamate</span>
+            </div>
+            <div class="acct-usage-bar-wrap">
+              <div class="acct-usage-bar"><div class="acct-usage-fill" id="acctUsageBarFill" style="width:0%"></div></div>
+              <span class="acct-usage-pct" id="acctUsagePct">0%</span>
+            </div>
+            <div class="acct-stats-grid">
+              <div class="acct-stat-cell">
+                <div class="acct-stat-val" id="acctCallsMonth">—</div>
+                <div class="acct-stat-lbl">Chiamate questo mese</div>
+              </div>
+              <div class="acct-stat-cell">
+                <div class="acct-stat-val" id="acctTokensIn">—</div>
+                <div class="acct-stat-lbl">Token input</div>
+              </div>
+              <div class="acct-stat-cell">
+                <div class="acct-stat-val" id="acctTokensOut">—</div>
+                <div class="acct-stat-lbl">Token output</div>
+              </div>
+              <div class="acct-stat-cell">
+                <div class="acct-stat-val" id="acctSources">—</div>
+                <div class="acct-stat-lbl">Fonti caricate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setup-tab-border"></div>
+
+        <!-- Piano attivato -->
+        <div class="acct-section">
+          <div class="acct-section-title"><i data-lucide="credit-card" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Piano attivato</div>
+          <div class="acct-usage-loading" id="acctPlanLoading">
+            <div class="quiz-spinner" style="width:13px;height:13px;border-width:2px"></div>
+            Caricamento…
+          </div>
+          <div id="acctPlanContent" style="display:none">
+            <div class="acct-plan-card" id="acctPlanCard">
+              <div class="acct-plan-badge" id="acctPlanBadge">FREE</div>
+              <div class="acct-plan-info">
+                <div class="acct-plan-name" id="acctPlanName">Piano gratuito</div>
+                <div class="acct-plan-desc" id="acctPlanDesc">150 chiamate AI al giorno · 1 esame attivo</div>
+              </div>
+            </div>
+            <div class="acct-plan-upgrade" id="acctPlanUpgrade">
+              <div class="acct-plan-upgrade-title">Passa a un piano superiore</div>
+              <div class="acct-plan-options">
+                <div class="acct-plan-option">
+                  <div class="acct-plan-option-name">Per esame</div>
+                  <div class="acct-plan-option-price">€30 <span>una tantum</span></div>
+                  <div class="acct-plan-option-desc">500 chiamate/giorno · accesso illimitato per un esame</div>
+                </div>
+                <div class="acct-plan-option">
+                  <div class="acct-plan-option-name">Mensile</div>
+                  <div class="acct-plan-option-price">€15 <span>/ mese</span></div>
+                  <div class="acct-plan-option-desc">500 chiamate/giorno · esami illimitati · priorità AI</div>
+                </div>
+              </div>
+              <div class="acct-plan-coming">Pagamenti in arrivo — <strong>disponibili presto</strong></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /setupPaneAccount -->
 
     </div><!-- /setup-body -->
   </div><!-- /setup-drawer -->
