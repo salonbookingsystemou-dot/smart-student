@@ -3367,10 +3367,42 @@
     padding-top: 14px;
     display: flex; flex-direction: column; gap: 8px;
   }
-  .ob-materials-hint {
-    display: flex; align-items: flex-start; gap: 6px;
-    font-size: 11px; color: var(--text-3); line-height: 1.5;
+  .ob-upload-area {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 22px 16px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: border-color 0.15s, background 0.15s;
+    text-align: center;
   }
+  .ob-upload-area:hover, .ob-upload-area.drag-over {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+  .ob-upload-label { font-size: 13px; color: var(--text-2); }
+  .ob-upload-label strong { color: var(--accent); }
+  .ob-upload-sub { font-size: 11px; color: var(--text-3); }
+  .ob-extract-bar {
+    height: 3px; border-radius: 2px; background: var(--border); overflow: hidden;
+  }
+  .ob-extract-fill {
+    height: 100%; background: var(--accent);
+    transition: width 0.3s ease; border-radius: 2px;
+  }
+  .ob-extract-msg { font-size: 11px; color: var(--text-3); }
+  .ob-files-list { display: flex; flex-direction: column; gap: 6px; }
+  .ob-file-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .ob-file-item.processing { opacity: 0.7; }
+  .ob-file-item.error { border-color: #e74c3c; }
+  .ob-file-name { flex: 1; font-weight: 500; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ob-file-size { font-size: 10px; color: var(--text-3); flex-shrink: 0; }
+  .ob-file-status { font-size: 11px; flex-shrink: 0; }
+  .ob-file-remove { background: none; border: none; cursor: pointer; color: var(--text-3); padding: 2px 4px; border-radius: 4px; font-size: 14px; line-height: 1; }
+  .ob-file-remove:hover { color: #e74c3c; }
 
   .ob-cta {
     padding: 15px 24px; border-radius: 11px; border: none;
@@ -4173,30 +4205,40 @@
                autocomplete="off">
       </div>
 
-      <div class="ob-section-title" style="margin-top:4px">Programma del corso</div>
+      <div class="ob-section-title" style="margin-top:4px">Programma del corso *</div>
 
       <div class="ob-field">
-        <div class="ob-label">Incolla il programma / elenco argomenti (opzionale ma consigliato)</div>
+        <div class="ob-label">Incolla il programma / elenco degli argomenti del corso</div>
         <textarea class="ob-textarea" id="obSyllabus"
-                  placeholder="Es: Lezione 1 — Introduzione alla psicologia&#10;Lezione 2 — Percezione e attenzione&#10;..."
+                  placeholder="Es: Lezione 1 — Introduzione alla psicologia&#10;Lezione 2 — Percezione e attenzione&#10;Lezione 3 — Memoria di lavoro&#10;..."
                   oninput="_obValidate()"></textarea>
       </div>
 
       <div class="ob-materials-section">
-        <div class="ob-section-title" style="margin-top:4px">
-          Materiale di studio
-          <span class="ob-optional-badge">opzionale</span>
+        <div class="ob-section-title" style="margin-top:4px">Dispense e materiale di studio *</div>
+        <div class="ob-label" style="margin-bottom:6px">Carica le dispense del corso (PDF, TXT) — le domande AI si baseranno su questo contenuto</div>
+
+        <!-- Drop zone -->
+        <div class="ob-upload-area" id="obUploadArea"
+             ondragover="event.preventDefault();this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="_obHandleDrop(event)"
+             onclick="document.getElementById('obFileInput').click()">
+          <i data-lucide="upload-cloud" style="width:22px;height:22px;stroke-width:1.8;color:var(--text-3)"></i>
+          <span class="ob-upload-label">Trascina i file qui o <strong>clicca per selezionare</strong></span>
+          <span class="ob-upload-sub">PDF, TXT · più file supportati</span>
+          <input type="file" id="obFileInput" accept=".pdf,.txt,.md" multiple style="display:none"
+                 onchange="_obHandleFileInput(this)">
         </div>
-        <div class="ob-field">
-          <div class="ob-label">Incolla slide, appunti o estratti del libro — le domande AI si baseranno su questo contenuto</div>
-          <textarea class="ob-textarea ob-textarea-tall" id="obMaterials"
-                    placeholder="Es: Capitolo 1 — Memoria di lavoro&#10;La memoria di lavoro (Baddeley, 1986) è un sistema a capacità limitata…&#10;&#10;Slide 3 — Modello multicomponente&#10;- Loop fonologico&#10;- Taccuino visuospaziale&#10;..."
-                    oninput="_obValidate()"></textarea>
+
+        <!-- Processing progress bar (hidden until active) -->
+        <div class="ob-extract-bar" id="obExtractBar" style="display:none">
+          <div class="ob-extract-fill" id="obExtractFill" style="width:0%"></div>
         </div>
-        <div class="ob-materials-hint">
-          <i data-lucide="info" style="width:11px;height:11px;stroke-width:2;flex-shrink:0;margin-top:1px"></i>
-          Più materiale carichi, più le domande saranno precise. Puoi aggiungerne altro in qualsiasi momento dal drawer "Fonti".
-        </div>
+        <div class="ob-extract-msg" id="obExtractMsg" style="display:none"></div>
+
+        <!-- List of uploaded files -->
+        <div class="ob-files-list" id="obFilesList"></div>
       </div>
 
       <div class="ob-error" id="obError"></div>
@@ -4880,11 +4922,14 @@ function _closeOnboarding() {
   el.classList.remove('active');
 }
 
+// Tracks successfully processed files during onboarding
+let _obPendingSources = [];
+
 function _obValidate() {
-  const subject   = (document.getElementById('obSubject')?.value   || '').trim();
-  const date      = (document.getElementById('obDate')?.value      || '').trim();
-  const hasSyllabus = (document.getElementById('obSyllabus')?.value  || '').trim().length > 20;
-  const hasMaterials= (document.getElementById('obMaterials')?.value || '').trim().length > 20;
+  const subject     = (document.getElementById('obSubject')?.value  || '').trim();
+  const date        = (document.getElementById('obDate')?.value     || '').trim();
+  const hasSyllabus = (document.getElementById('obSyllabus')?.value || '').trim().length > 20;
+  const hasFiles    = _obPendingSources.some(s => s.status === 'done');
   const cta = document.getElementById('obCta');
   if (!cta) return;
 
@@ -4892,11 +4937,103 @@ function _obValidate() {
   const s2 = document.getElementById('obStep2');
   const s3 = document.getElementById('obStep3');
   const s4 = document.getElementById('obStep4');
-  if (s2) s2.className = 'ob-step' + (hasExam       ? ' done' : '');
-  if (s3) s3.className = 'ob-step' + (hasSyllabus   ? ' done' : '');
-  if (s4) s4.className = 'ob-step' + (hasMaterials  ? ' done' : '');
+  if (s2) s2.className = 'ob-step' + (hasExam     ? ' done' : '');
+  if (s3) s3.className = 'ob-step' + (hasSyllabus ? ' done' : '');
+  if (s4) s4.className = 'ob-step' + (hasFiles    ? ' done' : '');
 
-  cta.disabled = !hasExam;
+  cta.disabled = !(hasExam && hasSyllabus && hasFiles);
+}
+
+function _obHandleFileInput(input) {
+  Array.from(input.files).forEach(_obQueueFile);
+  input.value = '';
+}
+
+function _obHandleDrop(e) {
+  e.preventDefault();
+  document.getElementById('obUploadArea').classList.remove('drag-over');
+  Array.from(e.dataTransfer.files).forEach(f => {
+    if (/\.(pdf|txt|md)$/i.test(f.name)) _obQueueFile(f);
+  });
+}
+
+function _obQueueFile(file) {
+  const id = 'ob-' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+  _obPendingSources.push({ id, name: file.name, status: 'processing', content: '', sizeBytes: file.size });
+  _obRenderFilesList();
+  _obProcessFile(id, file);
+}
+
+function _obRenderFilesList() {
+  const list = document.getElementById('obFilesList');
+  if (!list) return;
+  list.innerHTML = _obPendingSources.map(s => {
+    const icon  = s.status === 'done'       ? '✓'
+                : s.status === 'error'      ? '✗'
+                : '<div class="quiz-spinner" style="width:10px;height:10px;border-width:2px;flex-shrink:0;display:inline-block"></div>';
+    const color = s.status === 'done' ? 'color:#27ae60' : s.status === 'error' ? 'color:#e74c3c' : '';
+    const kb = Math.round(s.sizeBytes / 1024);
+    return `<div class="ob-file-item ${s.status === 'processing' ? 'processing' : ''} ${s.status === 'error' ? 'error' : ''}">
+      <span class="ob-file-status" style="${color}">${icon}</span>
+      <span class="ob-file-name">${escHtml(s.name)}</span>
+      <span class="ob-file-size">${kb > 1024 ? (kb/1024).toFixed(1)+'MB' : kb+'KB'}</span>
+      ${s.status !== 'processing' ? `<button class="ob-file-remove" onclick="_obRemoveFile('${s.id}')" title="Rimuovi">×</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function _obRemoveFile(id) {
+  _obPendingSources = _obPendingSources.filter(s => s.id !== id);
+  _obRenderFilesList();
+  _obValidate();
+}
+
+async function _obProcessFile(id, file) {
+  const bar  = document.getElementById('obExtractBar');
+  const fill = document.getElementById('obExtractFill');
+  const msg  = document.getElementById('obExtractMsg');
+  const setProgress = (pct, text) => {
+    if (bar)  { bar.style.display = 'block'; fill.style.width = pct + '%'; }
+    if (msg)  { msg.style.display = 'block'; msg.textContent = text; }
+  };
+
+  try {
+    let text = '';
+    if (/\.pdf$/i.test(file.name)) {
+      setProgress(10, `Lettura PDF: ${file.name}…`);
+      const buffer = await file.arrayBuffer();
+      setProgress(30, 'Estrazione testo…');
+      const { text: direct } = await _extractPdfText(buffer);
+      text = direct;
+      if (text.length < 100) {
+        setProgress(40, 'OCR in corso…');
+        const { pdf } = await _extractPdfText(buffer);
+        text = await _extractPdfTextOCR(pdf, (_, pct) => setProgress(40 + pct * 0.5, `OCR ${Math.round(pct)}%…`));
+      }
+      setProgress(95, 'Salvataggio…');
+    } else {
+      setProgress(30, `Lettura file: ${file.name}…`);
+      text = await file.text();
+      setProgress(95, 'Salvataggio…');
+    }
+
+    if (!text || text.trim().length < 20)
+      throw new Error('Nessun testo estraibile. Il file potrebbe essere criptato o vuoto.');
+
+    const src = _obPendingSources.find(s => s.id === id);
+    if (src) { src.status = 'done'; src.content = text.slice(0, 14000); }
+    setProgress(100, `✓ ${file.name} aggiunto`);
+    setTimeout(() => { if (bar) bar.style.display = 'none'; if (msg) msg.style.display = 'none'; }, 1500);
+
+  } catch(e) {
+    const src = _obPendingSources.find(s => s.id === id);
+    if (src) { src.status = 'error'; src.errorMsg = e.message; }
+    if (bar) bar.style.display = 'none';
+    if (msg) { msg.style.display = 'block'; msg.textContent = '✗ ' + e.message; msg.style.color = '#e74c3c'; }
+  }
+
+  _obRenderFilesList();
+  _obValidate();
 }
 
 async function _runOnboarding() {
@@ -4904,11 +5041,19 @@ async function _runOnboarding() {
   const professor = (document.getElementById('obProfessor')?.value || '').trim();
   const date      = (document.getElementById('obDate')?.value      || '').trim();
   const syllabus  = (document.getElementById('obSyllabus')?.value  || '').trim();
-  const materials = (document.getElementById('obMaterials')?.value || '').trim();
   const errEl     = document.getElementById('obError');
 
   if (!subject || !date) {
     if (errEl) errEl.textContent = 'Materia e data esame sono obbligatorie.';
+    return;
+  }
+  if (!syllabus || syllabus.length < 20) {
+    if (errEl) errEl.textContent = 'Incolla il programma del corso prima di procedere.';
+    return;
+  }
+  const readyFiles = _obPendingSources.filter(s => s.status === 'done');
+  if (!readyFiles.length) {
+    if (errEl) errEl.textContent = 'Carica almeno un file di dispense prima di procedere.';
     return;
   }
 
@@ -4923,37 +5068,30 @@ async function _runOnboarding() {
   // 1. Save exam info
   _safeLSSet('psico_exam_info', JSON.stringify({ subject, professor, date }));
 
-  // 2. Save sources: syllabus first (highest priority), then study materials
-  const existing = JSON.parse(localStorage.getItem('psico_sources') || '[]');
-  let sourcesChanged = false;
-
-  if (materials && !existing.some(s => s.id === 'ob-materials')) {
-    existing.unshift({
-      id: 'ob-materials',
-      title: 'Materiale di studio',
-      content: materials.slice(0, 14000),
-      sizeBytes: materials.length,
+  // 2. Build sources array: syllabus first, then uploaded files
+  const sources = [];
+  sources.push({
+    id: 'ob-syllabus',
+    title: 'Programma del corso',
+    content: syllabus.slice(0, 14000),
+    sizeBytes: syllabus.length,
+    type: 'text',
+    addedAt: Date.now()
+  });
+  readyFiles.forEach(f => {
+    sources.push({
+      id: f.id,
+      title: f.name.replace(/\.(pdf|txt|md)$/i, ''),
+      content: f.content,
+      sizeBytes: f.sizeBytes,
       type: 'text',
       addedAt: Date.now()
     });
-    sourcesChanged = true;
-  }
+  });
+  _safeLSSet('psico_sources', JSON.stringify(sources));
 
-  if (syllabus && !existing.some(s => s.id === 'ob-syllabus')) {
-    existing.unshift({
-      id: 'ob-syllabus',
-      title: 'Programma del corso',
-      content: syllabus.slice(0, 14000),
-      sizeBytes: syllabus.length,
-      type: 'text',
-      addedAt: Date.now()
-    });
-    sourcesChanged = true;
-  }
-
-  if (sourcesChanged) _safeLSSet('psico_sources', JSON.stringify(existing));
-
-  // 3. Close onboarding, then generate plan
+  // 3. Reset pending list, close onboarding, generate plan
+  _obPendingSources = [];
   _closeOnboarding();
   await generateStudyPlan(true);
 }
