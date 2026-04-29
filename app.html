@@ -838,6 +838,79 @@
     margin-top: 2px;
   }
 
+  /* ── Source reference badge ──────────────────────────────── */
+  .q-source-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .q-source-tag-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 5px;
+    padding: 2px 7px;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: background 0.15s;
+  }
+  .q-source-tag-btn:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .q-source-expand {
+    display: none;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-2);
+    background: var(--surface);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 5px 5px 0;
+    padding: 6px 10px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .q-source-tag.open .q-source-expand { display: block; }
+  .q-source-tag.open .q-source-tag-btn { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+
+  /* Quiz source ref */
+  .quiz-source-ref-wrap {
+    margin: 6px 0 2px;
+  }
+  .quiz-source-ref-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: 5px;
+    padding: 2px 8px;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: background 0.15s;
+  }
+  .quiz-source-ref-btn:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .quiz-source-ref-expand {
+    display: none;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-2);
+    background: var(--surface);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 5px 5px 0;
+    padding: 6px 10px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .quiz-source-ref-wrap.open .quiz-source-ref-expand { display: block; }
+  .quiz-source-ref-wrap.open .quiz-source-ref-btn { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+
   .notes-area {
     margin-top: 10px;
   }
@@ -6141,6 +6214,12 @@ function _renderQsPanel(dayId) {
         _fbShowAnswerBtn;
     const qTypeEscaped = (q.type || '').replace(/'/g, "\\'");
     const qTextEscaped = q.text.replace(/'/g, "\\'");
+    const _doneSourceTag = q.sourceRef
+      ? `<div class="q-source-tag" onclick="event.stopPropagation();this.classList.toggle('open')" style="margin-top:6px">
+          <span class="q-source-tag-btn"><i data-lucide="book-open" style="width:10px;height:10px;stroke-width:2.2;flex-shrink:0"></i> Fonte</span>
+          <span class="q-source-expand">${escHtml(q.sourceRef)}</span>
+         </div>`
+      : '';
     return `
       <div class="q-done-summary" id="done-q-${dayId}-${i}">
         <button class="q-done-toggle" onclick="toggleDoneQ('${dayId}', ${i})">
@@ -6149,6 +6228,7 @@ function _renderQsPanel(dayId) {
           <span class="q-done-chevron">›</span>
         </button>
         <div class="q-done-body">
+          ${_doneSourceTag}
           <div class="q-done-answer-label">La tua risposta</div>
           <div class="q-done-answer-text" id="done-ans-text-${dayId}-${i}">${ansPreview}</div>
           <div class="q-feedback ${fb.grade || ''} visible" style="margin-top:0" id="done-fb-${dayId}-${i}">${fbContent}</div>
@@ -6214,6 +6294,13 @@ function _renderQsPanel(dayId) {
   const existingAns = answers[activeIdx] || '';
   const canVerify = existingAns.trim().length >= MIN_ANSWER_CHARS;
 
+  const _srcTagHtml = (q.sourceRef)
+    ? `<div class="q-source-tag" onclick="this.classList.toggle('open')">
+        <span class="q-source-tag-btn"><i data-lucide="book-open" style="width:10px;height:10px;stroke-width:2.2;flex-shrink:0"></i> Fonte</span>
+        <span class="q-source-expand">${escHtml(q.sourceRef)}</span>
+       </div>`
+    : '';
+
   const activeHtml = `
     <div class="q-active-card">
       <div class="q-active-label">In corso — ${activeIdx + 1} di ${qList.length}</div>
@@ -6221,6 +6308,7 @@ function _renderQsPanel(dayId) {
         <div class="q-text">${q.text}</div>
         <div class="q-type">${_qTypeBadge(q.type)}</div>
       </div>
+      ${_srcTagHtml}
       <div class="q-answer-area">
         <textarea class="q-answer-input" id="answer-${dayId}-${activeIdx}"
           placeholder="Scrivi qui la tua risposta…"
@@ -8152,8 +8240,10 @@ AUTO-VALIDAZIONE — prima di finalizzare ogni domanda, verifica internamente:
 ✓ Il livello è adeguato per un esame universitario scritto?
 Se una domanda non supera la validazione, riscrivila prima di includerla.
 
+TRACCIABILITÀ FONTE (obbligatoria): per ogni domanda includi il campo "sourceRef" con: nome del file/fonte, titolo sezione o numero slide, e un breve estratto tra virgolette (max 120 caratteri) che dimostri che il concetto è nelle fonti. Formato: "NomeFonte — Sezione/Slide N: «estratto»"
+
 Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo prima o dopo) nel formato:
-[{"q":"testo domanda","opts":["opzione A","opzione B","opzione C","opzione D"],"ans":0,"exp":"spiegazione della risposta corretta (1-2 frasi, spiega perché è giusta e perché le altre sono errate)","diff":"base|intermedio|avanzato","bloom":"ricordo|comprensione|applicazione"}]
+[{"q":"testo domanda","opts":["opzione A","opzione B","opzione C","opzione D"],"ans":0,"exp":"spiegazione della risposta corretta (1-2 frasi, spiega perché è giusta e perché le altre sono errate)","diff":"base|intermedio|avanzato","bloom":"ricordo|comprensione|applicazione","sourceRef":"NomeFonte — Sezione: «estratto dal testo»"}]
 Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
 
   try {
@@ -8167,12 +8257,12 @@ Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 3500,
+        max_tokens: 4200,
         temperature: 1,
         system: systemPrompt,
         messages: [{
           role: 'user',
-          content: `Argomento: ${topic}\n\n[Sessione #${Date.now()}-${Math.random().toString(36).slice(2,7)}] Genera un set di domande COMPLETAMENTE NUOVO e DIVERSO rispetto a qualsiasi sessione precedente. Varia i concetti scelti, le formulazioni e i distrattori.\n\nRicorda: le domande devono riguardare concetti, modelli, autori ed esperimenti SPECIFICI di questo argomento${hasSources ? ', presenti nelle fonti fornite' : ''}. Evita domande generiche, metodologiche o metadisciplinari.`
+          content: `Argomento: ${topic}\n\n[Sessione #${Date.now()}-${Math.random().toString(36).slice(2,7)}] Genera un set di domande COMPLETAMENTE NUOVO e DIVERSO rispetto a qualsiasi sessione precedente. Varia i concetti scelti, le formulazioni e i distrattori.\n\nRicorda: le domande devono riguardare concetti, modelli, autori ed esperimenti SPECIFICI di questo argomento${hasSources ? ', presenti nelle fonti fornite' : ''}. Evita domande generiche, metodologiche o metadisciplinari.\n\nOBBLIGATORIO: includi "sourceRef" per ogni domanda con la citazione della sezione/slide specifica e l'estratto testuale dalle fonti.`
         }]
       })
     });
@@ -8245,6 +8335,19 @@ function _showQuizQuestion(idx) {
       bloom ? `<span class="quiz-bloom-tag">${bloomLabels[bloom] || bloom}</span>` : ''
     ].join('');
     metaEl.style.display = (diff || bloom) ? '' : 'none';
+  }
+
+  // Source reference badge
+  const srcWrap = document.getElementById('quizSourceRefWrap');
+  const srcText = document.getElementById('quizSourceRefText');
+  if (srcWrap && srcText) {
+    if (q.sourceRef) {
+      srcText.textContent = q.sourceRef;
+      srcWrap.classList.remove('open');
+      srcWrap.style.display = '';
+    } else {
+      srcWrap.style.display = 'none';
+    }
   }
 
   const expEl  = document.getElementById('quizExplanation');
@@ -9153,8 +9256,10 @@ QUALITÀ:
 - Livello universitario, non banale
 - Evita domande che chiunque con una conoscenza generica della psicologia potrebbe rispondere senza aver studiato le fonti
 
+TRACCIABILITÀ FONTE (obbligatoria): per ogni domanda indica da quale parte delle fonti è stata ricavata. Il campo "sourceRef" deve contenere: nome del file/fonte, titolo della sezione o numero di slide, e un breve estratto testuale tra virgolette (max 120 caratteri) che dimostra che il concetto è presente nelle fonti. Formato: "NomeFonte — Sezione/Slide N: «estratto»"
+
 Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
-[{"text":"testo della domanda","type":"definizione|meccanismo|connessione"}]`;
+[{"text":"testo della domanda","type":"definizione|meccanismo|connessione","sourceRef":"NomeFonte — Sezione: «estratto dal testo»"}]`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -9167,10 +9272,10 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2500,
+        max_tokens: 3200,
         temperature: 1,
         system: systemPrompt,
-        messages: [{ role: 'user', content: `Argomento: ${topic}\n\nGenera le domande traendo ESCLUSIVAMENTE dai contenuti delle fonti fornite nel system prompt. Ogni domanda deve fare riferimento a concetti, teorie, autori, modelli o esperimenti esplicitamente menzionati nelle fonti. Evita domande generiche che non richiedano la conoscenza specifica del materiale.` }]
+        messages: [{ role: 'user', content: `Argomento: ${topic}\n\nGenera le domande traendo ESCLUSIVAMENTE dai contenuti delle fonti fornite nel system prompt. Ogni domanda deve fare riferimento a concetti, teorie, autori, modelli o esperimenti esplicitamente menzionati nelle fonti. Evita domande generiche che non richiedano la conoscenza specifica del materiale.\n\nOBBLIGATORIO: includi il campo "sourceRef" per ogni domanda con la citazione della sezione/slide e l'estratto testuale specifico dalle fonti.` }]
       })
     });
     if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
@@ -9859,6 +9964,12 @@ updateSourcesBtn();
       <div class="quiz-question-num" id="quizQuestionNum">1 / 6</div>
       <div class="quiz-question-text" id="quizQuestionText"></div>
       <div class="quiz-q-meta" id="quizQMeta" style="display:none"></div>
+      <div class="quiz-source-ref-wrap" id="quizSourceRefWrap" style="display:none">
+        <span class="quiz-source-ref-btn" onclick="this.closest('.quiz-source-ref-wrap').classList.toggle('open')">
+          <i data-lucide="book-open" style="width:10px;height:10px;stroke-width:2.2;flex-shrink:0"></i> Fonte
+        </span>
+        <div class="quiz-source-ref-expand" id="quizSourceRefText"></div>
+      </div>
       <div class="quiz-options" id="quizOptions"></div>
       <div class="quiz-explanation" id="quizExplanation" style="display:none"></div>
       <button class="quiz-next-btn" id="quizNextBtn" onclick="nextQuizQuestion()" style="display:none">Prossima <i data-lucide="arrow-right" style="width:13px;height:13px;stroke-width:2.2"></i></button>
