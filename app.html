@@ -1305,6 +1305,78 @@
     border-color: var(--border); color: var(--text-3);
     background: transparent;
   }
+  /* ── Skip question button & skipped cards ───────────────── */
+  .q-skip-btn {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    padding: 8px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    flex-shrink: 0;
+  }
+  .q-skip-btn:hover { border-color: var(--skip-text); color: var(--skip-text); background: color-mix(in srgb, var(--skip-text) 8%, transparent); }
+
+  .skipped-questions-area {
+    margin-top: 14px;
+  }
+  .skipped-qs-header {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--skip-text);
+    font-weight: 600;
+    padding: 0 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .q-skipped-card {
+    border: 1px solid color-mix(in srgb, var(--skip-text) 35%, transparent);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: color-mix(in srgb, var(--skip-text) 5%, transparent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .q-skipped-text {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.45;
+  }
+  .q-resume-btn {
+    font-family: 'Inter', monospace;
+    font-size: 10px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid color-mix(in srgb, var(--skip-text) 50%, transparent);
+    background: transparent;
+    color: var(--skip-text);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .q-resume-btn:hover { background: color-mix(in srgb, var(--skip-text) 12%, transparent); }
+
+  .session-dot.skipped {
+    background: transparent;
+    border-color: var(--skip-text);
+    opacity: 0.7;
+  }
+
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   @keyframes mic-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(217, 84, 84, 0.45); }
@@ -6113,7 +6185,23 @@ const _MIC_SVG = `<i data-lucide="mic" style="width:14px;height:14px;stroke-widt
 
 function _nextUnverifiedIdx(dayId, qList) {
   const feedbacks = state[dayId]?.feedbacks || {};
-  return qList.findIndex((q, i) => !feedbacks[i]);
+  const skipped   = state[dayId]?.skipped   || {};
+  return qList.findIndex((q, i) => !feedbacks[i] && !skipped[i]);
+}
+
+function skipQuestion(dayId, qIdx) {
+  if (!state[dayId]) state[dayId] = {};
+  if (!state[dayId].skipped) state[dayId].skipped = {};
+  state[dayId].skipped[qIdx] = true;
+  saveState();
+  showDay(dayId);
+}
+
+function resumeSkippedQuestion(dayId, qIdx) {
+  if (!state[dayId]?.skipped) return;
+  delete state[dayId].skipped[qIdx];
+  saveState();
+  showDay(dayId);
 }
 
 function startDaySession(dayId) {
@@ -6165,9 +6253,12 @@ function _renderQsPanel(dayId) {
 
   const feedbacks = dayState.feedbacks || {};
   const answers   = dayState.answers   || {};
+  const skipped   = dayState.skipped   || {};
   const completedCount = qList.filter((q, i) => feedbacks[i]).length;
+  const skippedIdxs = qList.map((q, i) => i).filter(i => skipped[i] && !feedbacks[i]);
   const activeIdx  = _nextUnverifiedIdx(dayId, qList);
-  const allDone    = activeIdx === -1;
+  // allDone: no more active questions AND no skipped-without-feedback left
+  const allDone    = activeIdx === -1 && skippedIdxs.length === 0;
 
   // ── Completed questions HTML (collapsed cards) ──────────────
   const _completedHtml = () => {
@@ -6255,7 +6346,7 @@ function _renderQsPanel(dayId) {
   if (!sessionStarted) {
     const btnLabel = completedCount > 0 ? '<i data-lucide="play" style="width:13px;height:13px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i> Riprendi sessione' : '<i data-lucide="play" style="width:13px;height:13px;stroke-width:2.2;fill:currentColor;flex-shrink:0"></i> Inizia sessione';
     const dots = qList.map((q, i) =>
-      `<span class="session-dot${feedbacks[i] ? ' done ' + feedbacks[i].grade : (answers[i] && answers[i].trim().length > 15 ? ' answered' : '')}"></span>`
+      `<span class="session-dot${feedbacks[i] ? ' done ' + feedbacks[i].grade : skipped[i] ? ' skipped' : (answers[i] && answers[i].trim().length > 15 ? ' answered' : '')}"></span>`
     ).join('');
     const progressLabel = completedCount > 0
       ? `${completedCount} di ${qList.length} domande completate`
@@ -6289,6 +6380,29 @@ function _renderQsPanel(dayId) {
     return;
   }
 
+  // ── Active idx exhausted but skipped questions remain ────────
+  if (activeIdx === -1 && skippedIdxs.length > 0) {
+    const _skippedOnlyHtml = `<div class="skipped-questions-area">
+      <div class="skipped-qs-header">
+        <i data-lucide="skip-forward" style="width:11px;height:11px;stroke-width:2.2"></i>
+        Hai saltato ${skippedIdxs.length} domand${skippedIdxs.length === 1 ? 'a' : 'e'} — riprendile quando sei pronto
+      </div>
+      ${skippedIdxs.map(i => {
+        const sq = qList[i];
+        return `<div class="q-skipped-card">
+          <span class="q-skipped-text">${escHtml(sq.text)}</span>
+          <button class="q-resume-btn" onclick="resumeSkippedQuestion('${dayId}', ${i})">
+            <i data-lucide="rotate-ccw" style="width:10px;height:10px;stroke-width:2.2;flex-shrink:0"></i> Riprendi
+          </button>
+        </div>`;
+      }).join('')}
+    </div>`;
+    container.innerHTML = _skippedOnlyHtml +
+      `<div class="done-questions-area"><div class="done-qs-header">Completate</div>${_completedHtml()}</div>`;
+    lucide.createIcons();
+    return;
+  }
+
   // ── Active question ──────────────────────────────────────────
   const q = qList[activeIdx];
   const existingAns = answers[activeIdx] || '';
@@ -6316,6 +6430,10 @@ function _renderQsPanel(dayId) {
         <div class="q-answer-bar">
           <button class="q-mic-btn" id="mic-${dayId}-${activeIdx}"
             onclick="startVoiceDictation('${dayId}', ${activeIdx})" title="Trascrivi con voce">${_MIC_SVG}</button>
+          <button class="q-skip-btn"
+            onclick="skipQuestion('${dayId}', ${activeIdx})" title="Salta questa domanda e riprendi dopo">
+            <i data-lucide="skip-forward" style="width:11px;height:11px;stroke-width:2.2;flex-shrink:0"></i> Salta
+          </button>
           <button class="q-verify-btn" id="verify-${dayId}-${activeIdx}"
             ${canVerify ? '' : 'disabled'}
             onclick="verifyAnswer('${dayId}', ${activeIdx}, '${q.text.replace(/'/g,"\\'")}', '${q.type}')"><i data-lucide="check-circle" style="width:13px;height:13px;stroke-width:2.2;flex-shrink:0"></i> Verifica risposta</button>
@@ -6328,7 +6446,25 @@ function _renderQsPanel(dayId) {
     ? `<div class="done-questions-area"><div class="done-qs-header">Completate</div>${_completedHtml()}</div>`
     : '';
 
-  container.innerHTML = activeHtml + doneHtml;
+  const _skippedHtml = skippedIdxs.length
+    ? `<div class="skipped-questions-area">
+        <div class="skipped-qs-header">
+          <i data-lucide="skip-forward" style="width:11px;height:11px;stroke-width:2.2"></i>
+          Saltate — da riprendere (${skippedIdxs.length})
+        </div>
+        ${skippedIdxs.map(i => {
+          const sq = qList[i];
+          return `<div class="q-skipped-card">
+            <span class="q-skipped-text">${escHtml(sq.text)}</span>
+            <button class="q-resume-btn" onclick="resumeSkippedQuestion('${dayId}', ${i})">
+              <i data-lucide="rotate-ccw" style="width:10px;height:10px;stroke-width:2.2;flex-shrink:0"></i> Riprendi
+            </button>
+          </div>`;
+        }).join('')}
+      </div>`
+    : '';
+
+  container.innerHTML = activeHtml + _skippedHtml + doneHtml;
   lucide.createIcons();
 }
 
