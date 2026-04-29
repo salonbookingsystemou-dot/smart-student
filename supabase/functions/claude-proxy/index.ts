@@ -124,13 +124,16 @@ Deno.serve(async (req) => {
     const inputTokens  = (data as { usage?: { input_tokens?: number } }).usage?.input_tokens  ?? 0
     const outputTokens = (data as { usage?: { output_tokens?: number } }).usage?.output_tokens ?? 0
 
-    sb.rpc('increment_api_usage', {
-      p_user_id:       user.id,
-      p_date:          today,
-      p_calls:         1,
-      p_input_tokens:  inputTokens,
-      p_output_tokens: outputTokens,
-    }).catch((e: unknown) => console.warn('[claude-proxy] usage log failed:', (e as Error)?.message))
+    ;(async () => {
+      const { error: rpcErr } = await sb.rpc('increment_api_usage', {
+        p_user_id:       user.id,
+        p_date:          today,
+        p_calls:         1,
+        p_input_tokens:  inputTokens,
+        p_output_tokens: outputTokens,
+      })
+      if (rpcErr) console.warn('[claude-proxy] usage log failed:', rpcErr.message)
+    })()
 
     return new Response(JSON.stringify(data), {
       status: anthropicRes.status,
