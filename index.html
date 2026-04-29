@@ -81,13 +81,18 @@
       justify-content: space-between;
     }
     .nav-logo {
-      font-family: var(--serif);
-      font-size: 1.5rem;
-      color: var(--white);
+      display: flex;
+      align-items: center;
       text-decoration: none;
-      letter-spacing: -0.02em;
+      flex-shrink: 0;
     }
-    .nav-logo span { color: var(--accent); }
+    .nav-logo img {
+      height: 28px;
+      width: auto;
+      object-fit: contain;
+      filter: invert(1);
+    }
+    [data-theme="light"] .nav-logo img { filter: none; }
     .nav-cta {
       display: inline-flex;
       align-items: center;
@@ -683,12 +688,17 @@
       flex-wrap: wrap;
     }
     .footer-logo {
-      font-family: var(--serif);
-      font-size: 1.3rem;
-      color: var(--white);
+      display: flex;
+      align-items: center;
       text-decoration: none;
     }
-    .footer-logo span { color: var(--accent); }
+    .footer-logo img {
+      height: 24px;
+      width: auto;
+      object-fit: contain;
+      filter: invert(1);
+      opacity: 0.85;
+    }
     .footer-links { display: flex; gap: 24px; }
     .footer-links a {
       font-size: 0.82rem;
@@ -725,7 +735,10 @@
 <!-- ─── NAV ─── -->
 <nav id="main-nav">
   <div class="container nav-inner">
-    <a href="https://mnesti.it" class="nav-logo">Mn<span>e</span>sti</a>
+    <a href="https://mnesti.it" class="nav-logo">
+      <img src="logo-full.png" alt="Mnesti"
+           onerror="this.onerror=null;this.src='logo-mark.png';this.style.height='26px'">
+    </a>
     <a href="./app.html" class="nav-cta">Inizia gratis
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
@@ -1037,7 +1050,10 @@
 <!-- ─── FOOTER ─── -->
 <footer>
   <div class="container footer-inner">
-    <a href="https://mnesti.it" class="footer-logo">Mn<span>e</span>sti</a>
+    <a href="https://mnesti.it" class="footer-logo">
+      <img src="logo-full.png" alt="Mnesti"
+           onerror="this.onerror=null;this.src='logo-mark.png';this.style.height='22px'">
+    </a>
     <div class="footer-links">
       <a href="https://mnesti.it">mnesti.it</a>
       <a href="#">Privacy</a>
