@@ -6196,25 +6196,35 @@ async function _callClaude(payload) {
   const token = window._getSBToken ? await window._getSBToken() : null;
   if (!token) throw new Error('Sessione scaduta — effettua di nuovo il login.');
 
-  const res = await fetch(`${window._SB_URL}/functions/v1/claude-proxy`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
+  let res, data;
+  try {
+    res = await fetch(`${window._SB_URL}/functions/v1/claude-proxy`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (netErr) {
+    throw new Error(`Errore di rete — controlla la connessione. (${netErr.message})`);
+  }
 
-  const data = await res.json();
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(`Risposta non valida dal server (HTTP ${res.status})`);
+  }
 
   if (!res.ok) {
-    if (data.code === 'RATE_LIMIT') {
-      throw new Error('⚠️ Limite giornaliero raggiunto (150 chiamate). Riprova domani.');
+    const msg = data?.error?.message || data?.error || data?.message || `Errore API (${res.status})`;
+    if (data?.code === 'RATE_LIMIT') {
+      throw new Error(`⚠️ Limite giornaliero raggiunto. Riprova domani. (${data.calls_today}/${data.limit} chiamate)`);
     }
-    if (data.code === 'UNAUTHORIZED') {
+    if (data?.code === 'UNAUTHORIZED') {
       throw new Error('Sessione scaduta — effettua di nuovo il login.');
     }
-    throw new Error(data.error?.message || data.error || `Errore API (${res.status})`);
+    throw new Error(msg);
   }
 
   return data;
@@ -7837,12 +7847,7 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
 
   } catch(err) {
     feedbackEl.className = 'q-feedback poor visible';
-    feedbackEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div>' + err.message;
-    if (err.message.includes('401') || err.message.includes('auth')) {
-      localStorage.removeItem('anthropic_api_key');
-      updateApiIndicator();
-      feedbackEl.innerHTML += '<br><small>API key non valida. Clicca su "API non configurata" per inserirne una nuova.</small>';
-    }
+    feedbackEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div><div style="font-size:13px;margin-top:4px">' + (err.message || 'Errore sconosciuto') + '</div>';
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="check-circle" style="width:13px;height:13px;stroke-width:2.2;flex-shrink:0"></i> Verifica risposta'; lucide.createIcons();

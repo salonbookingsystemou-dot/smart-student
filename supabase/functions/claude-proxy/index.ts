@@ -2,8 +2,7 @@
 // Verifies user JWT, enforces rate limiting, forwards to Anthropic.
 // The ANTHROPIC_API_KEY is stored as a Supabase secret — never exposed to clients.
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -11,11 +10,9 @@ const CORS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-// Daily call limit per user (free tier). Increase or make plan-based later.
 const FREE_DAILY_CALLS = 150
 
-serve(async (req) => {
-  // Handle preflight
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS })
   }
@@ -27,56 +24,77 @@ serve(async (req) => {
       return json({ error: 'Non autenticato', code: 'UNAUTHORIZED' }, 401)
     }
 
-    const sb = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    )
+    const supabaseUrl  = Deno.env.get('SUPABASE_URL')
+    const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY')
+
+    if (!supabaseUrl || !supabaseAnon) {
+      console.error('[claude-proxy] SUPABASE_URL or SUPABASE_ANON_KEY not set')
+      return json({ error: 'Configurazione server incompleta (Supabase)', code: 'SERVER_ERROR' }, 500)
+    }
+
+    const sb = createClient(supabaseUrl, supabaseAnon, {
+      global: { headers: { Authorization: authHeader } }
+    })
 
     const { data: { user }, error: authErr } = await sb.auth.getUser()
     if (authErr || !user) {
-      return json({ error: 'Non autenticato', code: 'UNAUTHORIZED' }, 401)
+      return json({ error: 'Sessione scaduta — effettua il login', code: 'UNAUTHORIZED' }, 401)
     }
 
-    // ── 2. Rate limiting ──────────────────────────────────────────
-    const today = new Date().toISOString().split('T')[0]
+    // ── 2. Rate limiting (graceful: skip if tables missing) ───────
+    let callsToday = 0
+    let isPaid = false
 
-    const { data: usageRow } = await sb
-      .from('api_usage')
-      .select('call_count')
-      .eq('user_id', user.id)
-      .eq('date', today)
-      .maybeSingle()
+    try {
+      const today = new Date().toISOString().split('T')[0]
 
-    const callsToday = usageRow?.call_count ?? 0
+      const { data: usageRow } = await sb
+        .from('api_usage')
+        .select('call_count')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .maybeSingle()
 
-    // Check user plan for higher limits (future Stripe integration)
-    const { data: planRow } = await sb
-      .from('user_plans')
-      .select('plan_type, valid_until')
-      .eq('user_id', user.id)
-      .maybeSingle()
+      callsToday = usageRow?.call_count ?? 0
 
-    const isPaid = planRow && planRow.plan_type !== 'free' &&
-      (!planRow.valid_until || new Date(planRow.valid_until) > new Date())
-    const dailyLimit = isPaid ? 500 : FREE_DAILY_CALLS
+      const { data: planRow } = await sb
+        .from('user_plans')
+        .select('plan_type, valid_until')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-    if (callsToday >= dailyLimit) {
-      return json({
-        error: 'Limite giornaliero raggiunto. Riprova domani.',
-        code: 'RATE_LIMIT',
-        calls_today: callsToday,
-        limit: dailyLimit
-      }, 429)
+      isPaid = !!(planRow &&
+        planRow.plan_type !== 'free' &&
+        (!planRow.valid_until || new Date(planRow.valid_until) > new Date()))
+
+      const dailyLimit = isPaid ? 500 : FREE_DAILY_CALLS
+      if (callsToday >= dailyLimit) {
+        return json({
+          error: `Limite giornaliero raggiunto (${dailyLimit} chiamate). Riprova domani.`,
+          code: 'RATE_LIMIT',
+          calls_today: callsToday,
+          limit: dailyLimit
+        }, 429)
+      }
+    } catch (rateErr) {
+      // Tables might not exist yet — log and continue
+      console.warn('[claude-proxy] Rate limit check skipped:', rateErr?.message)
     }
 
-    // ── 3. Forward to Anthropic ───────────────────────────────────
+    // ── 3. Check API key ──────────────────────────────────────────
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
     if (!apiKey) {
-      return json({ error: 'Chiave API non configurata lato server', code: 'SERVER_ERROR' }, 500)
+      console.error('[claude-proxy] ANTHROPIC_API_KEY secret not set')
+      return json({ error: 'Chiave API Anthropic non configurata sul server. Contatta l\'amministratore.', code: 'SERVER_ERROR' }, 500)
     }
 
-    const payload = await req.json()
+    // ── 4. Parse & forward to Anthropic ──────────────────────────
+    let payload: unknown
+    try {
+      payload = await req.json()
+    } catch {
+      return json({ error: 'Richiesta malformata (JSON non valido)', code: 'BAD_REQUEST' }, 400)
+    }
 
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -88,20 +106,31 @@ serve(async (req) => {
       body: JSON.stringify(payload),
     })
 
-    const data = await anthropicRes.json()
+    let data: Record<string, unknown>
+    try {
+      data = await anthropicRes.json()
+    } catch {
+      console.error('[claude-proxy] Anthropic returned non-JSON response, status:', anthropicRes.status)
+      return json({ error: `Errore Anthropic (${anthropicRes.status}) — risposta non valida`, code: 'ANTHROPIC_ERROR' }, 502)
+    }
 
-    // ── 4. Log usage (upsert) ─────────────────────────────────────
-    const inputTokens  = data.usage?.input_tokens  ?? 0
-    const outputTokens = data.usage?.output_tokens ?? 0
+    // Log Anthropic-level errors for debugging
+    if (!anthropicRes.ok) {
+      console.error('[claude-proxy] Anthropic error:', anthropicRes.status, JSON.stringify(data))
+    }
 
-    // Fire-and-forget — don't block the response
+    // ── 5. Log usage (fire-and-forget) ────────────────────────────
+    const today = new Date().toISOString().split('T')[0]
+    const inputTokens  = (data as { usage?: { input_tokens?: number } }).usage?.input_tokens  ?? 0
+    const outputTokens = (data as { usage?: { output_tokens?: number } }).usage?.output_tokens ?? 0
+
     sb.rpc('increment_api_usage', {
       p_user_id:       user.id,
       p_date:          today,
       p_calls:         1,
       p_input_tokens:  inputTokens,
       p_output_tokens: outputTokens,
-    }).catch(() => { /* non-critical */ })
+    }).catch((e: unknown) => console.warn('[claude-proxy] usage log failed:', (e as Error)?.message))
 
     return new Response(JSON.stringify(data), {
       status: anthropicRes.status,
@@ -109,8 +138,8 @@ serve(async (req) => {
     })
 
   } catch (err) {
-    console.error('[claude-proxy]', err)
-    return json({ error: 'Errore interno del server', code: 'SERVER_ERROR' }, 500)
+    console.error('[claude-proxy] Unhandled error:', err)
+    return json({ error: `Errore interno: ${(err as Error)?.message ?? 'sconosciuto'}`, code: 'SERVER_ERROR' }, 500)
   }
 })
 
