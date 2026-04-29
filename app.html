@@ -3306,19 +3306,13 @@
   }
 
   .ob-logo {
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; justify-content: center;
   }
   .ob-logo-img {
-    /* logo-mark.png now cropped to 284×152 ratio */
-    height: 20px; width: auto; object-fit: contain;
-    filter: invert(1); /* dark mode: black→white */
+    height: 24px; width: auto; object-fit: contain;
+    filter: invert(1);
   }
   [data-theme="light"] .ob-logo-img { filter: none; }
-  .ob-logo-text {
-    font-family: 'Inter', sans-serif; font-size: 15px;
-    font-weight: 700; letter-spacing: -0.03em; color: var(--text-1);
-  }
-  .ob-logo-text span { color: var(--accent); }
 
   .ob-hero { display: flex; flex-direction: column; gap: 6px; }
   .ob-hero h2 {
@@ -4122,8 +4116,8 @@
 <div class="ob-overlay" id="obOverlay">
   <div class="ob-box">
     <div class="ob-logo">
-      <img class="ob-logo-img" src="logo-mark.png" alt="" onerror="this.style.display='none'">
-      <span class="ob-logo-text">Mne<span>sti</span></span>
+      <img class="ob-logo-img" src="logo-full.png" alt="Mnesti"
+           onerror="this.src='logo-mark.png';this.style.height='20px'">
     </div>
 
     <div class="ob-hero">
