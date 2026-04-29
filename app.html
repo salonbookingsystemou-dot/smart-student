@@ -3381,6 +3381,7 @@
   .ob-upload-label { font-size: 13px; color: var(--text-2); }
   .ob-upload-label strong { color: var(--accent); }
   .ob-upload-sub { font-size: 11px; color: var(--text-3); }
+  .ob-upload-hint { font-size: 10px; color: var(--text-3); line-height: 1.5; margin-top: 2px; }
   .ob-extract-bar {
     height: 3px; border-radius: 2px; background: var(--border); overflow: hidden;
   }
@@ -4227,6 +4228,7 @@
           <i data-lucide="upload-cloud" style="width:22px;height:22px;stroke-width:1.8;color:var(--text-3)"></i>
           <span class="ob-upload-label">Trascina i file qui o <strong>clicca per selezionare</strong></span>
           <span class="ob-upload-sub">PDF, TXT · più file supportati</span>
+          <span class="ob-upload-hint">Più materiale del corso carichi e più raffinato sarà il piano di studio,<br>potrai comunque aggiungere altre fonti successivamente</span>
           <input type="file" id="obFileInput" accept=".pdf,.txt,.md" multiple style="display:none"
                  onchange="_obHandleFileInput(this)">
         </div>
