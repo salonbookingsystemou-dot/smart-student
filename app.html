@@ -9229,7 +9229,14 @@ async function generateQuestionsFromSource(dayId) {
   }
   const day = getActiveDays().find(d => d.id === dayId);
   if (!day) return;
-  const topic = day.sections?.map(s => s.title).join(', ') || day.title || dayId;
+  const topic = day.title || dayId;
+
+  // Build coverage map from day sections
+  const daySections = (day.sections || []).filter(s => s.title);
+  const coverageMap = daySections.length
+    ? daySections.map((s, i) => `  ${i + 1}. ${s.title}${s.ref ? ' (' + s.ref + ')' : ''}`).join('\n')
+    : null;
+  const nQuestions = Math.max(7, daySections.length);
 
   const btn = document.getElementById('genq-btn-' + dayId);
   if (btn) { btn.classList.add('loading'); btn.innerHTML = '<i data-lucide="loader-circle" style="width:11px;height:11px;stroke-width:2;flex-shrink:0;animation:spin 1s linear infinite"></i> Generazione…'; lucide.createIcons(); }
@@ -9241,22 +9248,32 @@ Hai a disposizione il seguente materiale del corso:
 ${sourceCtx.slice(0, 20000)}
 --- FINE FONTI ---
 
-Genera esattamente 7 domande a risposta aperta sull'argomento specificato, basandoti ESCLUSIVAMENTE sulle fonti fornite.
+Genera esattamente ${nQuestions} domande a risposta aperta sull'argomento specificato, basandoti ESCLUSIVAMENTE sulle fonti fornite.
 
-VINCOLO FONTI (critico): ogni domanda deve essere direttamente ricavabile dal materiale fornito. Ogni concetto, autore, modello o esperimento citato deve essere esplicitamente presente nelle fonti. NON generare domande basate su conoscenza generale della disciplina — se un concetto non è nelle fonti, non fare domande su di esso. NON fare domande generiche, metodologiche o metadisciplinari (es. "come si applica il metodo scientifico" è una domanda non accettabile).
+${coverageMap ? `MAPPA DI COPERTURA OBBLIGATORIA:
+Questa giornata di studio copre le seguenti sezioni — il set di domande DEVE coprire ciascuna sezione almeno una volta. Assegna ogni domanda a una sezione diversa, distribuendo uniformemente:
+${coverageMap}
+
+` : ''}VINCOLO FONTI (critico): ogni domanda deve essere direttamente ricavabile dal materiale fornito. Ogni concetto, autore, modello o esperimento citato deve essere esplicitamente presente nelle fonti. NON generare domande basate su conoscenza generale della disciplina. NON fare domande generiche, metodologiche o metadisciplinari.
+
+DIVERSITÀ CONCETTUALE (critica — regola assoluta):
+• Ogni domanda deve testare un concetto, fenomeno o modello DISTINTO rispetto a tutte le altre
+• È VIETATO generare due domande che trattino lo stesso fenomeno anche se formulate diversamente (es. "natura vs nurtura" e "interazione geni-ambiente" sono la STESSA domanda camuffata — inaccettabile)
+• Ogni domanda deve coprire una sezione/slide range DIVERSO rispetto a tutte le altre — il campo "sourceRef" non può ripetere la stessa sezione
+• Se durante la composizione del set noti che due domande si sovrappongono concettualmente, RISCRIVI immediatamente la seconda coprendo una sezione non ancora esplorata
 
 DISTRIBUZIONE (Tassonomia di Bloom):
-• 2 domande tipo "definizione" (ricordo): definizioni precise, nomenclatura tecnica, autori chiave presenti nelle fonti
-• 3 domande tipo "meccanismo" (comprensione): spiegare meccanismi, descrivere processi, distinguere concetti specifici presenti nel materiale
-• 2 domande tipo "connessione" (applicazione/analisi): collegare concetti tra loro, confrontare teorie, applicare a esempi — tutto ricavato dalle fonti
+• domande tipo "definizione" (ricordo): definizioni precise, nomenclatura tecnica, autori chiave
+• domande tipo "meccanismo" (comprensione): spiegare meccanismi, descrivere processi, distinguere concetti
+• domande tipo "connessione" (applicazione/analisi): collegare concetti, confrontare teorie, applicare a casi
 
-QUALITÀ:
-- Ogni domanda deve essere rispondibile usando esclusivamente le fonti fornite
-- Usa terminologia e concetti effettivamente presenti nel materiale, non vocabolario generico
-- Livello universitario, non banale
-- Evita domande che chiunque con una conoscenza generica della psicologia potrebbe rispondere senza aver studiato le fonti
+AUTO-VALIDAZIONE ANTI-DUPLICATI (obbligatoria prima di produrre il JSON):
+✓ Nessuna coppia di domande testa lo stesso concetto/fenomeno, anche se formulato in modo diverso
+✓ Ogni domanda cita una sezione/slide range diversa nel suo "sourceRef"
+✓ Il set copre tutte le sezioni elencate nella mappa di copertura
+Se trovi violazioni, riscrivi la domanda problematica prima di includerla nel JSON finale.
 
-TRACCIABILITÀ FONTE (obbligatoria): per ogni domanda indica da quale parte delle fonti è stata ricavata. Il campo "sourceRef" deve contenere: nome del file/fonte, titolo della sezione o numero di slide, e un breve estratto testuale tra virgolette (max 120 caratteri) che dimostra che il concetto è presente nelle fonti. Formato: "NomeFonte — Sezione/Slide N: «estratto»"
+TRACCIABILITÀ FONTE (obbligatoria): il campo "sourceRef" deve contenere: nome del file/fonte, titolo sezione o numero slide, e un breve estratto testuale tra virgolette (max 120 caratteri). Formato: "NomeFonte — Sezione/Slide N: «estratto»"
 
 Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
 [{"text":"testo della domanda","type":"definizione|meccanismo|connessione","sourceRef":"NomeFonte — Sezione: «estratto dal testo»"}]`;
@@ -9272,15 +9289,15 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 3200,
+        max_tokens: 4000,
         temperature: 1,
         system: systemPrompt,
         messages: [{ role: 'user', content: (() => {
           const existingQs = state[dayId]?.aiQuestions || [];
           const existingList = existingQs.length
-            ? `\n\nDOMINADE GIÀ PRESENTI (non ripetere, non riformulare, esplora aspetti diversi):\n${existingQs.map((q,i) => `${i+1}. ${q.text}`).join('\n')}`
+            ? `\n\nDOMINADE GIÀ PRESENTI (NON ripetere, NON riformulare, NON sovrapporre concettualmente — ogni nuova domanda deve esplorare un aspetto non ancora coperto):\n${existingQs.map((q,i) => `${i+1}. ${q.text}`).join('\n')}`
             : '';
-          return `Argomento: ${topic}${existingList}\n\nGenera le domande traendo ESCLUSIVAMENTE dai contenuti delle fonti fornite nel system prompt. Ogni domanda deve fare riferimento a concetti, teorie, autori, modelli o esperimenti esplicitamente menzionati nelle fonti. Evita domande generiche che non richiedano la conoscenza specifica del materiale.\n\nOBBLIGATORIO: includi il campo "sourceRef" per ogni domanda con la citazione della sezione/slide e l'estratto testuale specifico dalle fonti.`;
+          return `Argomento: ${topic}${existingList}\n\nGenera le domande coprendo TUTTE le sezioni elencate nella mappa di copertura. Ogni domanda deve testare un concetto DISTINTO e fare riferimento a una sezione/slide DIVERSA. Esegui la validazione anti-duplicati prima di produrre il JSON.\n\nOBBLIGATORIO: includi "sourceRef" per ogni domanda con sezione/slide e estratto testuale specifico.`;
         })() }]
       })
     });
