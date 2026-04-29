@@ -6246,14 +6246,16 @@ function skipQuestion(dayId, qIdx) {
   if (!state[dayId].skipped) state[dayId].skipped = {};
   state[dayId].skipped[qIdx] = true;
   saveState();
-  showDay(dayId);
+  _renderQsPanel(dayId);
+  renderDayReadiness(dayId);
 }
 
 function resumeSkippedQuestion(dayId, qIdx) {
   if (!state[dayId]?.skipped) return;
   delete state[dayId].skipped[qIdx];
   saveState();
-  showDay(dayId);
+  _renderQsPanel(dayId);
+  renderDayReadiness(dayId);
 }
 
 function startDaySession(dayId) {
