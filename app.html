@@ -4641,7 +4641,10 @@ const _ACCENT_PRESETS = [
     try {
       let result;
       if (_loginMode === 'register') {
-        result = await _sb.auth.signUp({ email, password });
+        const _redirectTo = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+          ? `${location.origin}/app.html`
+          : 'https://mnesti.it/app.html';
+        result = await _sb.auth.signUp({ email, password, options: { emailRedirectTo: _redirectTo } });
         if (!result.error && result.data?.user && !result.data.session) {
           // Email confirmation required
           errEl.style.color = '#27ae60';
