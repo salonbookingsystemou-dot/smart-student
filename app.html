@@ -6571,7 +6571,7 @@ function buildDays() {
               <div class="section-head-actions" id="section-actions-${day.id}" style="${dayState.sessionStarted ? '' : 'display:none'}">
                 ${day.questions ? `<button class="genq-launch-btn" id="genq-btn-${day.id}" onclick="generateQuestionsFromSource('${day.id}')">
                   <i data-lucide="sparkles" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
-                  ${isAiQ ? 'Rigenera domande' : 'Genera domande'}
+                  ${isAiQ ? 'Aggiungi domande' : 'Genera domande'}
                 </button>` : ''}
                 <button class="genq-launch-btn" id="bd-btn-${day.id}"
                   onclick="startBrainDump('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
@@ -9275,7 +9275,13 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
         max_tokens: 3200,
         temperature: 1,
         system: systemPrompt,
-        messages: [{ role: 'user', content: `Argomento: ${topic}\n\nGenera le domande traendo ESCLUSIVAMENTE dai contenuti delle fonti fornite nel system prompt. Ogni domanda deve fare riferimento a concetti, teorie, autori, modelli o esperimenti esplicitamente menzionati nelle fonti. Evita domande generiche che non richiedano la conoscenza specifica del materiale.\n\nOBBLIGATORIO: includi il campo "sourceRef" per ogni domanda con la citazione della sezione/slide e l'estratto testuale specifico dalle fonti.` }]
+        messages: [{ role: 'user', content: (() => {
+          const existingQs = state[dayId]?.aiQuestions || [];
+          const existingList = existingQs.length
+            ? `\n\nDOMINADE GIÀ PRESENTI (non ripetere, non riformulare, esplora aspetti diversi):\n${existingQs.map((q,i) => `${i+1}. ${q.text}`).join('\n')}`
+            : '';
+          return `Argomento: ${topic}${existingList}\n\nGenera le domande traendo ESCLUSIVAMENTE dai contenuti delle fonti fornite nel system prompt. Ogni domanda deve fare riferimento a concetti, teorie, autori, modelli o esperimenti esplicitamente menzionati nelle fonti. Evita domande generiche che non richiedano la conoscenza specifica del materiale.\n\nOBBLIGATORIO: includi il campo "sourceRef" per ogni domanda con la citazione della sezione/slide e l'estratto testuale specifico dalle fonti.`;
+        })() }]
       })
     });
     if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Errore API'); }
@@ -9286,7 +9292,9 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
     if (!Array.isArray(questions) || !questions.length) throw new Error('Risposta non valida');
 
     if (!state[dayId]) state[dayId] = {};
-    state[dayId].aiQuestions = questions;
+    // Append new questions — never overwrite existing ones to preserve answers/feedbacks
+    const prev = state[dayId].aiQuestions || [];
+    state[dayId].aiQuestions = [...prev, ...questions];
     saveState();
     buildDays();
     buildNav();
@@ -9295,7 +9303,12 @@ Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
     alert('Errore nella generazione:\n' + e.message);
   } finally {
     const b = document.getElementById('genq-btn-' + dayId);
-    if (b) { b.classList.remove('loading'); b.innerHTML = '<i data-lucide="sparkles" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i> Rigenera domande'; lucide.createIcons(); }
+    if (b) {
+      const hasQ = (state[dayId]?.aiQuestions?.length || 0) > 0;
+      b.classList.remove('loading');
+      b.innerHTML = `<i data-lucide="sparkles" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i> ${hasQ ? 'Aggiungi domande' : 'Genera domande'}`;
+      lucide.createIcons();
+    }
   }
 }
 
