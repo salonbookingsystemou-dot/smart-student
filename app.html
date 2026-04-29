@@ -4599,6 +4599,9 @@ const _ACCENT_PRESETS = [
     if (_bootstrapped) return;
     _bootstrapped = true;
 
+    // Make user id globally available so getActiveDays() knows if we're authenticated
+    window._currentUserId = session.user.id;
+
     if (isNewLogin) {
       await _loadFromSupabase(session.user.id);
     }
@@ -4690,6 +4693,7 @@ const _ACCENT_PRESETS = [
 
   /* ── Logout ── */
   window.doLogout = async function() {
+    window._currentUserId = null;
     if (_sb) await _sb.auth.signOut();
     localStorage.removeItem('psico_state');
     localStorage.removeItem('anthropic_api_key');
@@ -4703,6 +4707,7 @@ const _ACCENT_PRESETS = [
     try {
       const { data: { session } } = await _sb.auth.getSession();
       if (session) {
+        window._currentUserId = session.user.id;
         const loaded = await _loadFromSupabase(session.user.id);
         if (loaded) {
           // Remote data populated localStorage — reinit the whole UI
@@ -6619,6 +6624,23 @@ function buildDays() {
   const main = document.getElementById('mainContent');
   main.innerHTML = ''; // reset
   const activeDays = getActiveDays();
+
+  if (!activeDays.length) {
+    main.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;gap:16px;min-height:300px;">
+        <i data-lucide="calendar-plus" style="width:40px;height:40px;color:var(--text-3);stroke-width:1.5"></i>
+        <div style="font-size:15px;font-weight:600;color:var(--text)">Nessun piano di studio</div>
+        <div style="font-size:13px;color:var(--text-2);max-width:320px;line-height:1.5">
+          Completa la configurazione iniziale per generare il tuo piano di studio personalizzato.
+        </div>
+        <button onclick="_showOnboarding()" style="margin-top:8px;padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500">
+          Crea il mio piano →
+        </button>
+      </div>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    return;
+  }
+
   activeDays.forEach(day => {
     const block = document.createElement('div');
     block.className = 'day-block';
@@ -9582,8 +9604,7 @@ async function generateStudyPlan(fromOnboarding = false) {
   const info = getExamInfo();
   if (!info.date) { alert('Inserisci prima la data dell\'esame.'); return; }
 
-  const sourceCtx = getAllSourcesContext();
-  if (!sourceCtx) { alert('Carica almeno una fonte prima di generare il piano.'); return; }
+  const sourceCtx = getAllSourcesContext(); // may be null — sources are optional
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -9596,7 +9617,12 @@ async function generateStudyPlan(fromOnboarding = false) {
 
   if (totalDays < 3) { alert('La data dell\'esame è troppo vicina. Inserisci una data ad almeno 3 giorni di distanza.'); return; }
 
-  _setPlanGenUI('Analisi fonti…', `Claude sta studiando il tuo materiale e costruendo un piano ottimale per ${subject}…`, 10, 'Lettura fonti…');
+  _setPlanGenUI(
+    sourceCtx ? 'Analisi fonti…' : 'Preparazione piano…',
+    `Claude sta costruendo un piano ottimale per ${subject}…`,
+    10,
+    sourceCtx ? 'Lettura fonti…' : 'Analisi materia…'
+  );
 
   // Build a date skeleton so Claude knows which dates to assign
   const allDates = _dateRange(today, examDate);
@@ -9607,18 +9633,17 @@ async function generateStudyPlan(fromOnboarding = false) {
     return { idx: i, date: _isoDate(d), dow, label: _formatDateLabel(d) };
   });
 
+  const sourcePart = sourceCtx
+    ? `FONTI DEL CORSO (usa queste per costruire i contenuti delle giornate):\n--- INIZIO FONTI ---\n${sourceCtx.slice(0, 22000)}\n--- FINE FONTI ---\n\n`
+    : `NESSUNA FONTE CARICATA: genera un piano strutturato basandoti sulla tua conoscenza della materia "${subject}". Distribuisci i topic principali della disciplina in modo progressivo, dal più fondamentale al più avanzato. Le domande devono essere pertinenti alla materia e di livello universitario.\n\n`;
+
   const systemPrompt = `Sei un pedagogista esperto di pianificazione universitaria. Il tuo compito è costruire un piano di studio ottimale per uno studente universitario che deve prepararsi a un esame.
 
 MATERIA: ${subject}${professor ? ' — Prof. ' + professor : ''}
 DATA ESAME: ${info.date} (tra ${totalDays} giorni)
 OGGI: ${_isoDate(today)}
 
-FONTI DEL CORSO (usa queste per costruire i contenuti delle giornate):
---- INIZIO FONTI ---
-${sourceCtx.slice(0, 22000)}
---- FINE FONTI ---
-
-ISTRUZIONI PER LA PIANIFICAZIONE:
+${sourcePart}ISTRUZIONI PER LA PIANIFICAZIONE:
 1. Distribuisci i contenuti del corso in modo progressivo: prima le basi, poi gli approfondimenti
 2. Inserisci almeno 1 giorno di riposo ogni 6 giorni di studio (preferibilmente la domenica)
 3. Gli ultimi 2-3 giorni prima dell'esame devono essere di revisione + simulazione
@@ -9655,7 +9680,7 @@ REGOLE ASSOLUTE (non derogabili):
 - La data ESATTA ${info.date} DEVE avere type "exam" — non un giorno prima, non un giorno dopo
 - Il giorno prima dell'esame (${_isoDate(new Date(new Date(info.date).getTime() - 86400000))}) deve avere type "rest"
 - Non includere MAI date successive al ${info.date}
-- Basa le domande ESCLUSIVAMENTE sul materiale delle fonti fornite
+- ${sourceCtx ? 'Basa le domande ESCLUSIVAMENTE sul materiale delle fonti fornite' : 'Genera domande specifiche e pertinenti alla materia, coprendo i topic principali della disciplina universitaria'}
 - Genera domande di qualità universitaria, specifiche, non generiche`;
 
   _setPlanGenUI('Generazione piano…', 'Claude sta costruendo il calendario e le domande…', 30, 'Chiamata API…');
@@ -9765,7 +9790,12 @@ REGOLE ASSOLUTE (non derogabili):
 // ── Patch: getActiveDays helper ──────────────────────────────
 function getActiveDays() {
   const aiPlan = localStorage.getItem('psico_ai_plan');
-  return aiPlan ? JSON.parse(aiPlan).days : days;
+  if (aiPlan) return JSON.parse(aiPlan).days;
+  // Authenticated users without their own plan see an empty calendar,
+  // not the hardcoded demo plan. Onboarding will prompt them to generate one.
+  if (window._currentUserId) return [];
+  // Unauthenticated / dev mode: fall back to hardcoded plan
+  return days;
 }
 
 // ── Mobile sidebar & navigation ──────────────────────────────
