@@ -3360,16 +3360,6 @@
   .ob-input:focus, .ob-textarea:focus { border-color: var(--accent); }
   .ob-textarea { min-height: 100px; font-size: 13px; line-height: 1.6; }
 
-  .ob-api-row {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--surface2); border: 1.5px solid var(--border);
-    border-radius: 10px; padding: 10px 14px;
-  }
-  .ob-api-icon { font-size: 16px; flex-shrink: 0; }
-  .ob-api-text { font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text-2); flex: 1; line-height: 1.4; }
-  .ob-api-link { font-size: 11px; color: var(--accent); text-decoration: none; font-weight: 600; flex-shrink: 0; }
-  .ob-api-link:hover { text-decoration: underline; }
-
   .ob-cta {
     padding: 15px 24px; border-radius: 11px; border: none;
     background: var(--accent); color: #fff; cursor: pointer;
@@ -4179,12 +4169,6 @@
                   oninput="_obValidate()"></textarea>
       </div>
 
-      <div class="ob-api-row" id="obApiRow">
-        <span class="ob-api-icon">⚡</span>
-        <span class="ob-api-text">Serve una chiave API Anthropic per generare il piano con l'AI.</span>
-        <!-- API key managed server-side, no config needed -->
-      </div>
-
       <div class="ob-error" id="obError"></div>
 
       <button class="ob-cta" id="obCta" onclick="_runOnboarding()" disabled>
@@ -4854,7 +4838,6 @@ function _showOnboarding() {
   if (info.subject)   { const f = document.getElementById('obSubject');   if (f) f.value = info.subject; }
   if (info.professor) { const f = document.getElementById('obProfessor'); if (f) f.value = info.professor; }
   if (info.date)      { const f = document.getElementById('obDate');      if (f) f.value = info.date; }
-  _obCheckApiRow();
   _obValidate();
 }
 
@@ -4864,18 +4847,9 @@ function _closeOnboarding() {
   el.classList.remove('active');
 }
 
-function _obCheckApiRow() {
-  const apiRow = document.getElementById('obApiRow');
-  if (!apiRow) return;
-  const hasKey = !!localStorage.getItem('anthropic_api_key');
-  apiRow.style.display = hasKey ? 'none' : 'flex';
-  _obValidate();
-}
-
 function _obValidate() {
   const subject = (document.getElementById('obSubject')?.value || '').trim();
   const date    = (document.getElementById('obDate')?.value    || '').trim();
-  const hasKey  = !!localStorage.getItem('anthropic_api_key');
   const hasSrc  = (document.getElementById('obSyllabus')?.value || '').trim().length > 20;
   const cta     = document.getElementById('obCta');
   if (!cta) return;
@@ -4885,9 +4859,9 @@ function _obValidate() {
 
   const hasExam = subject && date;
   if (step2) step2.className = 'ob-step' + (hasExam ? ' done' : '');
-  if (step3) step3.className = 'ob-step' + (hasExam && hasKey ? ' done' : '');
+  if (step3) step3.className = 'ob-step' + (hasExam && hasSrc ? ' done' : '');
 
-  cta.disabled = !(subject && date && hasKey);
+  cta.disabled = !(subject && date);
 }
 
 async function _runOnboarding() {
@@ -7571,7 +7545,7 @@ function saveApiKey() {
   const statusEl = document.getElementById('setupApiStatus');
   if (statusEl) { statusEl.style.display = ''; statusEl.textContent = '✓ Chiave salvata e connessa'; }
   updateApiIndicator();
-  if (typeof _obCheckApiRow === 'function') _obCheckApiRow();
+  _obValidate();
 }
 
 function updateApiIndicator() {
