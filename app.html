@@ -1364,6 +1364,9 @@
     animation: mic-pulse 1.1s ease-in-out infinite;
   }
   .q-mic-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  /* Hide mic buttons when not on HTTPS — set by JS on DOMContentLoaded */
+  body.no-secure-context .q-mic-btn,
+  body.no-secure-context .bd-mic-btn { display: none !important; }
   .q-verify-btn {
     flex: 1;
     font-family: 'Inter', monospace;
@@ -3102,8 +3105,48 @@
     font-size: 10px; opacity: 0.75; font-weight: 500;
   }
   @media (max-width: 540px) {
+    .bd-box {
+      border-radius: 16px 16px 0 0;
+      padding: 18px 14px 32px;
+      max-height: 92dvh;
+    }
+    .bd-topic { font-size: 15px; }
+    .bd-textarea {
+      min-height: 110px;
+      max-height: 170px;
+      font-size: 13px;
+    }
+    .bd-actions {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .bd-mic-btn {
+      width: 44px; height: 44px;
+    }
+    .bd-submit-btn {
+      flex: 1 1 auto;
+      padding: 11px 10px;
+      font-size: 13px;
+    }
+    /* Results */
+    .bd-score-wrap {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+    }
+    .bd-score-circle {
+      width: 68px; height: 68px;
+    }
+    .bd-score-num { font-size: 22px; }
     .bd-concepts { grid-template-columns: 1fr; }
-    .bd-box { border-radius: 16px 16px 0 0; padding: 18px 16px 28px; }
+    .bd-result-actions {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .bd-retry-btn, .bd-close-btn {
+      width: 100%; justify-content: center;
+    }
   }
 
   /* ── Coach feedback modal ─────────────────────────────────── */
@@ -4850,6 +4893,9 @@ const _ACCENT_PRESETS = [
 
   /* ── Check existing session on load ── */
   window.addEventListener('DOMContentLoaded', async () => {
+    // Hide mic buttons when not in a secure context (HTTP)
+    if (!window.isSecureContext) document.body.classList.add('no-secure-context');
+
     if (!_sb) { _showBody(); return; }
 
     try {
@@ -8266,7 +8312,11 @@ function startVoiceDictationInto(targetId) {
 function startVoiceDictation(dayId, qIdx, overrideTextarea) {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) {
-    alert('Il tuo browser non supporta la trascrizione vocale.\nUsa Chrome o Edge per questa funzione.');
+    if (!window.isSecureContext) {
+      alert('La registrazione vocale richiede una connessione sicura (HTTPS).\n\nApri l\'app tramite https:// per usare questa funzione.');
+    } else {
+      alert('Il tuo browser non supporta la trascrizione vocale.\nUsa Chrome, Edge o Safari aggiornato per questa funzione.');
+    }
     return;
   }
 
