@@ -2923,6 +2923,237 @@
   /* legacy total-hours kept for JS references */
   .total-hours-value { font-family: 'Inter', monospace; font-size: 13px; color: var(--text-1); }
 
+  /* ── Memory Cards overlay ──────────────────────────────────── */
+  .mc-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.88); z-index: 3200;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(8px); padding: 16px;
+  }
+  .mc-overlay.open { display: flex; }
+  .mc-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 22px; width: min(480px, 100%);
+    max-height: 96dvh; overflow-y: auto;
+    padding: 24px 22px 28px; position: relative;
+    animation: mc-in 0.32s cubic-bezier(0.22,1,0.36,1);
+  }
+  @keyframes mc-in {
+    from { opacity: 0; transform: scale(0.94) translateY(20px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0); }
+  }
+  @keyframes mc-spin { to { transform: rotate(360deg); } }
+  .mc-exit-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-3); padding: 4px; border-radius: 6px;
+    display: flex; align-items: center;
+  }
+  .mc-exit-btn:hover { color: var(--text-1); background: var(--surface); }
+  /* Loading */
+  .mc-loading-inner {
+    text-align: center; padding: 40px 0 32px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-3);
+  }
+  .mc-loading-title { font-size: 14px; font-weight: 600; color: var(--text-2); margin-bottom: 4px; }
+  .mc-loading-sub   { font-size: 12px; }
+  /* Empty */
+  .mc-empty-inner {
+    text-align: center; padding: 40px 8px 32px;
+    font-family: 'Inter', sans-serif;
+  }
+  .mc-empty-title { font-size: 15px; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+  .mc-empty-sub   { font-size: 12px; color: var(--text-3); line-height: 1.5; margin-bottom: 20px; }
+  .mc-empty-btn {
+    padding: 10px 22px; border: 1.5px solid var(--border); border-radius: 10px;
+    background: none; color: var(--text-2); font-family: 'Inter', sans-serif;
+    font-size: 13px; cursor: pointer;
+  }
+  /* Header */
+  .mc-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 6px; flex-wrap: wrap;
+  }
+  .mc-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent);
+    font-family: 'Inter', monospace; flex-shrink: 0;
+  }
+  .mc-counter {
+    font-size: 11px; color: var(--text-3);
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: auto; flex-shrink: 0;
+  }
+  .mc-mode-row { display: flex; gap: 4px; flex-shrink: 0; }
+  .mc-mode-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 11px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: none;
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+    color: var(--text-3); cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .mc-mode-btn.active {
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-bg);
+  }
+  .mc-mode-hint {
+    font-size: 11px; color: var(--text-3); font-family: 'Inter', sans-serif;
+    text-align: center; margin-bottom: 16px; min-height: 16px;
+  }
+  /* ── Flip card scene ── */
+  .mc-scene {
+    perspective: 900px; cursor: pointer;
+    margin-bottom: 14px;
+  }
+  .mc-card {
+    position: relative;
+    width: 100%; min-height: 280px;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+    border-radius: 16px;
+  }
+  .mc-card.flipped { transform: rotateY(180deg); }
+  .mc-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: 16px; overflow: hidden;
+    border: 1.5px solid var(--border);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px 20px; gap: 10px;
+    background: var(--surface);
+  }
+  .mc-back { transform: rotateY(180deg); justify-content: flex-start; }
+  /* Front: photo + name */
+  .mc-photo-wrap {
+    width: 88px; height: 88px; border-radius: 50%;
+    overflow: hidden; flex-shrink: 0;
+    border: 2.5px solid var(--border);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mc-photo-wrap img {
+    width: 100%; height: 100%; object-fit: cover;
+    object-position: top center;
+  }
+  .mc-photo-avatar {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 800;
+    font-family: 'Inter', sans-serif;
+    color: var(--accent); user-select: none;
+  }
+  .mc-author-name {
+    font-size: 18px; font-weight: 800;
+    color: var(--text-1); font-family: 'Inter', sans-serif;
+    text-align: center; line-height: 1.2;
+  }
+  .mc-front-hint {
+    font-size: 11px; color: var(--text-3); font-family: 'Inter', sans-serif;
+    margin-top: 4px;
+  }
+  /* Front challenge mode: theory block */
+  .mc-theory-block { width: 100%; text-align: center; }
+  .mc-theory-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent);
+    font-family: 'Inter', monospace; margin-bottom: 10px;
+  }
+  .mc-theory-text {
+    font-size: 14px; font-weight: 600;
+    color: var(--text-1); font-family: 'Inter', sans-serif;
+    line-height: 1.4; text-align: center; margin-bottom: 10px;
+  }
+  .mc-year-badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    background: var(--accent-bg); border: 1px solid var(--accent-border);
+    color: var(--accent); font-size: 11px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  /* Back */
+  .mc-back-photo-wrap {
+    width: 56px; height: 56px; border-radius: 50%;
+    overflow: hidden; flex-shrink: 0;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 6px;
+  }
+  .mc-back-photo-wrap img {
+    width: 100%; height: 100%; object-fit: cover; object-position: top center;
+  }
+  .mc-back-author {
+    font-size: 15px; font-weight: 800;
+    color: var(--accent); font-family: 'Inter', sans-serif;
+    text-align: center; margin-bottom: 14px;
+  }
+  .mc-back-theory { width: 100%; }
+  .mc-key-idea {
+    font-size: 12px; color: var(--text-2); font-family: 'Inter', sans-serif;
+    line-height: 1.5; font-style: italic; margin-top: 8px;
+    padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .mc-source-ref {
+    font-size: 10px; color: var(--text-3); font-family: 'Inter', sans-serif;
+    margin-top: 12px; align-self: flex-start;
+    padding: 3px 8px; background: var(--surface2);
+    border-radius: 5px; border: 1px solid var(--border);
+  }
+  /* Challenge score strip */
+  .mc-challenge-strip {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+  }
+  .mc-challenge-score {
+    font-size: 12px; font-weight: 700;
+    color: var(--text-2); font-family: 'JetBrains Mono', monospace;
+    margin-right: auto;
+  }
+  .mc-known-btn, .mc-unknown-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 8px 14px; border-radius: 9px;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
+    cursor: pointer; border: none; transition: opacity 0.15s;
+  }
+  .mc-known-btn   { background: rgba(39,174,96,0.15);  color: #27ae60; }
+  .mc-unknown-btn { background: rgba(231,76,60,0.12);   color: #e74c3c; }
+  .mc-known-btn:hover   { opacity: 0.82; }
+  .mc-unknown-btn:hover { opacity: 0.82; }
+  /* Navigation */
+  .mc-nav {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .mc-nav-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1.5px solid var(--border); background: none;
+    cursor: pointer; color: var(--text-2);
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .mc-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mc-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
+  .mc-dots {
+    display: flex; gap: 6px; align-items: center;
+    flex-wrap: wrap; justify-content: center; flex: 1;
+  }
+  .mc-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border); transition: background 0.2s, transform 0.2s;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .mc-dot.active { background: var(--accent); transform: scale(1.3); }
+  /* Mobile tweaks */
+  @media (max-width: 540px) {
+    .mc-box { border-radius: 20px 20px 0 0; padding: 18px 14px 32px; }
+    .mc-overlay { align-items: flex-end; padding: 0; }
+    .mc-card { min-height: 250px; }
+    .mc-author-name { font-size: 16px; }
+    .mc-photo-wrap { width: 72px; height: 72px; }
+  }
   /* ── Brain Dump modal ──────────────────────────────────────── */
   .bd-overlay {
     display: none; position: fixed; inset: 0;
@@ -7071,6 +7302,11 @@ function buildDays() {
                   <i data-lucide="sparkles" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
                   ${isAiQ ? 'Aggiungi domande' : 'Genera domande'}
                 </button>` : ''}
+                <button class="genq-launch-btn" id="mc-btn-${day.id}"
+                  onclick="startMemoryCards()">
+                  <i data-lucide="layers" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
+                  Cards Autori
+                </button>
                 <button class="genq-launch-btn" id="bd-btn-${day.id}"
                   onclick="startBrainDump('${day.id}', '${day.title.replace(/'/g, "\\'")}')">
                   <i data-lucide="brain" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
@@ -7278,6 +7514,365 @@ function _onPageVisible() {
     }
   }
 })();
+
+// ── Memory Cards ──────────────────────────────────────────────
+const MC_KEY       = 'psico_memory_cards';   // cached extracted cards
+const MC_PHOTO_KEY = 'psico_mc_photos';      // cached photo URLs
+
+let _mcCards    = [];   // loaded card array
+let _mcIdx      = 0;    // current card index
+let _mcMode     = 'study'; // 'study' | 'challenge'
+let _mcFlipped  = false;
+let _mcKnown    = 0;
+let _mcAnswered = 0;
+
+// ── Public entry-point ─────────────────────────────────────
+async function startMemoryCards() {
+  _mcIdx     = 0;
+  _mcFlipped = false;
+  _mcKnown   = 0;
+  _mcAnswered = 0;
+
+  const overlay = document.getElementById('mcOverlay');
+  overlay.classList.add('open');
+
+  _mcShowView('loading');
+
+  // Check cache first
+  const cached = _mcLoadCache();
+  if (cached && cached.length) {
+    _mcCards = cached;
+    _mcFetchAllPhotos().then(() => _mcRender());
+    _mcRender();
+    return;
+  }
+
+  // No cache → extract via AI
+  try {
+    _mcCards = await _mcExtractCards();
+    if (!_mcCards.length) { _mcShowView('empty'); return; }
+    _mcSaveCache(_mcCards);
+    _mcFetchAllPhotos().then(() => _mcRender());
+    _mcRender();
+  } catch (err) {
+    console.error('[MemoryCards] extraction error:', err);
+    _mcShowView('empty');
+    document.querySelector('#mcEmptyView .mc-empty-title').textContent = 'Errore durante l\'estrazione';
+    document.querySelector('#mcEmptyView .mc-empty-sub').textContent   = err.message || 'Riprova più tardi.';
+  }
+}
+
+function _closeMc() {
+  document.getElementById('mcOverlay').classList.remove('open');
+  document.getElementById('mcCard').classList.remove('flipped');
+}
+
+// ── LocalStorage helpers ───────────────────────────────────
+function _mcLoadCache() {
+  try { return JSON.parse(localStorage.getItem(MC_KEY) || 'null'); }
+  catch { return null; }
+}
+function _mcSaveCache(cards) {
+  try { localStorage.setItem(MC_KEY, JSON.stringify(cards)); } catch {}
+}
+function _mcLoadPhotos() {
+  try { return JSON.parse(localStorage.getItem(MC_PHOTO_KEY) || '{}'); }
+  catch { return {}; }
+}
+function _mcSavePhotos(map) {
+  try { localStorage.setItem(MC_PHOTO_KEY, JSON.stringify(map)); } catch {}
+}
+
+// Clear cache when sources change (called from addSource / removeSource)
+function invalidateMemoryCards() {
+  localStorage.removeItem(MC_KEY);
+  localStorage.removeItem(MC_PHOTO_KEY);
+}
+
+// ── AI extraction ──────────────────────────────────────────
+async function _mcExtractCards() {
+  const sources = getSources();
+  if (!sources.length) return [];
+
+  // Build condensed source text (max ~10k chars total)
+  const MAX_TOTAL = 12000;
+  let combined = '';
+  for (const s of sources) {
+    const chunk = `--- Fonte: ${s.title} ---\n${(s.content || '').slice(0, 3500)}\n\n`;
+    if (combined.length + chunk.length > MAX_TOTAL) break;
+    combined += chunk;
+  }
+
+  const prompt = `Sei un assistente accademico specializzato in psicologia cognitiva.
+Analizza il seguente materiale di studio ed estrai TUTTI i ricercatori/teorici/psicologi significativi citati.
+
+Per ciascuno fornisci:
+- "author": nome completo (es. "Alan Baddeley")
+- "theory": nome della teoria, modello o contributo principale per cui è citato in questo testo
+- "year": anno di pubblicazione/formulazione (usa la tua conoscenza se non esplicito nel testo; formato "AAAA" o "AAAA–AAAA")
+- "keyIdea": una frase concisa (max 90 caratteri) che cattura l'essenza del contributo
+
+Regole:
+- Includi solo autori con un contributo teorico rilevante, non semplici citazioni di passaggio
+- Non duplicare: se un autore appare più volte, includi il contributo più significativo
+- Minimo 5, massimo 20 autori
+- Rispondi ESCLUSIVAMENTE con un array JSON valido, senza testo aggiuntivo
+
+MATERIALE DI STUDIO:
+${combined}`;
+
+  const result = await _callClaude({
+    model: 'claude-opus-4-5',
+    max_tokens: 1800,
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.1,
+  });
+
+  const raw = result?.content?.[0]?.text || result?.text || '';
+  // Extract JSON array from response
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) return [];
+
+  let cards;
+  try { cards = JSON.parse(match[0]); } catch { return []; }
+
+  if (!Array.isArray(cards)) return [];
+
+  // Normalise & add source attribution
+  return cards
+    .filter(c => c.author && c.theory)
+    .map((c, i) => ({
+      id:       i,
+      author:   String(c.author).trim(),
+      theory:   String(c.theory).trim(),
+      year:     String(c.year  || '—').trim(),
+      keyIdea:  String(c.keyIdea || '').trim(),
+      photoUrl: null,
+    }));
+}
+
+// ── Wikipedia photo fetch ──────────────────────────────────
+async function _mcFetchPhoto(authorName) {
+  const photoCache = _mcLoadPhotos();
+  if (authorName in photoCache) return photoCache[authorName]; // null or url
+
+  const encoded = encodeURIComponent(authorName.trim().replace(/ /g, '_'));
+  let url = null;
+
+  try {
+    const res = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`,
+      { headers: { 'Accept': 'application/json' } }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      url = data?.thumbnail?.source || null;
+    }
+  } catch { /* network error — leave null */ }
+
+  // Persist result (including null so we don't retry)
+  photoCache[authorName] = url;
+  _mcSavePhotos(photoCache);
+  return url;
+}
+
+async function _mcFetchAllPhotos() {
+  const pending = _mcCards.filter(c => c.photoUrl === null);
+  await Promise.allSettled(pending.map(async c => {
+    c.photoUrl = await _mcFetchPhoto(c.author);
+  }));
+  _mcSaveCache(_mcCards);
+  // Re-render current card photo if visible
+  if (document.getElementById('mcCardsView').style.display !== 'none') {
+    _mcUpdateCardDOM(_mcCards[_mcIdx]);
+  }
+}
+
+// ── Render ─────────────────────────────────────────────────
+function _mcShowView(v) {
+  const loading = document.getElementById('mcLoadingView');
+  const empty   = document.getElementById('mcEmptyView');
+  const cards   = document.getElementById('mcCardsView');
+  loading.style.display = v === 'loading' ? ''      : 'none';
+  empty.style.display   = v === 'empty'   ? ''      : 'none';
+  cards.style.display   = v === 'cards'   ? ''      : 'none';
+}
+
+function _mcRender() {
+  if (!_mcCards.length) { _mcShowView('empty'); return; }
+  _mcShowView('cards');
+  _mcSetMode(_mcMode, true);
+  _mcUpdateCardDOM(_mcCards[_mcIdx]);
+  _mcUpdateNav();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function _mcUpdateCardDOM(card) {
+  if (!card) return;
+
+  // Counter
+  const counter = document.getElementById('mcCounter');
+  if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
+
+  // Reset flip state
+  document.getElementById('mcCard').classList.remove('flipped');
+  _mcFlipped = false;
+
+  if (_mcMode === 'study') {
+    // FRONT: author photo + name
+    _mcSetPhotoEl('mcPhotoWrap', card.photoUrl, card.author);
+    const nameEl = document.getElementById('mcAuthorName');
+    if (nameEl) nameEl.textContent = card.author;
+    document.getElementById('mcFrontHint').textContent = 'Tocca per vedere la teoria →';
+
+    const theoryBlock = document.getElementById('mcTheoryBlock');
+    if (theoryBlock) theoryBlock.style.display = 'none';
+    const photoWrap = document.getElementById('mcPhotoWrap');
+    if (photoWrap) photoWrap.style.display = '';
+    const nameEl2 = document.getElementById('mcAuthorName');
+    if (nameEl2) nameEl2.style.display = '';
+
+    // BACK: theory
+    document.getElementById('mcBackPhotoWrap').style.display = 'none';
+    document.getElementById('mcBackAuthor').style.display    = 'none';
+    document.getElementById('mcBackTheory').style.display    = '';
+
+  } else {
+    // FRONT: theory (anonymous)
+    document.getElementById('mcPhotoWrap').style.display   = 'none';
+    document.getElementById('mcAuthorName').style.display  = 'none';
+    document.getElementById('mcFrontHint').textContent     = 'Tocca per scoprire l\'autore →';
+
+    const theoryBlock = document.getElementById('mcTheoryBlock');
+    theoryBlock.style.display = '';
+    document.getElementById('mcTheoryFront').textContent = card.theory;
+    document.getElementById('mcYearFront').textContent   = card.year;
+
+    // BACK: author reveal
+    document.getElementById('mcBackPhotoWrap').style.display = '';
+    _mcSetPhotoEl('mcBackPhotoWrap', card.photoUrl, card.author);
+    document.getElementById('mcBackAuthor').style.display    = '';
+    document.getElementById('mcBackAuthor').textContent      = card.author;
+    document.getElementById('mcBackTheory').style.display    = 'none';
+  }
+
+  // Shared back fields (always populated)
+  document.getElementById('mcTheoryBack').textContent = card.theory;
+  document.getElementById('mcYearBack').textContent   = card.year;
+  document.getElementById('mcKeyIdea').textContent    = card.keyIdea || '';
+  document.getElementById('mcSourceRef').textContent  = '';
+}
+
+function _mcSetPhotoEl(wrapId, photoUrl, authorName) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (photoUrl) {
+    const img = document.createElement('img');
+    img.src = photoUrl;
+    img.alt = authorName;
+    img.onerror = () => { wrap.innerHTML = _mcAvatarHTML(authorName); };
+    wrap.appendChild(img);
+  } else {
+    wrap.innerHTML = _mcAvatarHTML(authorName);
+  }
+}
+
+function _mcAvatarHTML(name) {
+  const initials = name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+  return `<div class="mc-photo-avatar">${initials}</div>`;
+}
+
+function _mcUpdateNav() {
+  const prevBtn = document.getElementById('mcPrevBtn');
+  const nextBtn = document.getElementById('mcNextBtn');
+  if (prevBtn) prevBtn.disabled = _mcIdx === 0;
+  if (nextBtn) nextBtn.disabled = _mcIdx === _mcCards.length - 1;
+
+  // Dots (max 12 shown)
+  const dotsEl = document.getElementById('mcDots');
+  if (!dotsEl) return;
+  const max = Math.min(_mcCards.length, 12);
+  dotsEl.innerHTML = _mcCards.slice(0, max).map((_, i) =>
+    `<div class="mc-dot${i === _mcIdx ? ' active' : ''}" onclick="_mcGoTo(${i})"></div>`
+  ).join('');
+}
+
+// ── User interactions ──────────────────────────────────────
+function _mcFlip() {
+  const card = document.getElementById('mcCard');
+  _mcFlipped = !_mcFlipped;
+  card.classList.toggle('flipped', _mcFlipped);
+}
+
+function _mcNext() {
+  if (_mcIdx < _mcCards.length - 1) {
+    _mcIdx++;
+    _mcUpdateCardDOM(_mcCards[_mcIdx]);
+    _mcUpdateNav();
+    _mcFlipped = false;
+  }
+}
+
+function _mcPrev() {
+  if (_mcIdx > 0) {
+    _mcIdx--;
+    _mcUpdateCardDOM(_mcCards[_mcIdx]);
+    _mcUpdateNav();
+    _mcFlipped = false;
+  }
+}
+
+function _mcGoTo(i) {
+  _mcIdx = i;
+  _mcUpdateCardDOM(_mcCards[_mcIdx]);
+  _mcUpdateNav();
+  _mcFlipped = false;
+}
+
+function _mcSetMode(mode, silent) {
+  _mcMode = mode;
+  const studyBtn     = document.getElementById('mcModeStudy');
+  const challengeBtn = document.getElementById('mcModeChallenge');
+  const hint         = document.getElementById('mcModeHint');
+  const strip        = document.getElementById('mcChallengeStrip');
+
+  if (studyBtn)     studyBtn.classList.toggle('active',     mode === 'study');
+  if (challengeBtn) challengeBtn.classList.toggle('active', mode === 'challenge');
+
+  if (hint) {
+    hint.textContent = mode === 'study'
+      ? 'Tocca la card per vedere la teoria'
+      : 'Indovina l\'autore — poi tocca per scoprirlo';
+  }
+  if (strip) strip.style.display = mode === 'challenge' ? 'flex' : 'none';
+
+  if (mode === 'challenge') {
+    _mcKnown    = 0;
+    _mcAnswered = 0;
+    _mcUpdateChallengeScore();
+  }
+
+  if (!silent) {
+    _mcIdx = 0;
+    _mcUpdateCardDOM(_mcCards[_mcIdx]);
+    _mcUpdateNav();
+  }
+}
+
+function _mcMark(known) {
+  if (!_mcFlipped) return; // must have flipped first
+  if (known) _mcKnown++;
+  _mcAnswered++;
+  _mcUpdateChallengeScore();
+  // Auto-advance
+  setTimeout(() => _mcNext(), 320);
+}
+
+function _mcUpdateChallengeScore() {
+  const el = document.getElementById('mcChallengeScore');
+  if (el) el.textContent = `${_mcKnown} / ${_mcAnswered} corretti`;
+}
 
 // ── Brain Dump ────────────────────────────────────────────────
 const BD_DURATION = 180; // seconds
@@ -9043,12 +9638,14 @@ function addSource(title, content, sizeBytes) {
     addedAt: Date.now()
   });
   saveSources(sources);
+  invalidateMemoryCards(); // cards must be re-extracted with new source
   renderSourcesList();
   updateSourcesBtn();
 }
 
 function removeSource(id) {
   saveSources(getSources().filter(s => s.id !== id));
+  invalidateMemoryCards(); // cards must be re-extracted without removed source
   // invalidate ai questions for all days (source context changed)
   getActiveDays().forEach(d => {
     if (state[d.id]?.aiQuestions) {
@@ -10607,6 +11204,123 @@ updateSourcesBtn();
 </div>
 
 <!-- Brain Dump modal -->
+<!-- ── Memory Cards overlay ───────────────────────────────── -->
+<div id="mcOverlay" class="mc-overlay">
+  <div class="mc-box">
+    <button class="mc-exit-btn" onclick="_closeMc()" title="Chiudi">
+      <i data-lucide="x" style="width:18px;height:18px;stroke-width:2.2"></i>
+    </button>
+
+    <!-- Loading view -->
+    <div id="mcLoadingView">
+      <div class="mc-loading-inner">
+        <i data-lucide="loader-circle" style="width:28px;height:28px;stroke-width:1.8;animation:mc-spin 1s linear infinite;display:block;margin:0 auto 14px"></i>
+        <div class="mc-loading-title">Estrazione autori in corso…</div>
+        <div class="mc-loading-sub">Claude sta analizzando le tue fonti</div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="mcEmptyView" style="display:none">
+      <div class="mc-empty-inner">
+        <i data-lucide="book-open" style="width:36px;height:36px;stroke-width:1.5;opacity:.4;display:block;margin:0 auto 16px"></i>
+        <div class="mc-empty-title">Nessun autore trovato</div>
+        <div class="mc-empty-sub">Aggiungi del materiale di studio nelle fonti per generare le Memory Cards.</div>
+        <button class="mc-empty-btn" onclick="_closeMc()">Chiudi</button>
+      </div>
+    </div>
+
+    <!-- Cards view -->
+    <div id="mcCardsView" style="display:none">
+      <!-- Header -->
+      <div class="mc-header">
+        <div class="mc-tag">
+          <i data-lucide="layers" style="width:10px;height:10px;stroke-width:2.2;vertical-align:middle"></i>
+          Memory Cards
+        </div>
+        <div class="mc-mode-row">
+          <button class="mc-mode-btn" id="mcModeStudy" onclick="_mcSetMode('study')">
+            <i data-lucide="eye" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
+            Studio
+          </button>
+          <button class="mc-mode-btn" id="mcModeChallenge" onclick="_mcSetMode('challenge')">
+            <i data-lucide="trophy" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
+            Sfida
+          </button>
+        </div>
+        <div class="mc-counter" id="mcCounter">1 / —</div>
+      </div>
+
+      <!-- Mode hint -->
+      <div class="mc-mode-hint" id="mcModeHint">Tocca la card per vedere la teoria</div>
+
+      <!-- Flip card -->
+      <div class="mc-scene" onclick="_mcFlip()">
+        <div class="mc-card" id="mcCard">
+
+          <!-- FRONT (Studio: autore → teoria | Sfida: teoria → autore) -->
+          <div class="mc-face mc-front" id="mcFront">
+            <div class="mc-photo-wrap" id="mcPhotoWrap">
+              <!-- img or svg avatar injected by JS -->
+            </div>
+            <div class="mc-author-name" id="mcAuthorName">—</div>
+            <div class="mc-front-hint" id="mcFrontHint">Tocca per vedere la teoria →</div>
+
+            <!-- Challenge mode: shows theory, hides author (swapped in JS) -->
+            <div class="mc-theory-block" id="mcTheoryBlock" style="display:none">
+              <div class="mc-theory-label">Teoria / Contributo</div>
+              <div class="mc-theory-text" id="mcTheoryFront">—</div>
+              <div class="mc-year-badge" id="mcYearFront">—</div>
+            </div>
+          </div>
+
+          <!-- BACK -->
+          <div class="mc-face mc-back" id="mcBack">
+            <div class="mc-back-photo-wrap" id="mcBackPhotoWrap" style="display:none">
+              <!-- Challenge mode: author revealed on back -->
+            </div>
+            <div class="mc-back-author" id="mcBackAuthor" style="display:none">—</div>
+
+            <div class="mc-back-theory" id="mcBackTheory">
+              <div class="mc-theory-label">Teoria / Contributo</div>
+              <div class="mc-theory-text" id="mcTheoryBack">—</div>
+              <div class="mc-year-badge" id="mcYearBack">—</div>
+              <div class="mc-key-idea" id="mcKeyIdea">—</div>
+            </div>
+            <div class="mc-source-ref" id="mcSourceRef">—</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Challenge score strip -->
+      <div class="mc-challenge-strip" id="mcChallengeStrip" style="display:none">
+        <span class="mc-challenge-score" id="mcChallengeScore">0 / 0</span>
+        <button class="mc-known-btn" onclick="_mcMark(true)">
+          <i data-lucide="check" style="width:13px;height:13px;stroke-width:2.5;flex-shrink:0"></i>
+          Lo sapevo
+        </button>
+        <button class="mc-unknown-btn" onclick="_mcMark(false)">
+          <i data-lucide="x" style="width:13px;height:13px;stroke-width:2.5;flex-shrink:0"></i>
+          Non ricordavo
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <div class="mc-nav">
+        <button class="mc-nav-btn" id="mcPrevBtn" onclick="_mcPrev()">
+          <i data-lucide="chevron-left" style="width:16px;height:16px;stroke-width:2.5"></i>
+        </button>
+        <div class="mc-dots" id="mcDots"></div>
+        <button class="mc-nav-btn" id="mcNextBtn" onclick="_mcNext()">
+          <i data-lucide="chevron-right" style="width:16px;height:16px;stroke-width:2.5"></i>
+        </button>
+      </div>
+
+    </div><!-- /mcCardsView -->
+  </div><!-- /mc-box -->
+</div><!-- /mcOverlay -->
+
 <div id="brainDumpOverlay" class="bd-overlay">
   <div class="bd-box">
     <button class="bd-exit-btn" onclick="_closeBrainDump()">
