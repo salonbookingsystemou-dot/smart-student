@@ -346,11 +346,27 @@
   .setup-tab-border {
     height: 1px; background: var(--border); flex-shrink: 0;
   }
-  /* min-height:0 is the classic flexbox fix that allows overflow-y:auto
-     to work correctly inside a flex child that has flex:1 */
-  .setup-body { flex: 1; min-height: 0; overflow-y: auto; }
-  .setup-pane { display: none; padding: 20px 16px; flex-direction: column; gap: 16px; }
-  .setup-pane.active { display: flex; }
+  .setup-body {
+    flex: 1;
+    min-height: 0;   /* lets flex child shrink below content size so overflow works */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Make body a flex column so the pane starts at the TOP, not the bottom */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  /* Panes: hidden by default, block (not flex) when active so height
+     is driven by content and nothing can push it to the bottom */
+  .setup-pane { display: none; }
+  .setup-pane.active {
+    display: block;
+    padding: 20px 16px;
+    /* flex: 0 0 auto so the pane never grows to fill the body height */
+    flex: 0 0 auto;
+  }
+  /* Re-add gap between direct children using row-gap via CSS custom property */
+  .setup-pane.active > * + * { margin-top: 16px; }
 
   /* ── Account pane ───────────────────────────────────────────── */
   .acct-section { display: flex; flex-direction: column; gap: 10px; }
