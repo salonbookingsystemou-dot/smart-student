@@ -6108,18 +6108,20 @@ function updateMobileExamBanner() {
     if (daysLeft === null) {
       msg = 'Configura la data dell\'esame';
     } else if (daysLeft <= 0) {
-      msg = readiness >= 70 ? 'Sei pronto. Vai e conquista!' : 'Dài tutto quello che hai!';
+      msg = readiness >= 63 ? 'Sei pronto. Vai e conquista!' : 'Dài tutto quello che hai!';
     } else if (daysLeft === 1) {
-      msg = readiness >= 60 ? 'Ultima notte — sei in forma.' : 'Ripassa i punti chiave stasera.';
+      msg = readiness >= 63 ? 'Ultima notte — sei in forma.' : 'Ripassa i punti chiave stasera.';
     } else if (daysLeft <= 3) {
-      msg = readiness >= 60 ? 'Sei sulla buona strada, tienici.' : 'Spremi ogni sessione — conta!';
+      msg = readiness >= 63 ? 'Sei sulla buona strada, tienici.' : 'Spremi ogni sessione — conta!';
     } else if (daysLeft <= 7) {
-      msg = readiness >= 50 ? 'La retta finale. Mantieni il ritmo.' : 'Alzati il ritmo, il tempo stringe.';
+      msg = readiness >= 42 ? 'La retta finale. Mantieni il ritmo.' : 'Alzati il ritmo, il tempo stringe.';
     } else {
+      // Thresholds aligned with _readinessLevel(): 20 / 42 / 63 / 82
       if (readiness < 20)       msg = 'Ogni sessione è un passo avanti.';
-      else if (readiness < 45)  msg = 'Buona progressione. Continua così!';
-      else if (readiness < 70)  msg = 'Più della metà fatta. Non mollare.';
-      else                      msg = 'Stai andando forte. Sei in controllo.';
+      else if (readiness < 42)  msg = 'Ancora molto da fare. Ogni sessione conta.';
+      else if (readiness < 63)  msg = 'In cammino. Mantieni il ritmo.';
+      else if (readiness < 82)  msg = 'Stai andando forte. Sei in controllo.';
+      else                      msg = 'Ben preparato. Mantieni il ritmo.';
     }
     msgEl.textContent = msg;
   }
