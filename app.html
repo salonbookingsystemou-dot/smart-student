@@ -342,7 +342,7 @@
     height: 1px; background: var(--border); flex-shrink: 0;
   }
   .setup-body { flex: 1; overflow-y: auto; }
-  .setup-pane { display: none; padding: 20px 16px; flex-direction: column; gap: 16px; }
+  .setup-pane { display: none; padding: 20px 16px; flex-direction: column; gap: 16px; justify-content: flex-start; }
   .setup-pane.active { display: flex; }
 
   /* ── Account pane ───────────────────────────────────────────── */
@@ -4013,7 +4013,10 @@
     }
     .setup-btn i, #logoutBtn i { flex-shrink: 0; }
     .setup-btn-label, #logoutBtn .logout-label { display: none; }
+    /* Hide theme switch in the header (too small on mobile),
+       but keep it visible when inside the setup drawer */
     .theme-switch { display: none; }
+    .setup-tema-row .theme-switch { display: flex; }
 
     /* ── Layout: block (no grid), full viewport width ── */
     .layout {
@@ -10049,6 +10052,8 @@ function openSetupDrawer(tab) {
   const overlay = document.getElementById('setupOverlay');
   if (!overlay) return;
   overlay.classList.add('open');
+  const body = overlay.querySelector('.setup-body');
+  if (body) body.scrollTop = 0;
   switchSetupTab(tab);
   if (tab === 'fonti')   { renderSourcesList(); loadExamInfoUI(); }
   if (tab === 'tema')    { _renderColorPresets(); }
@@ -10068,6 +10073,8 @@ function switchSetupTab(tab) {
     if (btn)  btn.classList.toggle('active',  t === tab);
     if (pane) pane.classList.toggle('active', t === tab);
   });
+  const body = document.querySelector('.setup-body');
+  if (body) body.scrollTop = 0;
   if (tab === 'tema') _renderColorPresets();
 }
 
