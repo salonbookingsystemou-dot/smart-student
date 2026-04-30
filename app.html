@@ -301,20 +301,19 @@
     position: fixed; inset: 0; z-index: 3000;
     background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
     display: none;
-    /* Use flex-start so the drawer sits at the top-right corner;
-       height is set explicitly on the drawer so stretch is not needed */
-    align-items: flex-start; justify-content: flex-end;
   }
-  .setup-overlay.open { display: flex; }
+  .setup-overlay.open { display: block; }
+  /* Drawer is positioned directly — no flex parent needed.
+     This is the most Safari-compatible approach. */
   .setup-drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
     width: min(420px, 96vw);
-    /* Use 100dvh (dynamic viewport height) so it fills the full screen
-       on iOS Safari regardless of the address/nav bar */
-    height: 100dvh;
     background: var(--bg);
     border-left: 1px solid var(--border);
     display: flex; flex-direction: column;
     overflow: hidden;
+    z-index: 3001;
     animation: setupSlideIn 0.24s ease;
   }
   @keyframes setupSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }

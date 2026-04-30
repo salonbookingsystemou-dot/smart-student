@@ -1,13 +1,13 @@
 // Mnesti Service Worker — offline shell cache
-const CACHE = 'mnesti-v9';
+const CACHE = 'mnesti-v11';
 const SHELL = [
-  '/smart-student/',
-  '/smart-student/index.html',
-  '/smart-student/app.html',
-  '/smart-student/manifest.json',
-  '/smart-student/icon-192.png',
-  '/smart-student/icon-512.png',
-  '/smart-student/apple-touch-icon.png'
+  '/',
+  '/index.html',
+  '/app.html',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {
@@ -49,7 +49,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, clone));
           return res;
         })
-        .catch(() => caches.match('/smart-student/app.html'))
+        .catch(() => caches.match('/app.html'))
     );
     return;
   }
