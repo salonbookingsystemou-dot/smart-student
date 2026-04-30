@@ -4111,10 +4111,27 @@
     .quiz-day-btn { width: 100%; justify-content: center; }
 
     /* ── Section head on mobile ── */
+    /* ── Section head: two-row layout on mobile ── */
     .section-head { gap: 0; }
-    .section-head-title-row { padding: 8px 12px 7px; gap: 8px; }
+    .section-head-title-row {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 10px 12px 9px;
+      gap: 5px;
+    }
     .section-head .section-title { font-size: 13px; }
-    .section-head-actions { padding: 7px 12px; gap: 6px; }
+    .section-head-actions { padding: 7px 10px; gap: 6px; flex-wrap: wrap; }
+
+    /* ── Session dots: always one horizontal row ── */
+    .session-progress-dots {
+      flex-wrap: nowrap;
+      overflow: hidden;
+      max-width: 100%;
+    }
+    .session-dot {
+      flex-shrink: 1;
+      min-width: 10px;
+    }
     /* On mobile all 3 share equal width, single row */
     .quiz-launch-btn, .genq-launch-btn {
       flex: 1; justify-content: center;
