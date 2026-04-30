@@ -10089,12 +10089,7 @@ function openSetupDrawer(tab) {
   const overlay = document.getElementById('setupOverlay');
   if (!overlay) return;
   overlay.classList.add('open');
-  const body = overlay.querySelector('.setup-body');
-  if (body) body.scrollTop = 0;
-  switchSetupTab(tab);
-  if (tab === 'fonti')   { renderSourcesList(); loadExamInfoUI(); }
-  if (tab === 'tema')    { _renderColorPresets(); }
-  if (tab === 'account') { _loadAccountPane(); }
+  switchSetupTab(tab); // handles scroll-reset + data loading for all tabs
 }
 
 function closeSetupDrawer() {
@@ -10112,7 +10107,9 @@ function switchSetupTab(tab) {
   });
   const body = document.querySelector('.setup-body');
   if (body) body.scrollTop = 0;
-  if (tab === 'tema') _renderColorPresets();
+  if (tab === 'fonti')   { renderSourcesList(); loadExamInfoUI(); }
+  if (tab === 'tema')    { _renderColorPresets(); }
+  if (tab === 'account') { _loadAccountPane(); }
 }
 
 // ── Account pane ─────────────────────────────────────────────
