@@ -4153,6 +4153,100 @@
     .q-mic-btn { width: 44px; height: 44px; flex-shrink: 0; }
     .q-verify-btn { flex: 1; padding: 12px 8px; font-size: 12px; min-height: 44px; }
 
+    /* ────────────────────────────────────────────────────────
+       MOBILE TYPOGRAPHY IMPROVEMENTS
+       Raising elements below readable threshold (< 12px for
+       functional text, < 11px for labels) to WCAG/HIG minimums.
+       All changes are mobile-only overrides.
+    ──────────────────────────────────────────────────────── */
+
+    /* ── Questions: critical feedback & action labels ── */
+    .q-active-label {
+      /* "In corso — X di Y": primary progress context → 10px → 12px */
+      font-size: 12px;
+    }
+    .q-rating-label {
+      /* BUONO / PARZIALE / INSUFFICIENTE: critical grade → 10px → 12px */
+      font-size: 12px;
+      letter-spacing: 0.06em;
+    }
+    .q-skip-btn {
+      /* "Salta" action button → 10px → 11px + taller tap area */
+      font-size: 11px;
+      min-height: 36px;
+      padding: 8px 10px;
+    }
+    .q-advance-btn {
+      /* "Prossima domanda" after feedback → 11px → 12px */
+      font-size: 12px;
+      min-height: 40px;
+    }
+    .done-qs-header, .skipped-qs-header {
+      /* Section headers: "Completate" / "Saltate" → 10px → 12px */
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Pre-session prompt ── */
+    .session-progress-label {
+      /* "X domande" count label → 11px → 12px */
+      font-size: 12px;
+    }
+
+    /* ── Section header tag ── */
+    .section-tag {
+      /* "RETRIEVAL PRACTICE" tag → 10px → 11px */
+      font-size: 11px;
+      padding: 3px 8px;
+    }
+
+    /* ── Day content context ── */
+    .lesson-ref {
+      /* "Lezione X–Y" reference line → 11px → 12px */
+      font-size: 12px;
+    }
+
+    /* ── Timer controls ── */
+    .timer-btn {
+      /* Timer start/stop/resume buttons → 11px → 12px */
+      font-size: 12px;
+    }
+
+    /* ── Section action buttons (Brain Dump, Quiz, Cards) ── */
+    .quiz-launch-btn, .genq-launch-btn {
+      /* CTA buttons: 11px → 12px; containers wrap so space is available */
+      font-size: 12px;
+    }
+
+    /* ── Readiness panel ── */
+    .readiness-advice {
+      /* Advice body text — actually read by user → 11px → 12px */
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .readiness-dim-name, .readiness-dim-val {
+      /* Coverage / Quality dimension labels → 11px → 12px */
+      font-size: 12px;
+    }
+    .readiness-label {
+      /* "In cammino", "Sulla buona strada" status → 11px → 12px */
+      font-size: 12px;
+    }
+
+    /* ── Small decorative labels: 9px → 10px ── */
+    .nav-type-tag {
+      /* Day type pill in sidebar (studio/revisione/esame) */
+      font-size: 10px;
+    }
+    .tip-label {
+      /* "METODO DI STUDIO" callout header */
+      font-size: 10px;
+    }
+    .coach-grade-label {
+      /* Grade chip in coach feedback modal */
+      font-size: 10px;
+    }
+
     /* Feedback */
     .q-feedback { font-size: 12px; }
 
