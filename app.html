@@ -4110,7 +4110,6 @@
     .day-quiz-area { width: 100%; }
     .quiz-day-btn { width: 100%; justify-content: center; }
 
-    /* ── Section head on mobile ── */
     /* ── Section head: two-row layout on mobile ── */
     .section-head { gap: 0; }
     .section-head-title-row {
@@ -4120,7 +4119,33 @@
       gap: 5px;
     }
     .section-head .section-title { font-size: 13px; }
-    .section-head-actions { padding: 7px 10px; gap: 6px; flex-wrap: wrap; }
+
+    /* Horizontal scroll strip — buttons never truncate */
+    .section-head-actions {
+      padding: 8px 12px;
+      gap: 7px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;        /* Firefox */
+      position: relative;
+      /* Right padding reserves space so last button clears the fade */
+      padding-right: 32px;
+    }
+    .section-head-actions::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+    /* Fade-out right edge — hints at horizontal scroll */
+    .section-head-actions::after {
+      content: '';
+      position: sticky;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 28px;
+      flex-shrink: 0;
+      background: linear-gradient(to right, transparent, var(--surface2));
+      pointer-events: none;
+    }
 
     /* ── Session dots: always one horizontal row ── */
     .session-progress-dots {
@@ -4132,18 +4157,21 @@
       flex-shrink: 1;
       min-width: 10px;
     }
-    /* On mobile all 3 share equal width, single row */
+    /* Scroll-strip buttons: natural width, never shrink/truncate */
     .quiz-launch-btn, .genq-launch-btn {
-      flex: 1; justify-content: center;
-      padding: 9px 6px; font-size: 11px; min-height: 42px;
-      white-space: nowrap; overflow: hidden;
+      flex: 0 0 auto;           /* don't grow or shrink */
+      justify-content: center;
+      padding: 9px 14px;
+      font-size: 12px;
+      min-height: 40px;
+      white-space: nowrap;
+      overflow: visible;
     }
-    /* Quiz stays filled accent on mobile */
+    /* Quiz CTA stays accent-filled */
     .quiz-launch-btn {
       background: var(--accent); color: #fff;
-      box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
     }
-    .quiz-launch-btn:hover { background: var(--accent); opacity: 0.9; }
+    .quiz-launch-btn:hover { opacity: 0.9; }
 
     /* ── Questions ── */
     .q-top { flex-direction: column; gap: 8px; }
@@ -4209,12 +4237,6 @@
     /* ── Timer controls ── */
     .timer-btn {
       /* Timer start/stop/resume buttons → 11px → 12px */
-      font-size: 12px;
-    }
-
-    /* ── Section action buttons (Brain Dump, Quiz, Cards) ── */
-    .quiz-launch-btn, .genq-launch-btn {
-      /* CTA buttons: 11px → 12px; containers wrap so space is available */
       font-size: 12px;
     }
 
@@ -4360,6 +4382,8 @@
     }
 
     /* ── Mobile exam reminder banner (sits above bottom nav) ── */
+    /* Note: no color-mix() — unreliable on Safari < 16.4 with var() inside.
+       Accent tint is achieved via a 3px top accent border instead. */
     .mobile-exam-banner {
       display: flex;
       flex-direction: column;
@@ -4367,30 +4391,19 @@
       bottom: calc(60px + env(safe-area-inset-bottom, 0px));
       left: 0; right: 0;
       z-index: 99;
-      background-color: var(--surface2); /* fallback: solid opaque */
-      background: color-mix(in srgb, var(--accent) 14%, var(--surface2) 86%);
-      border-top: 1.5px solid var(--border); /* fallback */
-      border-top-color: color-mix(in srgb, var(--accent) 30%, var(--border) 70%);
+      background-color: var(--surface2); /* solid, always opaque */
+      background: var(--surface2);
+      border-top: 3px solid var(--accent);
       font-family: 'Inter', sans-serif;
       pointer-events: none;
-      transition: background 0.5s, border-color 0.5s;
       overflow: hidden;
     }
-    .mobile-exam-banner.urgent {
-      background-color: var(--surface2); /* fallback */
-      background: color-mix(in srgb, #e05c5c 16%, var(--surface2) 84%);
-      border-color: color-mix(in srgb, #e05c5c 35%, var(--border) 65%);
-    }
-    .mobile-exam-banner.soon {
-      background-color: var(--surface2); /* fallback */
-      background: color-mix(in srgb, #e07b2f 14%, var(--surface2) 86%);
-      border-color: color-mix(in srgb, #e07b2f 30%, var(--border) 70%);
-    }
+    .mobile-exam-banner.urgent { border-top-color: #e05c5c; }
+    .mobile-exam-banner.soon   { border-top-color: #e07b2f; }
     /* Top progress bar */
     .meb-bar-track {
       height: 3px;
-      background: rgba(168,160,153,0.18); /* fallback */
-      background: color-mix(in srgb, var(--accent) 18%, transparent 82%);
+      background: rgba(168,160,153,0.18);
       width: 100%;
       flex-shrink: 0;
     }
