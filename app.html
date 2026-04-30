@@ -300,15 +300,17 @@
   .setup-overlay {
     position: fixed; inset: 0; z-index: 3000;
     background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
-    display: none; align-items: stretch; justify-content: flex-end;
+    display: none;
+    /* Use flex-start so the drawer sits at the top-right corner;
+       height is set explicitly on the drawer so stretch is not needed */
+    align-items: flex-start; justify-content: flex-end;
   }
   .setup-overlay.open { display: flex; }
   .setup-drawer {
     width: min(420px, 96vw);
-    /* Explicit height so the drawer fills the overlay on all browsers
-       including mobile Safari where align-items:stretch can be unreliable */
-    height: 100%;
-    max-height: 100dvh;
+    /* Use 100dvh (dynamic viewport height) so it fills the full screen
+       on iOS Safari regardless of the address/nav bar */
+    height: 100dvh;
     background: var(--bg);
     border-left: 1px solid var(--border);
     display: flex; flex-direction: column;
@@ -10112,6 +10114,13 @@ async function _loadAccountPane() {
     if (emailEl && user) emailEl.textContent = user.email || '—';
   } catch { /* leave '—' */ }
 
+  // ── Guard: Supabase must be ready ─────────────────────────
+  if (!_sb) {
+    if (usageLoad) usageLoad.textContent = 'Servizio non disponibile';
+    if (planLoad)  planLoad.textContent  = 'Servizio non disponibile';
+    return;
+  }
+
   // ── Fetch usage + plan in parallel ────────────────────────
   const today      = new Date().toISOString().split('T')[0];
   const monthStart = today.slice(0, 7) + '-01';
@@ -10126,9 +10135,12 @@ async function _loadAccountPane() {
          .select('plan_type, valid_until')
          .maybeSingle(),
     ]);
-    usageRows = usageRes.data  || [];
-    planData  = planRes.data   || null;
+    if (usageRes.error) console.error('[account] api_usage error:', usageRes.error);
+    if (planRes.error)  console.error('[account] user_plans error:', planRes.error);
+    usageRows = usageRes.data || [];
+    planData  = planRes.data  || null;
   } catch (err) {
+    console.error('[account] fetch error:', err);
     if (usageLoad) usageLoad.textContent = 'Errore di rete';
     if (planLoad)  planLoad.textContent  = 'Errore di rete';
     return;
