@@ -11,9 +11,18 @@ const SHELL = [
 ];
 
 self.addEventListener('install', e => {
+  // skipWaiting is called unconditionally so it's never blocked by
+  // a failed cache.addAll (which would leave the old SW in control)
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(c => c.addAll(SHELL).catch(() => {}))
+      .then(() => self.skipWaiting())
   );
+});
+
+// Allow the page to trigger skipWaiting explicitly
+self.addEventListener('message', e => {
+  if (e.data === 'skipWaiting') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {

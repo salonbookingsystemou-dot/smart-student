@@ -11711,9 +11711,29 @@ updateSourcesBtn();
 // Register service worker for PWA / offline support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js')
-      .then(function(reg) { console.info('[SW] registered, scope:', reg.scope); })
-      .catch(function(err) { console.warn('[SW] registration failed:', err); });
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      console.info('[SW] registered, scope:', reg.scope);
+
+      // When a new SW is found, tell it to skip waiting immediately
+      reg.addEventListener('updatefound', function() {
+        var newSW = reg.installing;
+        newSW.addEventListener('statechange', function() {
+          if (newSW.state === 'installed') {
+            newSW.postMessage('skipWaiting');
+          }
+        });
+      });
+
+      // Check for updates on every page load (not just first)
+      reg.update().catch(function() {});
+    }).catch(function(err) {
+      console.warn('[SW] registration failed:', err);
+    });
+
+    // When the SW changes (new one took control), reload to get fresh HTML
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      window.location.reload();
+    });
   });
 }
 </script>
