@@ -4162,16 +4162,21 @@
 
     /* Horizontal scroll strip — buttons never truncate */
     .section-head-actions {
+      /* Constrain to parent width so overflow-x can trigger */
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       padding: 8px 12px;
       gap: 7px;
       flex-wrap: nowrap;
       overflow-x: auto;
       overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
+      /* Tell iOS Safari: horizontal pan is allowed here */
+      touch-action: pan-x;
       scrollbar-width: none;        /* Firefox */
       position: relative;
       /* Right padding reserves space so last button clears the fade */
-      padding-right: 32px;
+      padding-right: 36px;
     }
     .section-head-actions::-webkit-scrollbar { display: none; } /* Chrome/Safari */
     /* Fade-out right edge — hints at horizontal scroll */
@@ -4181,10 +4186,10 @@
       right: 0;
       top: 0;
       bottom: 0;
-      width: 28px;
+      width: 32px;
       flex-shrink: 0;
-      background: linear-gradient(to right, transparent, var(--surface2));
       pointer-events: none;
+      background: linear-gradient(to right, transparent, var(--surface2));
     }
 
     /* ── Session dots: always one horizontal row ── */
