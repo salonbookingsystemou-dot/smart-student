@@ -2980,6 +2980,12 @@
     text-transform: uppercase; color: var(--accent);
     font-family: 'Inter', monospace; flex-shrink: 0;
   }
+  .mc-day-label {
+    font-size: 11px; color: var(--text-3);
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 160px; flex-shrink: 1;
+  }
   .mc-counter {
     font-size: 11px; color: var(--text-3);
     font-family: 'JetBrains Mono', monospace;
@@ -7303,7 +7309,7 @@ function buildDays() {
                   ${isAiQ ? 'Aggiungi domande' : 'Genera domande'}
                 </button>` : ''}
                 <button class="genq-launch-btn" id="mc-btn-${day.id}"
-                  onclick="startMemoryCards()">
+                  onclick="startMemoryCards('${day.id}')">
                   <i data-lucide="layers" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
                   Cards Autori
                 </button>
@@ -7516,18 +7522,21 @@ function _onPageVisible() {
 })();
 
 // ── Memory Cards ──────────────────────────────────────────────
-const MC_KEY       = 'psico_memory_cards';   // cached extracted cards
-const MC_PHOTO_KEY = 'psico_mc_photos';      // cached photo URLs
+const MC_PHOTO_KEY = 'psico_mc_photos'; // cached photo URLs { authorName: url|null }
 
-let _mcCards    = [];   // loaded card array
-let _mcIdx      = 0;    // current card index
+let _mcCards    = [];      // loaded card array
+let _mcIdx      = 0;       // current card index
 let _mcMode     = 'study'; // 'study' | 'challenge'
 let _mcFlipped  = false;
 let _mcKnown    = 0;
 let _mcAnswered = 0;
+let _mcDayId    = null;    // current day context
+
+function _mcCacheKey(dayId) { return `psico_mc_${dayId}`; }
 
 // ── Public entry-point ─────────────────────────────────────
-async function startMemoryCards() {
+async function startMemoryCards(dayId) {
+  _mcDayId   = dayId;
   _mcIdx     = 0;
   _mcFlipped = false;
   _mcKnown   = 0;
@@ -7538,21 +7547,27 @@ async function startMemoryCards() {
 
   _mcShowView('loading');
 
-  // Check cache first
-  const cached = _mcLoadCache();
+  // Show day context in loading screen
+  const day = getActiveDays().find(d => d.id === dayId);
+  const subEl = document.getElementById('mcLoadingSub');
+  if (subEl && day?.title) subEl.textContent = `Argomenti: "${day.title}"`;
+
+
+  // Check per-day cache first
+  const cached = _mcLoadCache(dayId);
   if (cached && cached.length) {
     _mcCards = cached;
-    _mcFetchAllPhotos().then(() => _mcRender());
+    _mcFetchAllPhotos(dayId).then(() => _mcRender());
     _mcRender();
     return;
   }
 
-  // No cache → extract via AI
+  // No cache → extract via AI for this specific day
   try {
-    _mcCards = await _mcExtractCards();
+    _mcCards = await _mcExtractCards(dayId);
     if (!_mcCards.length) { _mcShowView('empty'); return; }
-    _mcSaveCache(_mcCards);
-    _mcFetchAllPhotos().then(() => _mcRender());
+    _mcSaveCache(dayId, _mcCards);
+    _mcFetchAllPhotos(dayId).then(() => _mcRender());
     _mcRender();
   } catch (err) {
     console.error('[MemoryCards] extraction error:', err);
@@ -7568,12 +7583,12 @@ function _closeMc() {
 }
 
 // ── LocalStorage helpers ───────────────────────────────────
-function _mcLoadCache() {
-  try { return JSON.parse(localStorage.getItem(MC_KEY) || 'null'); }
+function _mcLoadCache(dayId) {
+  try { return JSON.parse(localStorage.getItem(_mcCacheKey(dayId)) || 'null'); }
   catch { return null; }
 }
-function _mcSaveCache(cards) {
-  try { localStorage.setItem(MC_KEY, JSON.stringify(cards)); } catch {}
+function _mcSaveCache(dayId, cards) {
+  try { localStorage.setItem(_mcCacheKey(dayId), JSON.stringify(cards)); } catch {}
 }
 function _mcLoadPhotos() {
   try { return JSON.parse(localStorage.getItem(MC_PHOTO_KEY) || '{}'); }
@@ -7583,19 +7598,33 @@ function _mcSavePhotos(map) {
   try { localStorage.setItem(MC_PHOTO_KEY, JSON.stringify(map)); } catch {}
 }
 
-// Clear cache when sources change (called from addSource / removeSource)
+// Clear per-day card caches when sources change (photos cache is shared, keep it)
 function invalidateMemoryCards() {
-  localStorage.removeItem(MC_KEY);
-  localStorage.removeItem(MC_PHOTO_KEY);
+  const days = getActiveDays ? getActiveDays() : [];
+  days.forEach(d => localStorage.removeItem(_mcCacheKey(d.id)));
+  // Also clear any orphaned keys
+  Object.keys(localStorage)
+    .filter(k => k.startsWith('psico_mc_'))
+    .forEach(k => localStorage.removeItem(k));
 }
 
 // ── AI extraction ──────────────────────────────────────────
-async function _mcExtractCards() {
+async function _mcExtractCards(dayId) {
   const sources = getSources();
   if (!sources.length) return [];
 
+  // Get day context
+  const day      = getActiveDays().find(d => d.id === dayId);
+  const dayTitle = day?.title    || day?.label || '';
+  const daySub   = day?.subtitle || '';
+
+  // Questions from the day (AI-generated or plan-default)
+  const dayState = state[dayId] || {};
+  const qList    = dayState.aiQuestions || day?.questions || [];
+  const qTexts   = qList.slice(0, 12).map(q => `• ${q.text}`).join('\n');
+
   // Build condensed source text (max ~10k chars total)
-  const MAX_TOTAL = 12000;
+  const MAX_TOTAL = 11000;
   let combined = '';
   for (const s of sources) {
     const chunk = `--- Fonte: ${s.title} ---\n${(s.content || '').slice(0, 3500)}\n\n`;
@@ -7603,19 +7632,30 @@ async function _mcExtractCards() {
     combined += chunk;
   }
 
-  const prompt = `Sei un assistente accademico specializzato in psicologia cognitiva.
-Analizza il seguente materiale di studio ed estrai TUTTI i ricercatori/teorici/psicologi significativi citati.
+  const dayContext = [
+    dayTitle && `Argomento della giornata: "${dayTitle}"`,
+    daySub   && `Sottotitolo: "${daySub}"`,
+    qTexts   && `Domande di studio per questa giornata:\n${qTexts}`,
+  ].filter(Boolean).join('\n');
 
-Per ciascuno fornisci:
+  const prompt = `Sei un assistente accademico specializzato in psicologia cognitiva.
+Il contesto di studio di oggi è il seguente:
+
+${dayContext}
+
+Dal materiale di studio fornito, estrai i ricercatori/teorici/psicologi RILEVANTI per gli argomenti della giornata indicata sopra.
+Includi solo autori il cui contributo è pertinente ai topic di oggi (es. se oggi si studia "sensazione e percezione", includi Gibson, Broadbent, Treisman, ecc. — non autori di altri capitoli).
+
+Per ciascun autore fornisci:
 - "author": nome completo (es. "Alan Baddeley")
-- "theory": nome della teoria, modello o contributo principale per cui è citato in questo testo
-- "year": anno di pubblicazione/formulazione (usa la tua conoscenza se non esplicito nel testo; formato "AAAA" o "AAAA–AAAA")
-- "keyIdea": una frase concisa (max 90 caratteri) che cattura l'essenza del contributo
+- "theory": nome della teoria, modello o contributo principale pertinente agli argomenti di oggi
+- "year": anno di pubblicazione/formulazione (usa la tua conoscenza se non esplicito; formato "AAAA" o "AAAA–AAAA")
+- "keyIdea": frase concisa (max 90 caratteri) che cattura l'essenza del contributo
 
 Regole:
-- Includi solo autori con un contributo teorico rilevante, non semplici citazioni di passaggio
-- Non duplicare: se un autore appare più volte, includi il contributo più significativo
-- Minimo 5, massimo 20 autori
+- Solo autori rilevanti per gli argomenti della giornata — NON tutti gli autori del corso
+- Nessuna duplicazione: un autore = un contributo (il più pertinente agli argomenti di oggi)
+- Da 4 a 12 autori totali
 - Rispondi ESCLUSIVAMENTE con un array JSON valido, senza testo aggiuntivo
 
 MATERIALE DI STUDIO:
@@ -7623,30 +7663,27 @@ ${combined}`;
 
   const result = await _callClaude({
     model: 'claude-opus-4-5',
-    max_tokens: 1800,
+    max_tokens: 1600,
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.1,
   });
 
   const raw = result?.content?.[0]?.text || result?.text || '';
-  // Extract JSON array from response
   const match = raw.match(/\[[\s\S]*\]/);
   if (!match) return [];
 
   let cards;
   try { cards = JSON.parse(match[0]); } catch { return []; }
-
   if (!Array.isArray(cards)) return [];
 
-  // Normalise & add source attribution
   return cards
     .filter(c => c.author && c.theory)
     .map((c, i) => ({
-      id:       i,
-      author:   String(c.author).trim(),
-      theory:   String(c.theory).trim(),
-      year:     String(c.year  || '—').trim(),
-      keyIdea:  String(c.keyIdea || '').trim(),
+      id:      i,
+      author:  String(c.author).trim(),
+      theory:  String(c.theory).trim(),
+      year:    String(c.year   || '—').trim(),
+      keyIdea: String(c.keyIdea || '').trim(),
       photoUrl: null,
     }));
 }
@@ -7676,12 +7713,12 @@ async function _mcFetchPhoto(authorName) {
   return url;
 }
 
-async function _mcFetchAllPhotos() {
+async function _mcFetchAllPhotos(dayId) {
   const pending = _mcCards.filter(c => c.photoUrl === null);
   await Promise.allSettled(pending.map(async c => {
     c.photoUrl = await _mcFetchPhoto(c.author);
   }));
-  _mcSaveCache(_mcCards);
+  _mcSaveCache(dayId || _mcDayId, _mcCards);
   // Re-render current card photo if visible
   if (document.getElementById('mcCardsView').style.display !== 'none') {
     _mcUpdateCardDOM(_mcCards[_mcIdx]);
@@ -7701,6 +7738,14 @@ function _mcShowView(v) {
 function _mcRender() {
   if (!_mcCards.length) { _mcShowView('empty'); return; }
   _mcShowView('cards');
+
+  // Show day context label
+  const dayLabelEl = document.getElementById('mcDayLabel');
+  if (dayLabelEl && _mcDayId) {
+    const day = getActiveDays().find(d => d.id === _mcDayId);
+    dayLabelEl.textContent = day?.title || day?.label || '';
+  }
+
   _mcSetMode(_mcMode, true);
   _mcUpdateCardDOM(_mcCards[_mcIdx]);
   _mcUpdateNav();
@@ -11215,8 +11260,8 @@ updateSourcesBtn();
     <div id="mcLoadingView">
       <div class="mc-loading-inner">
         <i data-lucide="loader-circle" style="width:28px;height:28px;stroke-width:1.8;animation:mc-spin 1s linear infinite;display:block;margin:0 auto 14px"></i>
-        <div class="mc-loading-title">Estrazione autori in corso…</div>
-        <div class="mc-loading-sub">Claude sta analizzando le tue fonti</div>
+        <div class="mc-loading-title" id="mcLoadingTitle">Estrazione autori in corso…</div>
+        <div class="mc-loading-sub" id="mcLoadingSub">Claude sta analizzando le fonti per gli argomenti di oggi</div>
       </div>
     </div>
 
@@ -11238,6 +11283,7 @@ updateSourcesBtn();
           <i data-lucide="layers" style="width:10px;height:10px;stroke-width:2.2;vertical-align:middle"></i>
           Memory Cards
         </div>
+        <div class="mc-day-label" id="mcDayLabel"></div>
         <div class="mc-mode-row">
           <button class="mc-mode-btn" id="mcModeStudy" onclick="_mcSetMode('study')">
             <i data-lucide="eye" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
