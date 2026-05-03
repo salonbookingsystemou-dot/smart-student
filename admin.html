@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Mnesti</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d0d0d;
+      --bg2:     #111;
+      --bg3:     #181818;
+      --bg4:     #1e1e1e;
+      --border:  #2a2a2a;
+      --accent:  #d97757;
+      --accent2: #e8956e;
+      --dim:     rgba(217,119,87,.12);
+      --white:   #f0ebe6;
+      --grey:    #888;
+      --grey2:   #555;
+      --sans:    'DM Sans', system-ui, sans-serif;
+      --sidebar: 220px;
+      --green:   #4caf50;
+      --blue:    #4a9eff;
+      --yellow:  #f0b429;
+      --red:     #e55;
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    /* ── LAYOUT ── */
+    #app { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar);
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-brand .brand-logo {
+      height: 22px;
+      width: auto;
+      filter: invert(1);
+      opacity: .9;
+    }
+    .sidebar-brand .brand-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .sidebar-nav { padding: 12px 8px; flex: 1; }
+    .nav-section-label {
+      font-size: .65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--grey2);
+      padding: 12px 10px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--grey);
+      font-size: .85rem;
+      font-weight: 500;
+      transition: background .15s, color .15s;
+      text-decoration: none;
+      user-select: none;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--white); }
+    .nav-item.active { background: var(--dim); color: var(--accent); }
+    .nav-item .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .admin-user-info {
+      font-size: .75rem;
+      color: var(--grey);
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .btn-logout {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--grey);
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .btn-logout:hover { background: var(--bg4); color: var(--white); }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(13,13,13,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .topbar-updated {
+      font-size: .72rem;
+      color: var(--grey2);
+    }
+    .btn-refresh {
+      padding: 6px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--grey);
+      font-size: .8rem;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-refresh:hover { background: var(--bg4); color: var(--white); }
+    .btn-refresh.spinning .refresh-icon { animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .page-content { padding: 28px; flex: 1; }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    .kpi-card:hover { border-color: rgba(217,119,87,.3); }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--kpi-color, var(--accent));
+    }
+    .kpi-label {
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--grey);
+      margin-bottom: 10px;
+    }
+    .kpi-value {
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi-sub {
+      font-size: .72rem;
+      color: var(--grey2);
+    }
+    .kpi-delta {
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 100px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .kpi-delta.up   { background: rgba(76,175,80,.12); color: var(--green); }
+    .kpi-delta.warn { background: rgba(240,180,41,.12); color: var(--yellow); }
+
+    /* ── CHARTS ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+    .chart-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+    }
+    .chart-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .chart-card-title {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .chart-card-sub {
+      font-size: .72rem;
+      color: var(--grey2);
+      margin-top: 2px;
+    }
+    .chart-period-btns { display: flex; gap: 4px; }
+    .period-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--grey);
+      font-size: .72rem;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .period-btn.active { background: var(--dim); color: var(--accent); border-color: rgba(217,119,87,.3); }
+    .chart-wrap { position: relative; height: 200px; }
+
+    /* ── PLAN DONUT ── */
+    .plan-donut-wrap {
+      position: relative;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .plan-legend { display: flex; flex-direction: column; gap: 10px; }
+    .plan-legend-item { display: flex; align-items: center; gap: 8px; font-size: .78rem; }
+    .plan-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── USERS TABLE ── */
+    .table-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+    .table-toolbar {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .table-title {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .table-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      color: var(--white);
+      font-size: .8rem;
+      width: 220px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .search-input:focus { border-color: rgba(217,119,87,.5); }
+    .plan-filter {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      color: var(--white);
+      font-size: .8rem;
+      outline: none;
+      cursor: pointer;
+    }
+    .btn-export {
+      padding: 7px 14px;
+      background: var(--dim);
+      border: 1px solid rgba(217,119,87,.3);
+      border-radius: 8px;
+      color: var(--accent);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-export:hover { background: rgba(217,119,87,.2); }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .8rem;
+    }
+    thead th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: .68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--grey);
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    thead th:hover { color: var(--white); }
+    thead th.sort-asc::after  { content: ' ↑'; color: var(--accent); }
+    thead th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .12s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+    td {
+      padding: 10px 14px;
+      color: var(--white);
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    td.email-cell {
+      color: var(--white);
+      font-weight: 500;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    td.muted { color: var(--grey); }
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 100px;
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .plan-badge.free    { background: rgba(136,136,136,.12); color: var(--grey); }
+    .plan-badge.exam    { background: rgba(74,158,255,.12);  color: var(--blue); }
+    .plan-badge.monthly { background: rgba(217,119,87,.12);  color: var(--accent); }
+    .active-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-right: 5px;
+    }
+
+    /* pagination */
+    .table-pagination {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      font-size: .78rem;
+      color: var(--grey);
+    }
+    .pagination-btns { display: flex; gap: 4px; }
+    .pg-btn {
+      padding: 5px 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--grey);
+      cursor: pointer;
+      font-size: .78rem;
+      transition: background .15s;
+    }
+    .pg-btn:hover { background: var(--bg4); color: var(--white); }
+    .pg-btn.active { background: var(--dim); color: var(--accent); border-color: rgba(217,119,87,.3); }
+    .pg-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    /* ── SKELETON / LOADING ── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* ── AUTH OVERLAY ── */
+    #auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .auth-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    .auth-logo { height: 28px; filter: invert(1); margin-bottom: 6px; }
+    .auth-badge {
+      font-size: .65rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: inline-block;
+      margin-bottom: 28px;
+    }
+    .auth-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+    .auth-sub { font-size: .85rem; color: var(--grey); margin-bottom: 24px; }
+    .auth-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--white);
+      font-size: .9rem;
+      outline: none;
+      margin-bottom: 10px;
+      transition: border-color .2s;
+    }
+    .auth-input:focus { border-color: rgba(217,119,87,.5); }
+    .auth-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      margin-top: 4px;
+    }
+    .auth-btn:hover { background: var(--accent2); }
+    .auth-error {
+      color: var(--red);
+      font-size: .8rem;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+    .auth-spinner { font-size: .85rem; color: var(--grey); margin-top: 20px; }
+
+    /* ── EMPTY / ERROR STATES ── */
+    .empty-row td {
+      text-align: center;
+      padding: 40px;
+      color: var(--grey);
+    }
+
+    /* ── SECTION VISIBILITY ── */
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: .82rem;
+      color: var(--white);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .25s, transform .25s;
+      z-index: 9999;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- ── AUTH OVERLAY ── -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <img src="logo-full.png" alt="Mnesti" class="auth-logo"
+         onerror="this.onerror=null;this.src='logo-mark.png';this.style.height='24px'">
+    <div>
+      <span class="auth-badge">Admin</span>
+    </div>
+    <h1 class="auth-title">Pannello di controllo</h1>
+    <p class="auth-sub" id="auth-sub">Accedi con le credenziali di amministratore.</p>
+    <input id="auth-email"    type="email"    placeholder="Email admin" class="auth-input" />
+    <input id="auth-password" type="password" placeholder="Password"    class="auth-input" />
+    <button class="auth-btn" id="auth-btn" onclick="doLogin()">Accedi</button>
+    <p class="auth-error" id="auth-error"></p>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app" style="display:none;">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <img src="logo-full.png" alt="Mnesti" class="brand-logo"
+           onerror="this.onerror=null;this.src='logo-mark.png'">
+      <span class="brand-badge">Admin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <p class="nav-section-label">Panoramica</p>
+      <a class="nav-item active" data-view="overview" onclick="switchView('overview',this)">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <p class="nav-section-label">Gestione</p>
+      <a class="nav-item" data-view="users" onclick="switchView('users',this)">
+        <span class="nav-icon">👥</span> Utenti
+      </a>
+      <a class="nav-item" data-view="usage" onclick="switchView('usage',this)">
+        <span class="nav-icon">⚡</span> Utilizzo API
+      </a>
+      <a class="nav-item" data-view="plans" onclick="switchView('plans',this)">
+        <span class="nav-icon">🎓</span> Piani & Esami
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p class="admin-user-info" id="admin-email-label">—</p>
+      <button class="btn-logout" onclick="doLogout()">← Logout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="topbar-title">Dashboard</span>
+      <div class="topbar-right">
+        <span class="topbar-updated" id="last-updated"></span>
+        <button class="btn-refresh" id="btn-refresh" onclick="loadAll()">
+          <span class="refresh-icon">↻</span> Aggiorna
+        </button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ── VIEW: OVERVIEW ── -->
+      <section class="view-section active" id="view-overview">
+
+        <!-- KPI CARDS -->
+        <div class="kpi-grid" id="kpi-grid">
+          <!-- filled by JS -->
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-grid">
+          <!-- User growth chart -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">Nuovi utenti</div>
+                <div class="chart-card-sub">Registrazioni giornaliere</div>
+              </div>
+              <div class="chart-period-btns">
+                <button class="period-btn active" data-chart="users" data-days="7"  onclick="setChartPeriod(this,'users',7)">7g</button>
+                <button class="period-btn"        data-chart="users" data-days="30" onclick="setChartPeriod(this,'users',30)">30g</button>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-users"></canvas></div>
+          </div>
+
+          <!-- API calls chart -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">Chiamate AI</div>
+                <div class="chart-card-sub">Utilizzo API giornaliero</div>
+              </div>
+              <div class="chart-period-btns">
+                <button class="period-btn active" data-chart="api" data-days="7"  onclick="setChartPeriod(this,'api',7)">7g</button>
+                <button class="period-btn"        data-chart="api" data-days="30" onclick="setChartPeriod(this,'api',30)">30g</button>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-api"></canvas></div>
+          </div>
+        </div>
+
+        <!-- PLAN DISTRIBUTION -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">Distribuzione piani</div>
+                <div class="chart-card-sub">Licenze attive per tipo</div>
+              </div>
+            </div>
+            <div class="plan-donut-wrap">
+              <div style="width:180px;flex-shrink:0;"><canvas id="chart-plans"></canvas></div>
+              <div class="plan-legend" id="plan-legend"></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">Top utenti per utilizzo</div>
+                <div class="chart-card-sub">Chiamate AI totali</div>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="chart-top-users"></canvas></div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── VIEW: USERS ── -->
+      <section class="view-section" id="view-users">
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-title">Tutti gli utenti</span>
+            <div class="table-controls">
+              <input type="search" id="user-search" class="search-input"
+                     placeholder="🔍  Cerca per email…" oninput="filterUsers()" />
+              <select id="plan-filter" class="plan-filter" onchange="filterUsers()">
+                <option value="">Tutti i piani</option>
+                <option value="free">Free</option>
+                <option value="exam">Exam</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <button class="btn-export" onclick="exportCSV()">
+                ↓ CSV
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th onclick="sortTable('email')">Email</th>
+                  <th onclick="sortTable('registered_at')">Registrazione</th>
+                  <th onclick="sortTable('last_sign_in')">Ultimo accesso</th>
+                  <th onclick="sortTable('last_active_date')">Ultima attività</th>
+                  <th onclick="sortTable('plan_type')">Piano</th>
+                  <th onclick="sortTable('exams_count')">Esami</th>
+                  <th onclick="sortTable('total_calls')">Chiamate AI</th>
+                  <th onclick="sortTable('total_input_tok')">Token In</th>
+                  <th onclick="sortTable('total_output_tok')">Token Out</th>
+                  <th onclick="sortTable('estimated_cost')">Costo $</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr class="empty-row"><td colspan="10">Caricamento…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-pagination">
+            <span id="pg-info"></span>
+            <div class="pagination-btns" id="pg-btns"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── VIEW: USAGE ── -->
+      <section class="view-section" id="view-usage">
+        <div class="kpi-grid" id="kpi-usage"></div>
+        <div class="chart-card" style="margin-bottom:28px;">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">Andamento token</div>
+              <div class="chart-card-sub">Input + Output token giornalieri (ultimi 30g)</div>
+            </div>
+          </div>
+          <div class="chart-wrap" style="height:240px;"><canvas id="chart-tokens"></canvas></div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-title">Utilizzo per utente</span>
+            <div class="table-controls">
+              <input type="search" id="usage-search" class="search-input"
+                     placeholder="🔍  Cerca per email…" oninput="filterUsage()" />
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Ultima attività</th>
+                  <th onclick="sortUsageTable('total_calls')">Chiamate</th>
+                  <th onclick="sortUsageTable('total_input_tok')">Token Input</th>
+                  <th onclick="sortUsageTable('total_output_tok')">Token Output</th>
+                  <th onclick="sortUsageTable('estimated_cost')">Costo stimato $</th>
+                </tr>
+              </thead>
+              <tbody id="usage-tbody">
+                <tr class="empty-row"><td colspan="6">Caricamento…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── VIEW: PLANS ── -->
+      <section class="view-section" id="view-plans">
+        <div class="kpi-grid" id="kpi-plans"></div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span class="table-title">Esami creati</span>
+            <div class="table-controls">
+              <input type="search" id="exams-search" class="search-input"
+                     placeholder="🔍  Cerca per email o esame…" oninput="filterExams()" />
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email utente</th>
+                  <th>Nome esame</th>
+                  <th>Data esame</th>
+                  <th>Piano creato</th>
+                </tr>
+              </thead>
+              <tbody id="exams-tbody">
+                <tr class="empty-row"><td colspan="4">Caricamento…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /page-content -->
+  </main>
+
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script>
+/* ───────────────────────────────────────────────
+   CONFIG
+─────────────────────────────────────────────── */
+const SB_URL = 'https://olagntawajefdjrkkvcc.supabase.co';
+const SB_KEY = 'sb_publishable_azsXEe4uMlPAbKNZ1seQuA_6uVieV_c';
+
+let _sb = null;
+let _allUsers  = [];
+let _usersSort = { col: 'registered_at', dir: 'desc' };
+let _usersPage = 1;
+const PAGE_SIZE = 25;
+
+/* ───────────────────────────────────────────────
+   INIT
+─────────────────────────────────────────────── */
+(async function init() {
+  _sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) { showLoginForm(); return; }
+
+  await verifyAdminAndShow(session);
+
+  _sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT' || !session) {
+      window.location.reload();
+    }
+  });
+})();
+
+/* ───────────────────────────────────────────────
+   AUTH
+─────────────────────────────────────────────── */
+function showLoginForm() {
+  document.getElementById('auth-overlay').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-password').value;
+  const btn   = document.getElementById('auth-btn');
+  const err   = document.getElementById('auth-error');
+
+  err.textContent = '';
+  btn.textContent = 'Accesso…';
+  btn.disabled = true;
+
+  const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    err.textContent = 'Credenziali errate o account non trovato.';
+    btn.textContent = 'Accedi';
+    btn.disabled = false;
+    return;
+  }
+
+  const { data: { session } } = await _sb.auth.getSession();
+  await verifyAdminAndShow(session);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const overlay = document.getElementById('auth-overlay');
+    if (overlay.style.display !== 'none') doLogin();
+  }
+});
+
+async function verifyAdminAndShow(session) {
+  document.getElementById('auth-sub').textContent = 'Verifica accesso admin…';
+
+  const { data: isAdmin, error } = await _sb.rpc('is_admin');
+  if (error || !isAdmin) {
+    await _sb.auth.signOut();
+    document.getElementById('auth-error').textContent = 'Accesso non autorizzato. Questo account non è admin.';
+    document.getElementById('auth-btn').textContent = 'Accedi';
+    document.getElementById('auth-btn').disabled = false;
+    document.getElementById('auth-sub').textContent = 'Accedi con le credenziali di amministratore.';
+    return;
+  }
+
+  document.getElementById('admin-email-label').textContent = session.user.email;
+  document.getElementById('auth-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  loadAll();
+}
+
+async function doLogout() {
+  await _sb.auth.signOut();
+  window.location.reload();
+}
+
+/* ───────────────────────────────────────────────
+   DATA LOADING
+─────────────────────────────────────────────── */
+async function loadAll() {
+  const btn = document.getElementById('btn-refresh');
+  btn.classList.add('spinning');
+
+  try {
+    const [statsRes, usersRes, usersChartRes, apiChartRes] = await Promise.all([
+      _sb.rpc('get_admin_dashboard_stats'),
+      _sb.rpc('get_admin_users'),
+      _sb.rpc('get_daily_new_users', { p_days: 30 }),
+      _sb.rpc('get_daily_api_calls', { p_days: 30 }),
+    ]);
+
+    const stats   = statsRes.data;
+    const users   = usersRes.data  || [];
+    const uChart  = usersChartRes.data || [];
+    const apiChart = apiChartRes.data  || [];
+
+    if (statsRes.error)  throw statsRes.error;
+    if (usersRes.error)  throw usersRes.error;
+
+    _allUsers = users;
+
+    renderKPIs(stats);
+    renderUsageKPIs(stats);
+    renderPlansKPIs(stats, users);
+    renderUsersChart(uChart, 7);
+    renderApiChart(apiChart, 7);
+    renderPlanDonut(stats);
+    renderTopUsersChart(users);
+    renderTokensChart(apiChart);
+    renderUsersTable();
+    renderUsageTable(users);
+    renderExamsTable(users);
+
+    const now = new Date().toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById('last-updated').textContent = 'Aggiornato alle ' + now;
+  } catch(e) {
+    console.error('loadAll error:', e);
+    showToast('⚠ Errore caricamento dati: ' + (e.message || e));
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+/* ───────────────────────────────────────────────
+   KPI RENDERING
+─────────────────────────────────────────────── */
+function kpiCard({ label, value, sub, delta, color }) {
+  return `<div class="kpi-card" style="--kpi-color:${color||'var(--accent)'}">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-sub">${sub || ''}${delta ? ' &nbsp;<span class="kpi-delta ' + delta.cls + '">' + delta.text + '</span>' : ''}</div>
+  </div>`;
+}
+
+function fmtNum(n) {
+  if (n == null) return '—';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(n >= 10000 ? 0 : 1) + 'K';
+  return Number(n).toLocaleString('it-IT');
+}
+
+function renderKPIs(s) {
+  const grid = document.getElementById('kpi-grid');
+  grid.innerHTML = [
+    kpiCard({ label:'Utenti totali', value: fmtNum(s.total_users), sub: `+${fmtNum(s.new_users_30d)} ultimi 30g`, color:'var(--blue)', delta:{cls:'up', text:`+${s.new_users_7d} 7g`} }),
+    kpiCard({ label:'Nuovi oggi',    value: fmtNum(s.new_users_today), sub:'Registrazioni 24h' }),
+    kpiCard({ label:'Attivi oggi',   value: fmtNum(s.active_users_today), sub: `${fmtNum(s.active_users_7d)} negli ultimi 7g`, color:'var(--green)' }),
+    kpiCard({ label:'Chiamate AI oggi', value: fmtNum(s.calls_today), sub: `${fmtNum(s.calls_7d)} ultimi 7g`, color:'var(--accent)' }),
+    kpiCard({ label:'Chiamate AI totali', value: fmtNum(s.calls_all), sub:'Da sempre' }),
+    kpiCard({ label:'Token totali',  value: fmtNum(Number(s.input_tokens_all) + Number(s.output_tokens_all)), sub:`In: ${fmtNum(s.input_tokens_all)} / Out: ${fmtNum(s.output_tokens_all)}` }),
+    kpiCard({ label:'Costo stimato', value: '$' + Number(s.estimated_cost_usd).toFixed(2), sub:'USD · tariffe Claude Sonnet', color:'var(--yellow)' }),
+    kpiCard({ label:'Esami creati',  value: fmtNum(s.exams_total), sub: `${fmtNum(s.exams_30d)} ultimi 30g`, color:'var(--green)' }),
+  ].join('');
+}
+
+function renderUsageKPIs(s) {
+  document.getElementById('kpi-usage').innerHTML = [
+    kpiCard({ label:'Chiamate totali',   value: fmtNum(s.calls_all),         sub:'Da sempre' }),
+    kpiCard({ label:'Chiamate oggi',     value: fmtNum(s.calls_today),       sub:'Ultime 24h', color:'var(--accent)' }),
+    kpiCard({ label:'Chiamate 7 giorni', value: fmtNum(s.calls_7d),          sub:'Ultimi 7 giorni' }),
+    kpiCard({ label:'Token Input',       value: fmtNum(s.input_tokens_all),  sub:'Prompt tokens' }),
+    kpiCard({ label:'Token Output',      value: fmtNum(s.output_tokens_all), sub:'Completion tokens' }),
+    kpiCard({ label:'Costo stimato',     value: '$' + Number(s.estimated_cost_usd).toFixed(2), sub:'USD totale stimato', color:'var(--yellow)' }),
+  ].join('');
+}
+
+function renderPlansKPIs(s, users) {
+  const paid = Number(s.plan_exam) + Number(s.plan_monthly);
+  document.getElementById('kpi-plans').innerHTML = [
+    kpiCard({ label:'Piano Free',     value: fmtNum(s.plan_free),    sub:'Utenti free', color:'var(--grey)' }),
+    kpiCard({ label:'Piano Exam',     value: fmtNum(s.plan_exam),    sub:'Singolo esame', color:'var(--blue)' }),
+    kpiCard({ label:'Piano Monthly',  value: fmtNum(s.plan_monthly), sub:'Abbonamento mensile', color:'var(--accent)' }),
+    kpiCard({ label:'Licenze a pagamento', value: fmtNum(paid), sub:'Exam + Monthly', color:'var(--green)' }),
+    kpiCard({ label:'Esami totali',   value: fmtNum(s.exams_total), sub:'Piani generati' }),
+    kpiCard({ label:'Esami (30g)',    value: fmtNum(s.exams_30d),  sub:'Ultimi 30 giorni' }),
+  ].join('');
+}
+
+/* ───────────────────────────────────────────────
+   CHARTS
+─────────────────────────────────────────────── */
+const CHART_DEFAULTS = {
+  plugins: { legend: { display: false }, tooltip: { backgroundColor:'#1e1e1e', titleColor:'#f0ebe6', bodyColor:'#888', borderColor:'#2a2a2a', borderWidth:1, padding:10 } },
+  scales: {
+    x: { grid: { color:'rgba(255,255,255,.04)' }, ticks: { color:'#555', font:{size:10} } },
+    y: { grid: { color:'rgba(255,255,255,.04)' }, ticks: { color:'#555', font:{size:10} }, beginAtZero:true }
+  }
+};
+
+let _usersChartInst = null;
+let _apiChartInst   = null;
+let _tokensChartInst = null;
+let _topUsersChartInst = null;
+let _planChartInst  = null;
+let _usersChartData = [];
+let _apiChartData   = [];
+
+function renderUsersChart(data, days) {
+  _usersChartData = data;
+  const slice = data.slice(-days);
+  const labels = slice.map(d => fmtDateShort(d.day));
+  const values = slice.map(d => Number(d.signups));
+
+  if (_usersChartInst) _usersChartInst.destroy();
+  const ctx = document.getElementById('chart-users').getContext('2d');
+  _usersChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{ data: values, borderColor:'#d97757', backgroundColor:'rgba(217,119,87,.1)',
+                   borderWidth:2, fill:true, tension:.4, pointRadius:3, pointBackgroundColor:'#d97757' }]
+    },
+    options: { ...CHART_DEFAULTS, responsive:true, maintainAspectRatio:false }
+  });
+}
+
+function renderApiChart(data, days) {
+  _apiChartData = data;
+  const slice = data.slice(-days);
+  const labels = slice.map(d => fmtDateShort(d.day));
+  const values = slice.map(d => Number(d.calls));
+
+  if (_apiChartInst) _apiChartInst.destroy();
+  const ctx = document.getElementById('chart-api').getContext('2d');
+  _apiChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor:'rgba(74,158,255,.5)', borderColor:'#4a9eff',
+                   borderWidth:1, borderRadius:4 }]
+    },
+    options: { ...CHART_DEFAULTS, responsive:true, maintainAspectRatio:false }
+  });
+}
+
+function renderTokensChart(data) {
+  const labels = data.map(d => fmtDateShort(d.day));
+  const values = data.map(d => Number(d.tokens));
+
+  if (_tokensChartInst) _tokensChartInst.destroy();
+  const ctx = document.getElementById('chart-tokens').getContext('2d');
+  _tokensChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{ label:'Token totali', data: values, borderColor:'#f0b429',
+                   backgroundColor:'rgba(240,180,41,.08)', borderWidth:2, fill:true, tension:.4,
+                   pointRadius:2, pointBackgroundColor:'#f0b429' }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      plugins: { ...CHART_DEFAULTS.plugins, legend:{display:true, labels:{color:'#888',font:{size:11}}} },
+      responsive:true, maintainAspectRatio:false
+    }
+  });
+}
+
+function renderPlanDonut(s) {
+  const free = Number(s.plan_free);
+  const exam = Number(s.plan_exam);
+  const mon  = Number(s.plan_monthly);
+  const total = free + exam + mon || 1;
+
+  if (_planChartInst) _planChartInst.destroy();
+  const ctx = document.getElementById('chart-plans').getContext('2d');
+  _planChartInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Free','Exam','Monthly'],
+      datasets: [{ data:[free,exam,mon], backgroundColor:['rgba(136,136,136,.4)','rgba(74,158,255,.6)','rgba(217,119,87,.7)'],
+                   borderColor:['#555','#4a9eff','#d97757'], borderWidth:1, hoverOffset:6 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, cutout:'70%',
+      plugins: { legend:{display:false}, tooltip:CHART_DEFAULTS.plugins.tooltip }
+    }
+  });
+
+  const legend = document.getElementById('plan-legend');
+  legend.innerHTML = [
+    ['Free',    free, '#888'],
+    ['Exam',    exam, '#4a9eff'],
+    ['Monthly', mon,  '#d97757'],
+  ].map(([label, val, color]) => `
+    <div class="plan-legend-item">
+      <div class="plan-legend-dot" style="background:${color}"></div>
+      <span style="color:var(--grey)">${label}</span>
+      <span style="margin-left:auto;font-weight:600;color:var(--white)">${val}</span>
+      <span style="color:var(--grey2);margin-left:4px">(${Math.round(val/total*100)}%)</span>
+    </div>`).join('');
+}
+
+function renderTopUsersChart(users) {
+  const top = [...users]
+    .sort((a,b) => Number(b.total_calls) - Number(a.total_calls))
+    .slice(0, 8);
+  const labels = top.map(u => u.email.split('@')[0]);
+  const values = top.map(u => Number(u.total_calls));
+
+  if (_topUsersChartInst) _topUsersChartInst.destroy();
+  const ctx = document.getElementById('chart-top-users').getContext('2d');
+  _topUsersChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor:'rgba(217,119,87,.5)', borderColor:'#d97757',
+                   borderWidth:1, borderRadius:4 }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      indexAxis: 'y',
+      responsive:true, maintainAspectRatio:false,
+    }
+  });
+}
+
+function setChartPeriod(btn, chartId, days) {
+  document.querySelectorAll(`.period-btn[data-chart="${chartId}"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (chartId === 'users') renderUsersChart(_usersChartData, days);
+  if (chartId === 'api')   renderApiChart(_apiChartData, days);
+}
+
+/* ───────────────────────────────────────────────
+   USERS TABLE
+─────────────────────────────────────────────── */
+function getFilteredUsers() {
+  const q    = (document.getElementById('user-search')?.value || '').toLowerCase();
+  const plan = (document.getElementById('plan-filter')?.value || '');
+  return _allUsers.filter(u => {
+    if (q && !u.email.toLowerCase().includes(q)) return false;
+    if (plan && u.plan_type !== plan) return false;
+    return true;
+  }).sort((a,b) => {
+    const { col, dir } = _usersSort;
+    let av = a[col], bv = b[col];
+    if (av == null) av = '';
+    if (bv == null) bv = '';
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    return dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+  });
+}
+
+function renderUsersTable() {
+  const users = getFilteredUsers();
+  const total = users.length;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  _usersPage  = Math.min(_usersPage, pages);
+  const slice = users.slice((_usersPage-1)*PAGE_SIZE, _usersPage*PAGE_SIZE);
+
+  const tbody = document.getElementById('users-tbody');
+  if (!slice.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Nessun utente trovato</td></tr>';
+  } else {
+    tbody.innerHTML = slice.map(u => {
+      const isActive = u.last_active_date && u.last_active_date >= new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+      return `<tr>
+        <td class="email-cell" title="${u.email}">${u.email}</td>
+        <td class="muted">${fmtDate(u.registered_at)}</td>
+        <td class="muted">${u.last_sign_in ? fmtDate(u.last_sign_in) : '—'}</td>
+        <td class="muted">${u.last_active_date ? `${isActive?'<span class="active-dot"></span>':''}${u.last_active_date}` : '—'}</td>
+        <td><span class="plan-badge ${u.plan_type}">${u.plan_type}</span></td>
+        <td class="muted">${u.exams_count}</td>
+        <td>${fmtNum(u.total_calls)}</td>
+        <td class="muted">${fmtNum(u.total_input_tok)}</td>
+        <td class="muted">${fmtNum(u.total_output_tok)}</td>
+        <td class="muted">$${Number(u.estimated_cost).toFixed(3)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('pg-info').textContent =
+    `${Math.min((_usersPage-1)*PAGE_SIZE+1, total)}–${Math.min(_usersPage*PAGE_SIZE, total)} di ${total} utenti`;
+
+  const pgBtns = document.getElementById('pg-btns');
+  pgBtns.innerHTML = '';
+  const addPgBtn = (label, page, disabled) => {
+    const b = document.createElement('button');
+    b.className = 'pg-btn' + (page === _usersPage ? ' active' : '');
+    b.textContent = label;
+    b.disabled = disabled;
+    b.onclick = () => { _usersPage = page; renderUsersTable(); };
+    pgBtns.appendChild(b);
+  };
+  addPgBtn('‹', _usersPage-1, _usersPage <= 1);
+  const start = Math.max(1, _usersPage-2);
+  const end   = Math.min(pages, _usersPage+2);
+  for (let p = start; p <= end; p++) addPgBtn(p, p, false);
+  addPgBtn('›', _usersPage+1, _usersPage >= pages);
+}
+
+function filterUsers() { _usersPage = 1; renderUsersTable(); }
+
+function sortTable(col) {
+  if (_usersSort.col === col) {
+    _usersSort.dir = _usersSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    _usersSort = { col, dir: 'desc' };
+  }
+  document.querySelectorAll('#view-users thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+    if (th.getAttribute('onclick') === `sortTable('${col}')`) {
+      th.classList.add(_usersSort.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+    }
+  });
+  renderUsersTable();
+}
+
+/* ───────────────────────────────────────────────
+   USAGE TABLE
+─────────────────────────────────────────────── */
+let _usageSortCol = 'total_calls';
+let _usageSortDir = 'desc';
+
+function renderUsageTable(users) {
+  renderUsageTableFromState(users);
+}
+
+function renderUsageTableFromState(users) {
+  const q = (document.getElementById('usage-search')?.value || '').toLowerCase();
+  const sorted = [...(users || _allUsers)]
+    .filter(u => !q || u.email.toLowerCase().includes(q))
+    .filter(u => Number(u.total_calls) > 0)
+    .sort((a,b) => {
+      let av = Number(a[_usageSortCol]) || 0;
+      let bv = Number(b[_usageSortCol]) || 0;
+      return _usageSortDir === 'asc' ? av-bv : bv-av;
+    });
+
+  const tbody = document.getElementById('usage-tbody');
+  if (!sorted.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Nessun utilizzo registrato</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sorted.map(u => `<tr>
+    <td class="email-cell" title="${u.email}">${u.email}</td>
+    <td class="muted">${u.last_active_date || '—'}</td>
+    <td>${fmtNum(u.total_calls)}</td>
+    <td class="muted">${fmtNum(u.total_input_tok)}</td>
+    <td class="muted">${fmtNum(u.total_output_tok)}</td>
+    <td class="muted">$${Number(u.estimated_cost).toFixed(4)}</td>
+  </tr>`).join('');
+}
+
+function filterUsage() { renderUsageTableFromState(); }
+
+function sortUsageTable(col) {
+  if (_usageSortCol === col) _usageSortDir = _usageSortDir === 'asc' ? 'desc' : 'asc';
+  else { _usageSortCol = col; _usageSortDir = 'desc'; }
+  renderUsageTableFromState();
+}
+
+/* ───────────────────────────────────────────────
+   EXAMS TABLE (from user_exams via user list)
+   The user list has exams_count; for the full list
+   we fetch from user_exams directly
+─────────────────────────────────────────────── */
+let _allExams = [];
+
+async function fetchExams() {
+  const { data, error } = await _sb
+    .from('user_exams')
+    .select('id, user_id, exam_name, exam_date, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (error) { console.error('fetchExams:', error); return; }
+
+  const emailMap = {};
+  _allUsers.forEach(u => { emailMap[u.user_id] = u.email; });
+
+  _allExams = (data || []).map(e => ({
+    ...e,
+    email: emailMap[e.user_id] || e.user_id
+  }));
+
+  renderExamsTable();
+}
+
+function renderExamsTable(users) {
+  const q = (document.getElementById('exams-search')?.value || '').toLowerCase();
+  const list = _allExams.filter(e =>
+    !q || e.email.toLowerCase().includes(q) || e.exam_name.toLowerCase().includes(q)
+  );
+
+  const tbody = document.getElementById('exams-tbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nessun esame trovato</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(e => `<tr>
+    <td class="email-cell" title="${e.email}">${e.email}</td>
+    <td>${escHtml(e.exam_name)}</td>
+    <td class="muted">${e.exam_date || '—'}</td>
+    <td class="muted">${fmtDate(e.created_at)}</td>
+  </tr>`).join('');
+}
+
+function filterExams() { renderExamsTable(); }
+
+/* ───────────────────────────────────────────────
+   NAVIGATION
+─────────────────────────────────────────────── */
+const VIEW_TITLES = {
+  overview: 'Dashboard',
+  users:    'Utenti',
+  usage:    'Utilizzo API',
+  plans:    'Piani & Esami'
+};
+
+function switchView(id, navEl) {
+  document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbar-title').textContent = VIEW_TITLES[id] || id;
+
+  if (id === 'plans' && !_allExams.length) fetchExams();
+}
+
+/* ───────────────────────────────────────────────
+   CSV EXPORT
+─────────────────────────────────────────────── */
+function exportCSV() {
+  const users = getFilteredUsers();
+  const header = ['email','registered_at','last_sign_in','last_active_date','plan_type',
+                  'exams_count','total_calls','total_input_tok','total_output_tok','estimated_cost'];
+  const rows = [header, ...users.map(u => header.map(k => u[k] ?? ''))];
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('\uFEFF' + csv);
+  a.download = 'mnesti_users_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  showToast('✓ CSV esportato (' + users.length + ' utenti)');
+}
+
+/* ───────────────────────────────────────────────
+   HELPERS
+─────────────────────────────────────────────── */
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('it-IT', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+}
+function fmtDateShort(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('it-IT', { day:'2-digit', month:'short' });
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+
+</body>
+</html>

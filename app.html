@@ -10965,6 +10965,13 @@ REGOLE ASSOLUTE (non derogabili):
     };
     _safeLSSet('psico_ai_plan', JSON.stringify(plan));
 
+    // Sync exam to Supabase user_exams (for admin dashboard tracking)
+    if (_sb && window._currentUserId && subject) {
+      _sb.from('user_exams')
+        .upsert({ user_id: window._currentUserId, exam_name: subject, exam_date: info.date || null, updated_at: new Date().toISOString() }, { onConflict: 'user_id,exam_name' })
+        .then(() => {}).catch(() => {});
+    }
+
     _setPlanGenUI('Piano completato ✓', `${normalizedDays.length} giorni pianificati fino all\'esame.`, 100, 'Caricamento…');
     await new Promise(r => setTimeout(r, 800));
 
