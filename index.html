@@ -895,14 +895,13 @@
     .footer-inner {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 20px;
-      flex-wrap: wrap;
     }
     .footer-logo {
       display: flex;
       align-items: center;
       text-decoration: none;
+      flex-shrink: 0;
     }
     .footer-logo img {
       height: 24px;
@@ -911,7 +910,12 @@
       filter: invert(1);
       opacity: 0.85;
     }
-    .footer-links { display: flex; gap: 24px; }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
     .footer-links a {
       font-size: 0.82rem;
       color: var(--grey);
@@ -922,6 +926,8 @@
     .footer-copy {
       font-size: 0.78rem;
       color: var(--grey2);
+      flex: 1;
+      text-align: center;
     }
 
     /* ─── RESPONSIVE ─── */
@@ -938,7 +944,8 @@
       section { padding: 72px 0; }
       .hero-cta-group { flex-direction: column; align-items: flex-start; }
       .footer-inner { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; }
+      .footer-links { justify-content: center; margin-left: 0; }
+      .footer-copy  { flex: none; }
     }
   </style>
 </head>
