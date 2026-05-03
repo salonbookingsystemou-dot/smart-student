@@ -1,13 +1,219 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" prefix="og: https://ogp.me/ns#">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ── Primary Meta ───────────────────────────────────────────── -->
   <title>Mnesti — Studia meglio. Lauréati in tempo.</title>
-  <meta name="description" content="Mnesti è la web app di studio personalizzato basata su AI per studenti universitari italiani. Quiz adattivi, feedback AI, piani di studio su misura." />
+  <meta name="description" content="Mnesti è la web app di studio personalizzato con AI per studenti universitari italiani. Piano di studio automatico, quiz adattivi, feedback intelligente e Brain Dump. Gratis per iniziare." />
+  <meta name="keywords" content="studio universitario AI, piano di studio esame, quiz adattivi università, studenti fuori corso, preparazione esami AI, app studio universitari, Mnesti" />
+  <meta name="author" content="Mnesti" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="theme-color" content="#d97757" />
+  <meta name="application-name" content="Mnesti" />
+  <meta name="generator" content="Mnesti" />
+
+  <!-- ── Canonical & Alternate ──────────────────────────────────── -->
+  <link rel="canonical" href="https://mnesti.it/" />
+  <link rel="alternate" hreflang="it" href="https://mnesti.it/" />
+  <link rel="alternate" hreflang="x-default" href="https://mnesti.it/" />
+
+  <!-- ── Open Graph ─────────────────────────────────────────────── -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://mnesti.it/" />
+  <meta property="og:site_name"   content="Mnesti" />
+  <meta property="og:locale"      content="it_IT" />
+  <meta property="og:title"       content="Mnesti — Studia meglio. Lauréati in tempo." />
+  <meta property="og:description" content="La web app gratuita di studio personalizzato con AI per studenti universitari italiani. Piano di studio, quiz adattivi, feedback AI e Brain Dump." />
+  <meta property="og:image"       content="https://mnesti.it/icon-512.png" />
+  <meta property="og:image:alt"   content="Logo Mnesti — app di studio con AI per universitari" />
+  <meta property="og:image:width"  content="512" />
+  <meta property="og:image:height" content="512" />
+
+  <!-- ── Twitter Card ───────────────────────────────────────────── -->
+  <meta name="twitter:card"        content="summary" />
+  <meta name="twitter:title"       content="Mnesti — Studia meglio. Lauréati in tempo." />
+  <meta name="twitter:description" content="Web app gratuita di studio personalizzato con AI per universitari italiani. Piano di studio, quiz adattivi, feedback AI." />
+  <meta name="twitter:image"       content="https://mnesti.it/icon-512.png" />
+  <meta name="twitter:image:alt"   content="Mnesti — app di studio con AI" />
+
+  <!-- ── Favicon & App Icons ────────────────────────────────────── -->
+  <link rel="icon"             href="favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="icon"             href="favicon-16.png" type="image/png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
+  <link rel="manifest"         href="manifest.json" />
+
+  <!-- ── Performance: resource hints ───────────────────────────── -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://olagntawajefdjrkkvcc.supabase.co" />
+  <link rel="preload" href="logo-full.png" as="image" type="image/png" />
+
+  <!-- ── Google Fonts ───────────────────────────────────────────── -->
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- ── Structured Data (JSON-LD) ──────────────────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://mnesti.it/#organization",
+        "name": "Mnesti",
+        "url": "https://mnesti.it",
+        "logo": {
+          "@type": "ImageObject",
+          "@id": "https://mnesti.it/#logo",
+          "url": "https://mnesti.it/logo-full.png",
+          "contentUrl": "https://mnesti.it/logo-full.png",
+          "caption": "Mnesti"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "contact@wordpresschef.it",
+          "contactType": "customer support",
+          "availableLanguage": "Italian"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://mnesti.it/#website",
+        "url": "https://mnesti.it",
+        "name": "Mnesti",
+        "description": "Web app di studio personalizzato con AI per studenti universitari italiani.",
+        "publisher": { "@id": "https://mnesti.it/#organization" },
+        "inLanguage": "it"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://mnesti.it/#webpage",
+        "url": "https://mnesti.it",
+        "name": "Mnesti — Studia meglio. Lauréati in tempo.",
+        "description": "Mnesti è la web app gratuita di studio personalizzato con AI per studenti universitari italiani. Piano di studio automatico, quiz adattivi, feedback intelligente e Brain Dump.",
+        "isPartOf": { "@id": "https://mnesti.it/#website" },
+        "about": { "@id": "https://mnesti.it/#organization" },
+        "inLanguage": "it",
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [{
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Mnesti",
+            "item": "https://mnesti.it"
+          }]
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://mnesti.it/#app",
+        "name": "Mnesti",
+        "url": "https://mnesti.it/app.html",
+        "applicationCategory": "EducationApplication",
+        "applicationSubCategory": "Study Tool",
+        "operatingSystem": "Web, iOS, Android",
+        "browserRequirements": "Requires JavaScript",
+        "description": "Web app gratuita di studio personalizzato con AI per studenti universitari italiani. Include piano di studio generato da AI, quiz adattivi con gamification, feedback intelligente sulle risposte aperte e Brain Dump per rilevare i gap di preparazione.",
+        "featureList": [
+          "Piano di studio personalizzato con AI",
+          "Quiz adattivi con punteggio e streak",
+          "Feedback AI su risposte aperte",
+          "Brain Dump per analisi gap di preparazione",
+          "Memory Cards autori e teorie",
+          "Upload dispense PDF con estrazione testo"
+        ],
+        "screenshot": "https://mnesti.it/icon-512.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "description": "Piano gratuito: 150 chiamate AI/giorno, 1 esame attivo"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "5",
+          "bestRating": "5",
+          "worstRating": "1",
+          "reviewCount": "3"
+        },
+        "review": [
+          {
+            "@type": "Review",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "author": { "@type": "Person", "name": "Giulia R." },
+            "reviewBody": "Con il Brain Dump ho scoperto in 5 minuti esattamente i tre capitoli che non avevo davvero assimilato. Ho preso 28 al primo appello."
+          },
+          {
+            "@type": "Review",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "author": { "@type": "Person", "name": "Lorenzo M." },
+            "reviewBody": "Il piano di studio di Mnesti mi ha dato una struttura concreta ora per ora. È la prima volta che mi sento davvero pronto il giorno dell'appello."
+          },
+          {
+            "@type": "Review",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "author": { "@type": "Person", "name": "Sara P." },
+            "reviewBody": "Le domande aperte con feedback AI sono come avere un tutor disponibile a mezzanotte. Non avrei superato Ingegneria del Software senza."
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Cos'è Mnesti?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Mnesti è una web app gratuita di studio personalizzato basata su AI per studenti universitari italiani. Genera piani di studio su misura dalla data dell'esame, quiz adattivi, feedback intelligente sulle risposte aperte e analisi dei gap tramite Brain Dump."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Mnesti è gratuito?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sì, Mnesti è gratuito per iniziare. Il piano base include 150 chiamate AI al giorno, 1 esame attivo e 5 MB di storage per le dispense. Non è necessaria la carta di credito."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Come funziona il piano di studio di Mnesti?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Inserisci la data dell'esame e carica le tue dispense PDF. Mnesti analizza il materiale e crea automaticamente un calendario di studio giorno per giorno calibrato sul tuo ritmo e sulla data dell'appello, con domande specifiche per ogni sessione."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Cosa sono i quiz adattivi di Mnesti?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "I quiz adattivi di Mnesti sono sessioni a risposta multipla generate dall'AI sulle tue dispense. L'algoritmo adattivo identifica gli argomenti dove hai più difficoltà e li ripropone finché non li padroneggi. Include punteggi, streak e best score."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Mnesti funziona su smartphone?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sì, Mnesti è una Progressive Web App (PWA) completamente ottimizzata per mobile. Puoi installarla sulla schermata home di iPhone o Android come un'app nativa, senza scaricarla dall'App Store o da Google Play."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Quanto costa rimanere fuori corso?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Un anno fuori corso costa in media €3.000–5.000 di tasse universitarie più €18.000 di mancato stipendio. Il costo reale stimato supera i €20.000 per ogni anno aggiuntivo rispetto alla durata legale del corso."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -620,8 +826,11 @@
       line-height: 1.7;
       margin-bottom: 28px;
       font-weight: 300;
+      padding: 0;
+      border: none;
+      quotes: none;
     }
-    .testi-author { display: flex; align-items: center; gap: 14px; }
+    .testi-author { display: flex; align-items: center; gap: 14px; font-style: normal; }
     .testi-avatar {
       width: 44px; height: 44px;
       border-radius: 50%;
@@ -733,27 +942,27 @@
 <body>
 
 <!-- ─── NAV ─── -->
-<nav id="main-nav">
+<nav id="main-nav" role="navigation" aria-label="Navigazione principale">
   <div class="container nav-inner">
-    <a href="https://mnesti.it" class="nav-logo">
-      <img src="logo-full.png" alt="Mnesti"
+    <a href="https://mnesti.it" class="nav-logo" aria-label="Mnesti — torna alla homepage">
+      <img src="logo-full.png" alt="Mnesti" width="112" height="28"
            onerror="this.onerror=null;this.src='logo-mark.png';this.style.height='26px'">
     </a>
     <a href="./app.html" class="nav-cta">Inizia gratis
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
   </div>
 </nav>
 
 <!-- ─── HERO ─── -->
-<section id="hero">
-  <canvas id="neural-canvas"></canvas>
+<section id="hero" aria-labelledby="hero-heading">
+  <canvas id="neural-canvas" aria-hidden="true"></canvas>
   <div class="container">
     <div class="hero-content">
 
-      <div class="hero-eyebrow fade-in">Studio personalizzato con AI</div>
+      <p class="hero-eyebrow fade-in">Studio personalizzato con AI</p>
 
-      <h1 class="hero-headline fade-in fade-in-delay-1">
+      <h1 id="hero-heading" class="hero-headline fade-in fade-in-delay-1">
         Laurearti in tempo<br>
         vale <em>migliaia di euro.</em><br>
         Mnesti ti aiuta a farcela.
@@ -768,69 +977,69 @@
       <div class="hero-cta-group fade-in fade-in-delay-3">
         <a href="./app.html" class="btn-primary">
           Inizia gratis
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-        <div class="hero-social-proof">
-          <div class="proof-dots">
-            <div class="proof-dot">SA</div>
-            <div class="proof-dot">BO</div>
-            <div class="proof-dot">UN</div>
-            <div class="proof-dot">+</div>
-          </div>
+        <p class="hero-social-proof">
+          <span class="proof-dots" aria-hidden="true">
+            <span class="proof-dot">SA</span>
+            <span class="proof-dot">BO</span>
+            <span class="proof-dot">UN</span>
+            <span class="proof-dot">+</span>
+          </span>
           Usato da studenti di Sapienza, Bocconi, UNINETTUNO…
-        </div>
+        </p>
       </div>
 
     </div>
   </div>
-  <div class="hero-scroll">
+  <div class="hero-scroll" aria-hidden="true">
     <div class="hero-scroll-line"></div>
     Scorri
   </div>
 </section>
 
 <!-- ─── PROBLEMA ─── -->
-<section id="problema">
+<section id="problema" aria-labelledby="problema-heading">
   <div class="container">
     <div class="fade-in">
       <p class="section-label">Il problema</p>
-      <h2 class="section-title">Sei brillante.<br>Il metodo ti frena.</h2>
+      <h2 id="problema-heading" class="section-title">Sei brillante.<br>Il metodo ti frena.</h2>
     </div>
     <div class="pain-grid">
-      <div class="pain-card fade-in fade-in-delay-1">
-        <div class="pain-number">01</div>
+      <article class="pain-card fade-in fade-in-delay-1">
+        <div class="pain-number" aria-hidden="true">01</div>
         <h3 class="pain-title">Studi ore — ma dimentichi tutto</h3>
         <p class="pain-text">Rileggi le stesse pagine tre volte. Il giorno dopo ricordi pochissimo. Non è colpa tua: il metodo passivo non consolida la memoria a lungo termine.</p>
-      </div>
-      <div class="pain-card fade-in fade-in-delay-2">
-        <div class="pain-number">02</div>
+      </article>
+      <article class="pain-card fade-in fade-in-delay-2">
+        <div class="pain-number" aria-hidden="true">02</div>
         <h3 class="pain-title">Arrivi all'esame insicuro — e rimandi</h3>
         <p class="pain-text">Non sai mai davvero se sei pronto. Finisci per rimandare l'appello, e il ciclo ricomincia. L'insicurezza è un problema di preparazione, non di carattere.</p>
-      </div>
-      <div class="pain-card fade-in fade-in-delay-3">
-        <div class="pain-number">03</div>
+      </article>
+      <article class="pain-card fade-in fade-in-delay-3">
+        <div class="pain-number" aria-hidden="true">03</div>
         <h3 class="pain-title">Ogni anno fuori corso = soldi persi</h3>
         <p class="pain-text">Tasse universitarie, ritardo nell'ingresso nel mercato del lavoro, stipendi saltati. Il costo reale di un anno fuori corso supera i €20.000. Non è un'esagerazione.</p>
-      </div>
+      </article>
     </div>
   </div>
 </section>
 
 <!-- ─── SOLUZIONE ─── -->
-<section id="soluzione">
+<section id="soluzione" aria-labelledby="soluzione-heading">
   <div class="container">
     <div class="solution-header fade-in">
       <p class="section-label">La soluzione</p>
-      <h2 class="section-title">Come funziona Mnesti</h2>
+      <h2 id="soluzione-heading" class="section-title">Come funziona Mnesti</h2>
       <p class="section-sub">Quattro strumenti potenti, un solo obiettivo: farti superare l'esame con la preparazione reale che meriti.</p>
     </div>
 
     <div class="features-wrap">
 
       <!-- Feature 1 -->
-      <div class="feature-row fade-in">
+      <article class="feature-row fade-in" aria-label="Funzionalità: Risposta aperta con feedback AI">
         <div class="feat-text">
-          <div class="feat-icon">🧠</div>
+          <div class="feat-icon" aria-hidden="true">🧠</div>
           <p class="feat-tag">Risposta aperta + AI</p>
           <h3 class="feat-title">Parla come all'esame.<br>L'AI ti valuta davvero.</h3>
           <p class="feat-desc">Rispondi a voce o per iscritto alle domande aperte. L'AI analizza la qualità della risposta, identifica i concetti mancanti e ti rimanda esattamente alle pagine giuste delle tue dispense.</p>
@@ -849,12 +1058,12 @@
             </div>
           </div>
         </div>
-      </div>
+      </article>
 
       <!-- Feature 2 -->
-      <div class="feature-row reverse fade-in">
+      <article class="feature-row reverse fade-in" aria-label="Funzionalità: Quiz adattivi">
         <div class="feat-text">
-          <div class="feat-icon">⚡</div>
+          <div class="feat-icon" aria-hidden="true">⚡</div>
           <p class="feat-tag">Quiz adattivi</p>
           <h3 class="feat-title">Ogni sessione è<br>diversa dalla precedente.</h3>
           <p class="feat-desc">Quiz con gamification: punteggi, streak, best score. L'algoritmo adattivo capisce dove sbrocchi e ti porta lì di nuovo, finché non lo padroneggi davvero.</p>
@@ -886,12 +1095,12 @@
             </div>
           </div>
         </div>
-      </div>
+      </article>
 
       <!-- Feature 3 -->
-      <div class="feature-row fade-in">
+      <article class="feature-row fade-in" aria-label="Funzionalità: Brain Dump">
         <div class="feat-text">
-          <div class="feat-icon">🌊</div>
+          <div class="feat-icon" aria-hidden="true">🌊</div>
           <p class="feat-tag">Brain Dump</p>
           <h3 class="feat-title">Svuota la testa.<br>Scopri i veri gap.</h3>
           <p class="feat-desc">Hai 5 minuti. Scrivi tutto quello che ricordi sull'argomento — senza filtri, senza ordine. L'AI analizza cosa hai detto, cosa hai dimenticato, e ti dice esattamente dove ripassare.</p>
@@ -912,12 +1121,12 @@
             </ul>
           </div>
         </div>
-      </div>
+      </article>
 
       <!-- Feature 4 -->
-      <div class="feature-row reverse fade-in">
+      <article class="feature-row reverse fade-in" aria-label="Funzionalità: Piano di studio">
         <div class="feat-text">
-          <div class="feat-icon">📅</div>
+          <div class="feat-icon" aria-hidden="true">📅</div>
           <p class="feat-tag">Piano di studio</p>
           <h3 class="feat-title">Data esame.<br>Dispense caricate.<br>Piano pronto.</h3>
           <p class="feat-desc">Inserisci la data dell'esame, carica le tue dispense e Mnesti costruisce un calendario giorno per giorno calibrato sul tuo ritmo. Niente più "non so da dove cominciare".</p>
@@ -937,18 +1146,18 @@
             <div class="mock-exam-bar">🎯 Esame: 23 maggio — ancora 10 giorni</div>
           </div>
         </div>
-      </div>
+      </article>
 
     </div>
   </div>
 </section>
 
 <!-- ─── RISPARMIO ─── -->
-<section id="risparmio">
+<section id="risparmio" aria-labelledby="risparmio-heading">
   <div class="container risparmio-inner">
     <div class="risparmio-left fade-in">
       <p class="section-label">Il calcolo che nessuno fa</p>
-      <h2 class="section-title">Non è questione di voto.<br>È questione di <em style="font-style:italic;color:var(--accent);">soldi.</em></h2>
+      <h2 id="risparmio-heading" class="section-title">Non è questione di voto.<br>È questione di <em style="font-style:italic;color:var(--accent);">soldi.</em></h2>
       <p class="section-sub">Un anno fuori corso non è solo uno stress in più. È un costo reale, calcolabile, che ti segue per anni.</p>
       <div class="risparmio-free fade-in fade-in-delay-1">
         <span class="risparmio-free-badge">Gratuito</span>
@@ -976,63 +1185,78 @@
 </section>
 
 <!-- ─── TESTIMONIAL ─── -->
-<section id="testimonial">
+<section id="testimonial" aria-labelledby="testimonial-heading">
   <div class="container">
     <div class="fade-in" style="text-align:center;max-width:560px;margin:0 auto 12px;">
       <p class="section-label">Studenti reali</p>
-      <h2 class="section-title">Chi ci ha già provato.</h2>
+      <h2 id="testimonial-heading" class="section-title">Chi ci ha già provato.</h2>
     </div>
-    <div class="testimonial-grid">
+    <div class="testimonial-grid" itemscope itemtype="https://schema.org/ItemList">
 
-      <div class="testi-card fade-in fade-in-delay-1">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote">"</div>
-        <p class="testi-text">Stavo preparando Diritto Commerciale da tre settimane senza capire se ero pronta. Con il Brain Dump ho scoperto in 5 minuti esattamente i tre capitoli che non avevo davvero assimilato. Ho preso 28 al primo appello.</p>
-        <div class="testi-author">
-          <div class="testi-avatar" style="background:#2a3a6a;color:#8aabee;">GR</div>
+      <article class="testi-card fade-in fade-in-delay-1" itemscope itemtype="https://schema.org/Review" itemprop="itemListElement">
+        <div class="testi-stars" aria-label="5 stelle su 5" itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+          <meta itemprop="ratingValue" content="5" />
+          <meta itemprop="bestRating"  content="5" />
+          ★★★★★
+        </div>
+        <blockquote class="testi-text" itemprop="reviewBody">
+          Stavo preparando Diritto Commerciale da tre settimane senza capire se ero pronta. Con il Brain Dump ho scoperto in 5 minuti esattamente i tre capitoli che non avevo davvero assimilato. Ho preso 28 al primo appello.
+        </blockquote>
+        <footer class="testi-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
+          <div class="testi-avatar" aria-hidden="true" style="background:#2a3a6a;color:#8aabee;">GR</div>
           <div>
-            <p class="testi-name">Giulia R.</p>
+            <p class="testi-name" itemprop="name">Giulia R.</p>
             <p class="testi-role">Giurisprudenza · La Sapienza, Roma</p>
           </div>
-        </div>
-      </div>
+        </footer>
+      </article>
 
-      <div class="testi-card fade-in fade-in-delay-2">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote">"</div>
-        <p class="testi-text">Avevo l'esame di Statistica tra 12 giorni e non sapevo da dove iniziare. Il piano di studio di Mnesti mi ha dato una struttura concreta ora per ora. È la prima volta che mi sento davvero pronto il giorno dell'appello.</p>
-        <div class="testi-author">
-          <div class="testi-avatar" style="background:#1a4a2a;color:#7acc9a;">LM</div>
+      <article class="testi-card fade-in fade-in-delay-2" itemscope itemtype="https://schema.org/Review" itemprop="itemListElement">
+        <div class="testi-stars" aria-label="5 stelle su 5" itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+          <meta itemprop="ratingValue" content="5" />
+          <meta itemprop="bestRating"  content="5" />
+          ★★★★★
+        </div>
+        <blockquote class="testi-text" itemprop="reviewBody">
+          Avevo l'esame di Statistica tra 12 giorni e non sapevo da dove iniziare. Il piano di studio di Mnesti mi ha dato una struttura concreta ora per ora. È la prima volta che mi sento davvero pronto il giorno dell'appello.
+        </blockquote>
+        <footer class="testi-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
+          <div class="testi-avatar" aria-hidden="true" style="background:#1a4a2a;color:#7acc9a;">LM</div>
           <div>
-            <p class="testi-name">Lorenzo M.</p>
+            <p class="testi-name" itemprop="name">Lorenzo M.</p>
             <p class="testi-role">Economia · Bocconi, Milano</p>
           </div>
-        </div>
-      </div>
+        </footer>
+      </article>
 
-      <div class="testi-card fade-in fade-in-delay-3">
-        <div class="testi-stars">★★★★★</div>
-        <div class="testi-quote">"</div>
-        <p class="testi-text">Frequento UNINETTUNO e studio da sola, senza confrontarmi con nessuno. Le domande aperte con feedback AI sono come avere un tutor disponibile a mezzanotte. Non avrei superato Ingegneria del Software senza.</p>
-        <div class="testi-author">
-          <div class="testi-avatar" style="background:#4a1a3a;color:#ee8acc;">SP</div>
+      <article class="testi-card fade-in fade-in-delay-3" itemscope itemtype="https://schema.org/Review" itemprop="itemListElement">
+        <div class="testi-stars" aria-label="5 stelle su 5" itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+          <meta itemprop="ratingValue" content="5" />
+          <meta itemprop="bestRating"  content="5" />
+          ★★★★★
+        </div>
+        <blockquote class="testi-text" itemprop="reviewBody">
+          Frequento UNINETTUNO e studio da sola, senza confrontarmi con nessuno. Le domande aperte con feedback AI sono come avere un tutor disponibile a mezzanotte. Non avrei superato Ingegneria del Software senza.
+        </blockquote>
+        <footer class="testi-author" itemprop="author" itemscope itemtype="https://schema.org/Person">
+          <div class="testi-avatar" aria-hidden="true" style="background:#4a1a3a;color:#ee8acc;">SP</div>
           <div>
-            <p class="testi-name">Sara P.</p>
+            <p class="testi-name" itemprop="name">Sara P.</p>
             <p class="testi-role">Informatica · UNINETTUNO</p>
           </div>
-        </div>
-      </div>
+        </footer>
+      </article>
 
     </div>
   </div>
 </section>
 
 <!-- ─── CTA FINALE ─── -->
-<section id="cta-finale">
+<section id="cta-finale" aria-labelledby="cta-heading">
   <div class="container cta-finale-inner">
     <div class="fade-in">
       <p class="section-label">Inizia adesso</p>
-      <h2 class="cta-finale-headline">
+      <h2 id="cta-heading" class="cta-finale-headline">
         Il tuo esame<br>
         si <em style="font-style:italic;color:var(--accent);">avvicina.</em><br>
         Inizia adesso.
@@ -1040,7 +1264,7 @@
       <p class="cta-finale-sub">Niente download, niente carta di credito. Apri Mnesti e inizia in 30 secondi.</p>
       <a href="./app.html" class="btn-primary" style="font-size:1.1rem;padding:18px 40px;">
         Apri Mnesti — è gratis
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 9h12M9 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
       <p class="cta-finale-note">Nessuna carta di credito · Nessun abbonamento per iniziare</p>
     </div>
@@ -1048,18 +1272,20 @@
 </section>
 
 <!-- ─── FOOTER ─── -->
-<footer>
+<footer role="contentinfo">
   <div class="container footer-inner">
-    <a href="https://mnesti.it" class="footer-logo">
-      <img src="logo-full.png" alt="Mnesti"
+    <a href="https://mnesti.it" class="footer-logo" aria-label="Mnesti — homepage">
+      <img src="logo-full.png" alt="Mnesti" width="96" height="24"
            onerror="this.onerror=null;this.src='logo-mark.png';this.style.height='22px'">
     </a>
-    <div class="footer-links">
+    <nav class="footer-links" aria-label="Link di servizio">
       <a href="https://mnesti.it">mnesti.it</a>
       <a href="#">Privacy</a>
       <a href="#">Termini</a>
-    </div>
-    <p class="footer-copy">© 2025 Mnesti. Tutti i diritti riservati.</p>
+    </nav>
+    <address class="footer-copy" style="font-style:normal;">
+      <small>© <time datetime="2026">2026</time> Mnesti. Tutti i diritti riservati.</small>
+    </address>
   </div>
 </footer>
 

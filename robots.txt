@@ -1,0 +1,17 @@
+# robots.txt — mnesti.it
+# https://mnesti.it/robots.txt
+
+User-agent: *
+Allow: /
+
+# Non indicizzare la cartella Supabase (funzioni locali di sviluppo)
+Disallow: /supabase/
+
+# Non indicizzare risorse di sistema / configurazione
+Disallow: /.well-known/
+Disallow: /CNAME
+Disallow: /sw.js
+Disallow: /manifest.json
+
+# Sitemap
+Sitemap: https://mnesti.it/sitemap.xml
