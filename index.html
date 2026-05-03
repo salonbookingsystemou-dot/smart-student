@@ -1410,5 +1410,26 @@ document.querySelectorAll('[data-target]').forEach(el => counterObserver.observe
 })();
 </script>
 
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      reg.addEventListener('updatefound', function() {
+        var newSW = reg.installing;
+        newSW.addEventListener('statechange', function() {
+          if (newSW.state === 'installed') newSW.postMessage('skipWaiting');
+        });
+      });
+      reg.update().catch(function() {});
+    }).catch(function(err) {
+      console.warn('[SW] landing registration failed:', err);
+    });
+    navigator.serviceWorker.addEventListener('controllerchange', function() {
+      window.location.reload();
+    });
+  });
+}
+</script>
+
 </body>
 </html>
