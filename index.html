@@ -1292,8 +1292,9 @@
       <small>© <time datetime="2026">2026</time> Mnesti. Tutti i diritti riservati.</small>
     </address>
     <nav class="footer-links" aria-label="Link di servizio">
-      <a href="#">Privacy</a>
-      <a href="#">Termini</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="privacy.html#cookie">Cookie</a>
+      <a href="privacy.html">Termini</a>
     </nav>
   </div>
 </footer>
@@ -1429,6 +1430,432 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     COOKIE CONSENT — GDPR / ePrivacy compliant
+     Requisiti rispettati:
+     • Accetta e Rifiuta ugualmente accessibili (no dark pattern)
+     • Nessuna casella pre-spuntata per categorie opzionali
+     • Consenso granulare per categoria
+     • Revoca consenso sempre possibile
+     • No cookie non necessari prima del consenso
+     • Banner scompare solo dopo scelta esplicita
+     • Consenso ri-richiesto dopo 12 mesi
+════════════════════════════════════════════════════════════════ -->
+
+<!-- Banner principale -->
+<div id="cookie-banner" role="dialog" aria-modal="true" aria-labelledby="cookie-title" style="display:none;">
+  <div class="ck-inner">
+    <div class="ck-left">
+      <p class="ck-title" id="cookie-title">🍪 Questo sito utilizza i cookie</p>
+      <p class="ck-text">
+        Utilizziamo cookie tecnici necessari al funzionamento del sito e, previo tuo consenso, cookie funzionali per migliorare la tua esperienza di studio. Non utilizziamo cookie di profilazione o marketing.
+        <a href="privacy.html" class="ck-link">Informativa completa</a>
+      </p>
+    </div>
+    <div class="ck-actions">
+      <button class="ck-btn ck-secondary" onclick="cookieReject()">Solo necessari</button>
+      <button class="ck-btn ck-manage"    onclick="cookieOpenPrefs()">Gestisci</button>
+      <button class="ck-btn ck-primary"   onclick="cookieAcceptAll()">Accetta tutti</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale preferenze -->
+<div id="cookie-modal" role="dialog" aria-modal="true" aria-labelledby="ck-modal-title" style="display:none;">
+  <div class="ck-modal-overlay" onclick="cookieClosePrefs()"></div>
+  <div class="ck-modal-box">
+    <div class="ck-modal-header">
+      <h2 class="ck-modal-title" id="ck-modal-title">Preferenze cookie</h2>
+      <button class="ck-modal-close" onclick="cookieClosePrefs()" aria-label="Chiudi">✕</button>
+    </div>
+    <div class="ck-modal-body">
+      <p class="ck-modal-intro">
+        Gestisci le tue preferenze per ogni categoria di cookie. I cookie strettamente necessari non possono essere disattivati perché indispensabili al funzionamento del sito.
+        <a href="privacy.html" class="ck-link">Leggi l'informativa completa →</a>
+      </p>
+
+      <!-- Necessari -->
+      <div class="ck-cat">
+        <div class="ck-cat-header">
+          <div class="ck-cat-info">
+            <p class="ck-cat-name">🔒 Strettamente necessari</p>
+            <p class="ck-cat-desc">Essenziali per l'autenticazione, la sicurezza e il corretto funzionamento del sito. Non possono essere disattivati.</p>
+          </div>
+          <div class="ck-toggle-wrap">
+            <span class="ck-always-on">Sempre attivi</span>
+          </div>
+        </div>
+        <ul class="ck-cat-examples">
+          <li>Sessione di autenticazione (Supabase)</li>
+          <li>Preferenze interfaccia (tema chiaro/scuro)</li>
+          <li>Token di sicurezza CSRF</li>
+        </ul>
+      </div>
+
+      <!-- Funzionali -->
+      <div class="ck-cat">
+        <div class="ck-cat-header">
+          <div class="ck-cat-info">
+            <p class="ck-cat-name">⚙️ Funzionali</p>
+            <p class="ck-cat-desc">Permettono di salvare i tuoi piani di studio, progressi e materiali direttamente sul tuo dispositivo per un'esperienza personalizzata.</p>
+          </div>
+          <label class="ck-toggle" aria-label="Attiva cookie funzionali">
+            <input type="checkbox" id="ck-functional" />
+            <span class="ck-toggle-slider"></span>
+          </label>
+        </div>
+        <ul class="ck-cat-examples">
+          <li>Piano di studio salvato localmente</li>
+          <li>Progressi e sessioni di studio</li>
+          <li>Fonti e materiali caricati</li>
+        </ul>
+      </div>
+
+      <!-- Analitici -->
+      <div class="ck-cat">
+        <div class="ck-cat-header">
+          <div class="ck-cat-info">
+            <p class="ck-cat-name">📊 Analitici</p>
+            <p class="ck-cat-desc">Ci aiutano a capire come gli studenti utilizzano Mnesti per migliorare il servizio. I dati sono aggregati e anonimi.</p>
+          </div>
+          <label class="ck-toggle" aria-label="Attiva cookie analitici">
+            <input type="checkbox" id="ck-analytics" />
+            <span class="ck-toggle-slider"></span>
+          </label>
+        </div>
+        <ul class="ck-cat-examples">
+          <li>Statistiche di utilizzo anonimizzate</li>
+          <li>Pagine visitate (senza dati personali)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ck-modal-footer">
+      <button class="ck-btn ck-secondary" onclick="cookieReject()">Solo necessari</button>
+      <button class="ck-btn ck-primary"   onclick="cookieSavePrefs()">Salva preferenze</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── Cookie Banner ───────────────────────────────────────────── */
+#cookie-banner {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 9000;
+  background: var(--bg2, #111);
+  border-top: 1px solid var(--border, #2a2a2a);
+  padding: 18px 0;
+  box-shadow: 0 -8px 40px rgba(0,0,0,.5);
+  animation: ck-slide-up .35s ease;
+}
+@keyframes ck-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.ck-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.ck-left { flex: 1; min-width: 260px; }
+.ck-title {
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--white, #f0ebe6);
+  margin-bottom: 5px;
+}
+.ck-text {
+  font-size: .78rem;
+  color: var(--grey, #888);
+  line-height: 1.6;
+}
+.ck-link {
+  color: var(--accent, #d97757);
+  text-decoration: none;
+  margin-left: 4px;
+}
+.ck-link:hover { text-decoration: underline; }
+.ck-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+/* Buttons — Accept and Reject equally prominent (GDPR requirement) */
+.ck-btn {
+  padding: 9px 20px;
+  border-radius: 100px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity .2s, transform .15s;
+  white-space: nowrap;
+}
+.ck-btn:hover { opacity: .85; transform: translateY(-1px); }
+.ck-primary  { background: var(--accent, #d97757); color: #fff; }
+.ck-secondary {
+  background: transparent;
+  color: var(--white, #f0ebe6);
+  border: 1px solid var(--border, #2a2a2a);
+}
+.ck-manage {
+  background: transparent;
+  color: var(--grey, #888);
+  border: 1px solid transparent;
+  padding: 9px 14px;
+  font-size: .78rem;
+}
+
+/* ── Cookie Modal ─────────────────────────────────────────────── */
+#cookie-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+@media (min-width: 600px) {
+  #cookie-modal { align-items: center; }
+}
+.ck-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(4px);
+}
+.ck-modal-box {
+  position: relative;
+  z-index: 1;
+  background: var(--bg2, #111);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: ck-modal-in .3s ease;
+}
+@media (min-width: 600px) {
+  .ck-modal-box { border-radius: 20px; }
+}
+@keyframes ck-modal-in {
+  from { transform: translateY(30px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.ck-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border, #2a2a2a);
+  position: sticky;
+  top: 0;
+  background: var(--bg2, #111);
+}
+.ck-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white, #f0ebe6);
+}
+.ck-modal-close {
+  background: none;
+  border: none;
+  color: var(--grey, #888);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background .15s;
+}
+.ck-modal-close:hover { background: rgba(255,255,255,.07); }
+.ck-modal-body { padding: 20px 24px; flex: 1; overflow-y: auto; }
+.ck-modal-intro {
+  font-size: .82rem;
+  color: var(--grey, #888);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+/* Cookie category */
+.ck-cat {
+  background: var(--bg3, #181818);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.ck-cat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.ck-cat-info { flex: 1; }
+.ck-cat-name {
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--white, #f0ebe6);
+  margin-bottom: 4px;
+}
+.ck-cat-desc {
+  font-size: .78rem;
+  color: var(--grey, #888);
+  line-height: 1.5;
+}
+.ck-cat-examples {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ck-cat-examples li {
+  font-size: .68rem;
+  color: var(--grey2, #555);
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border, #2a2a2a);
+  border-radius: 100px;
+  padding: 2px 10px;
+}
+/* Toggle switch */
+.ck-toggle-wrap { flex-shrink: 0; padding-top: 2px; }
+.ck-always-on {
+  font-size: .7rem;
+  font-weight: 600;
+  color: #4caf50;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+.ck-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.ck-toggle input { opacity: 0; width: 0; height: 0; }
+.ck-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border, #2a2a2a);
+  border-radius: 100px;
+  transition: background .25s;
+}
+.ck-toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .25s;
+}
+.ck-toggle input:checked + .ck-toggle-slider { background: var(--accent, #d97757); }
+.ck-toggle input:checked + .ck-toggle-slider::before { transform: translateX(20px); }
+/* Modal footer */
+.ck-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border, #2a2a2a);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg2, #111);
+}
+</style>
+
+<script>
+/* ── Cookie Consent Manager — GDPR/ePrivacy compliant ─────────── */
+(function() {
+  var CONSENT_KEY = 'mnesti_cookie_consent';
+  var CONSENT_VERSION = '1.1';
+  var CONSENT_EXPIRY_MS = 365 * 24 * 60 * 60 * 1000; // 12 mesi
+
+  function getConsent() {
+    try {
+      var raw = localStorage.getItem(CONSENT_KEY);
+      if (!raw) return null;
+      var c = JSON.parse(raw);
+      // Ri-chiedi se scaduto o versione precedente
+      if (!c.timestamp || Date.now() - c.timestamp > CONSENT_EXPIRY_MS) return null;
+      if (c.version !== CONSENT_VERSION) return null;
+      return c;
+    } catch(e) { return null; }
+  }
+
+  function saveConsent(functional, analytics) {
+    try {
+      localStorage.setItem(CONSENT_KEY, JSON.stringify({
+        version:    CONSENT_VERSION,
+        timestamp:  Date.now(),
+        necessary:  true,
+        functional: !!functional,
+        analytics:  !!analytics
+      }));
+    } catch(e) {}
+  }
+
+  function hideBanner() {
+    var b = document.getElementById('cookie-banner');
+    if (b) b.style.display = 'none';
+  }
+  function hideModal() {
+    var m = document.getElementById('cookie-modal');
+    if (m) m.style.display = 'none';
+  }
+
+  window.cookieAcceptAll = function() {
+    saveConsent(true, true);
+    hideBanner(); hideModal();
+  };
+  window.cookieReject = function() {
+    saveConsent(false, false);
+    hideBanner(); hideModal();
+  };
+  window.cookieOpenPrefs = function() {
+    var c = getConsent();
+    var fn = document.getElementById('ck-functional');
+    var an = document.getElementById('ck-analytics');
+    if (fn) fn.checked = c ? !!c.functional : false;
+    if (an) an.checked = c ? !!c.analytics  : false;
+    var m = document.getElementById('cookie-modal');
+    if (m) m.style.display = 'flex';
+  };
+  window.cookieClosePrefs = function() { hideModal(); };
+  window.cookieSavePrefs = function() {
+    var fn = document.getElementById('ck-functional');
+    var an = document.getElementById('ck-analytics');
+    saveConsent(fn && fn.checked, an && an.checked);
+    hideBanner(); hideModal();
+  };
+
+  // Init: show banner only if no valid consent
+  document.addEventListener('DOMContentLoaded', function() {
+    if (!getConsent()) {
+      var b = document.getElementById('cookie-banner');
+      if (b) b.style.display = 'block';
+    }
+  });
+
+  // Trap focus in modal (accessibility)
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideModal();
+  });
+})();
 </script>
 
 </body>

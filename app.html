@@ -12052,5 +12052,132 @@ if ('serviceWorker' in navigator) {
   });
 })();
 </script>
+
+<!-- Cookie Consent Banner (GDPR) — stesso markup di index.html -->
+<div id="cookie-banner" role="dialog" aria-modal="true" aria-labelledby="cookie-title" style="display:none;">
+  <div class="ck-inner">
+    <div class="ck-left">
+      <p class="ck-title" id="cookie-title">🍪 Questo sito utilizza i cookie</p>
+      <p class="ck-text">
+        Utilizziamo cookie tecnici necessari e, previo consenso, cookie funzionali per salvare il tuo piano di studio.
+        <a href="privacy.html" class="ck-link">Informativa completa</a>
+      </p>
+    </div>
+    <div class="ck-actions">
+      <button class="ck-btn ck-secondary" onclick="cookieReject()">Solo necessari</button>
+      <button class="ck-btn ck-manage"    onclick="cookieOpenPrefs()">Gestisci</button>
+      <button class="ck-btn ck-primary"   onclick="cookieAcceptAll()">Accetta tutti</button>
+    </div>
+  </div>
+</div>
+<div id="cookie-modal" role="dialog" aria-modal="true" aria-labelledby="ck-modal-title" style="display:none;">
+  <div class="ck-modal-overlay" onclick="cookieClosePrefs()"></div>
+  <div class="ck-modal-box">
+    <div class="ck-modal-header">
+      <h2 class="ck-modal-title" id="ck-modal-title">Preferenze cookie</h2>
+      <button class="ck-modal-close" onclick="cookieClosePrefs()" aria-label="Chiudi">✕</button>
+    </div>
+    <div class="ck-modal-body">
+      <p class="ck-modal-intro">Gestisci le tue preferenze. I cookie necessari non possono essere disattivati.
+        <a href="privacy.html" class="ck-link">Informativa completa →</a></p>
+      <div class="ck-cat">
+        <div class="ck-cat-header">
+          <div class="ck-cat-info">
+            <p class="ck-cat-name">🔒 Strettamente necessari</p>
+            <p class="ck-cat-desc">Sessione di autenticazione e sicurezza. Non disattivabili.</p>
+          </div>
+          <span class="ck-always-on">Sempre attivi</span>
+        </div>
+      </div>
+      <div class="ck-cat">
+        <div class="ck-cat-header">
+          <div class="ck-cat-info">
+            <p class="ck-cat-name">⚙️ Funzionali</p>
+            <p class="ck-cat-desc">Salvano il tuo piano di studio, progressi e materiali sul dispositivo.</p>
+          </div>
+          <label class="ck-toggle" aria-label="Attiva cookie funzionali">
+            <input type="checkbox" id="ck-functional" />
+            <span class="ck-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="ck-cat">
+        <div class="ck-cat-header">
+          <div class="ck-cat-info">
+            <p class="ck-cat-name">📊 Analitici</p>
+            <p class="ck-cat-desc">Statistiche di utilizzo anonimizzate per migliorare il servizio.</p>
+          </div>
+          <label class="ck-toggle" aria-label="Attiva cookie analitici">
+            <input type="checkbox" id="ck-analytics" />
+            <span class="ck-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="ck-modal-footer">
+      <button class="ck-btn ck-secondary" onclick="cookieReject()">Solo necessari</button>
+      <button class="ck-btn ck-primary"   onclick="cookieSavePrefs()">Salva preferenze</button>
+    </div>
+  </div>
+</div>
+
+<style>
+#cookie-banner{position:fixed;bottom:0;left:0;right:0;z-index:9000;background:var(--surface-alt,#111);border-top:1px solid var(--border,#2a2a2a);padding:18px 0;box-shadow:0 -8px 40px rgba(0,0,0,.5);animation:ck-slide-up .35s ease}
+@keyframes ck-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.ck-inner{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.ck-left{flex:1;min-width:260px}
+.ck-title{font-size:.88rem;font-weight:700;color:var(--text,#f0ebe6);margin-bottom:5px}
+.ck-text{font-size:.78rem;color:var(--text-muted,#888);line-height:1.6}
+.ck-link{color:var(--accent,#d97757);text-decoration:none;margin-left:4px}
+.ck-link:hover{text-decoration:underline}
+.ck-actions{display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.ck-btn{padding:9px 20px;border-radius:100px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:opacity .2s,transform .15s;white-space:nowrap}
+.ck-btn:hover{opacity:.85;transform:translateY(-1px)}
+.ck-primary{background:var(--accent,#d97757);color:#fff}
+.ck-secondary{background:transparent;color:var(--text,#f0ebe6);border:1px solid var(--border,#2a2a2a)}
+.ck-manage{background:transparent;color:var(--text-muted,#888);border:1px solid transparent;padding:9px 14px;font-size:.78rem}
+#cookie-modal{position:fixed;inset:0;z-index:9100;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:600px){#cookie-modal{align-items:center}}
+.ck-modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px)}
+.ck-modal-box{position:relative;z-index:1;background:var(--surface-alt,#111);border:1px solid var(--border,#2a2a2a);border-radius:20px 20px 0 0;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column;animation:ck-modal-in .3s ease}
+@media(min-width:600px){.ck-modal-box{border-radius:20px}}
+@keyframes ck-modal-in{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ck-modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border,#2a2a2a);position:sticky;top:0;background:var(--surface-alt,#111)}
+.ck-modal-title{font-size:1rem;font-weight:700;color:var(--text,#f0ebe6)}
+.ck-modal-close{background:none;border:none;color:var(--text-muted,#888);font-size:1rem;cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s}
+.ck-modal-close:hover{background:rgba(255,255,255,.07)}
+.ck-modal-body{padding:20px 24px;flex:1;overflow-y:auto}
+.ck-modal-intro{font-size:.82rem;color:var(--text-muted,#888);line-height:1.6;margin-bottom:20px}
+.ck-cat{background:var(--surface,#181818);border:1px solid var(--border,#2a2a2a);border-radius:12px;padding:16px;margin-bottom:12px}
+.ck-cat-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ck-cat-info{flex:1}
+.ck-cat-name{font-size:.88rem;font-weight:700;color:var(--text,#f0ebe6);margin-bottom:4px}
+.ck-cat-desc{font-size:.78rem;color:var(--text-muted,#888);line-height:1.5}
+.ck-always-on{font-size:.7rem;font-weight:600;color:#4caf50;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;flex-shrink:0;padding-top:2px}
+.ck-toggle{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;cursor:pointer}
+.ck-toggle input{opacity:0;width:0;height:0}
+.ck-toggle-slider{position:absolute;inset:0;background:var(--border,#2a2a2a);border-radius:100px;transition:background .25s}
+.ck-toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .25s}
+.ck-toggle input:checked+.ck-toggle-slider{background:var(--accent,#d97757)}
+.ck-toggle input:checked+.ck-toggle-slider::before{transform:translateX(20px)}
+.ck-modal-footer{padding:16px 24px;border-top:1px solid var(--border,#2a2a2a);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface-alt,#111)}
+</style>
+
+<script>
+(function(){
+  var CONSENT_KEY='mnesti_cookie_consent',CONSENT_VERSION='1.1',EXPIRY=365*24*60*60*1000;
+  function getConsent(){try{var r=localStorage.getItem(CONSENT_KEY);if(!r)return null;var c=JSON.parse(r);if(!c.timestamp||Date.now()-c.timestamp>EXPIRY)return null;if(c.version!==CONSENT_VERSION)return null;return c;}catch(e){return null;}}
+  function saveConsent(fn,an){try{localStorage.setItem(CONSENT_KEY,JSON.stringify({version:CONSENT_VERSION,timestamp:Date.now(),necessary:true,functional:!!fn,analytics:!!an}));}catch(e){}}
+  function hideBanner(){var b=document.getElementById('cookie-banner');if(b)b.style.display='none';}
+  function hideModal(){var m=document.getElementById('cookie-modal');if(m)m.style.display='none';}
+  window.cookieAcceptAll=function(){saveConsent(true,true);hideBanner();hideModal();};
+  window.cookieReject=function(){saveConsent(false,false);hideBanner();hideModal();};
+  window.cookieOpenPrefs=function(){var c=getConsent();var fn=document.getElementById('ck-functional');var an=document.getElementById('ck-analytics');if(fn)fn.checked=c?!!c.functional:false;if(an)an.checked=c?!!c.analytics:false;var m=document.getElementById('cookie-modal');if(m)m.style.display='flex';};
+  window.cookieClosePrefs=function(){hideModal();};
+  window.cookieSavePrefs=function(){var fn=document.getElementById('ck-functional');var an=document.getElementById('ck-analytics');saveConsent(fn&&fn.checked,an&&an.checked);hideBanner();hideModal();};
+  document.addEventListener('DOMContentLoaded',function(){if(!getConsent()){var b=document.getElementById('cookie-banner');if(b)b.style.display='block';}});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')hideModal();});
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy e Cookie Policy — Mnesti</title>
+  <meta name="description" content="Informativa sul trattamento dei dati personali e sui cookie di Mnesti, ai sensi del GDPR (Reg. UE 2016/679) e del D.Lgs. 196/2003." />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="https://mnesti.it/privacy.html" />
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #0d0d0d;
+      --bg2:    #111;
+      --bg3:    #181818;
+      --border: #2a2a2a;
+      --accent: #d97757;
+      --white:  #f0ebe6;
+      --grey:   #888;
+      --grey2:  #555;
+      --sans:   'DM Sans', system-ui, sans-serif;
+      --serif:  'DM Serif Display', Georgia, serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+    /* NAV */
+    .topnav {
+      position: sticky;
+      top: 0;
+      background: rgba(13,13,13,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+    }
+    .topnav-logo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+    .topnav-logo img {
+      height: 24px;
+      filter: invert(1);
+      opacity: .9;
+    }
+    .topnav-back {
+      font-size: .82rem;
+      color: var(--grey);
+      text-decoration: none;
+      transition: color .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .topnav-back:hover { color: var(--white); }
+
+    /* LAYOUT */
+    .page-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+    .page-hero {
+      margin-bottom: 48px;
+    }
+    .page-label {
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .page-title {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      margin-bottom: 16px;
+    }
+    .page-meta {
+      font-size: .82rem;
+      color: var(--grey);
+    }
+    .page-meta strong { color: var(--white); }
+
+    /* TOC */
+    .toc {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+    }
+    .toc-title {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+    .toc ol {
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .toc li { font-size: .85rem; color: var(--grey); }
+    .toc a { color: var(--grey); text-decoration: none; transition: color .2s; }
+    .toc a:hover { color: var(--accent); }
+
+    /* CONTENT */
+    .section { margin-bottom: 48px; scroll-margin-top: 80px; }
+    h2 {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -.01em;
+    }
+    h2 .sec-num {
+      font-family: var(--sans);
+      font-size: .65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 4px;
+    }
+    h3 {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--white);
+      margin: 20px 0 8px;
+    }
+    p { font-size: .92rem; color: #b0a9a2; margin-bottom: 14px; }
+    p:last-child { margin-bottom: 0; }
+    strong { color: var(--white); font-weight: 600; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul, ol {
+      padding-left: 20px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    li { font-size: .92rem; color: #b0a9a2; }
+
+    /* Cookie table */
+    .cookie-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .82rem; }
+    .cookie-table th {
+      background: var(--bg3);
+      color: var(--grey);
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .cookie-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: #b0a9a2;
+      vertical-align: top;
+    }
+    .cookie-table tr:last-child td { border-bottom: none; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .badge-green  { background: rgba(76,175,80,.12);  color: #4caf50; }
+    .badge-yellow { background: rgba(240,180,41,.12); color: #f0b429; }
+    .badge-orange { background: rgba(217,119,87,.12); color: #d97757; }
+
+    /* Highlight box */
+    .hl-box {
+      background: rgba(217,119,87,.07);
+      border: 1px solid rgba(217,119,87,.2);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+    .hl-box p { margin-bottom: 0; font-size: .85rem; }
+
+    /* Cookie preferences link */
+    .ck-prefs-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: .85rem;
+      color: var(--accent);
+      cursor: pointer;
+      transition: border-color .2s;
+      text-decoration: none;
+      margin-top: 10px;
+    }
+    .ck-prefs-link:hover { border-color: rgba(217,119,87,.4); text-decoration: none; }
+
+    /* Footer */
+    .page-footer {
+      margin-top: 64px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .page-footer p { font-size: .78rem; color: var(--grey2); margin: 0; }
+    .page-footer a { color: var(--grey); }
+    .page-footer a:hover { color: var(--white); }
+  </style>
+</head>
+<body>
+
+<nav class="topnav" aria-label="Navigazione">
+  <a href="https://mnesti.it" class="topnav-logo" aria-label="Mnesti — torna alla homepage">
+    <img src="logo-full.png" alt="Mnesti"
+         onerror="this.onerror=null;this.src='logo-mark.png';this.style.height='22px'">
+  </a>
+  <a href="https://mnesti.it" class="topnav-back">← Torna al sito</a>
+</nav>
+
+<main class="page-wrap">
+
+  <header class="page-hero">
+    <p class="page-label">Informativa legale</p>
+    <h1 class="page-title">Privacy Policy &amp;<br>Cookie Policy</h1>
+    <p class="page-meta">
+      <strong>Titolare:</strong> Mnesti · <strong>Email:</strong> <a href="mailto:contact@wordpresschef.it">contact@wordpresschef.it</a><br>
+      <strong>Ultimo aggiornamento:</strong> 3 maggio 2026 · <strong>Versione:</strong> 1.1
+    </p>
+  </header>
+
+  <nav class="toc" aria-label="Indice">
+    <p class="toc-title">Indice</p>
+    <ol>
+      <li><a href="#titolare">Titolare del trattamento</a></li>
+      <li><a href="#dati">Dati raccolti e finalità</a></li>
+      <li><a href="#base-giuridica">Base giuridica del trattamento</a></li>
+      <li><a href="#conservazione">Conservazione dei dati</a></li>
+      <li><a href="#terze-parti">Terze parti e trasferimenti</a></li>
+      <li><a href="#cookie">Cookie e tecnologie di tracciamento</a></li>
+      <li><a href="#diritti">I tuoi diritti (GDPR)</a></li>
+      <li><a href="#sicurezza">Sicurezza</a></li>
+      <li><a href="#minori">Minori</a></li>
+      <li><a href="#modifiche">Modifiche alla presente informativa</a></li>
+      <li><a href="#contatti">Contatti</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1. Titolare -->
+  <section class="section" id="titolare">
+    <h2><span class="sec-num">Art. 1</span>Titolare del trattamento</h2>
+    <p>Il titolare del trattamento dei dati personali raccolti tramite il sito <strong>mnesti.it</strong> e la relativa applicazione web è:</p>
+    <div class="hl-box">
+      <p><strong>Mnesti</strong><br>
+      Email: <a href="mailto:contact@wordpresschef.it">contact@wordpresschef.it</a><br>
+      Sito web: <a href="https://mnesti.it">https://mnesti.it</a></p>
+    </div>
+    <p>Per qualsiasi richiesta relativa al trattamento dei tuoi dati personali, puoi contattarci all'indirizzo email sopra indicato.</p>
+  </section>
+
+  <!-- 2. Dati raccolti -->
+  <section class="section" id="dati">
+    <h2><span class="sec-num">Art. 2</span>Dati raccolti e finalità del trattamento</h2>
+
+    <h3>2.1 Dati forniti direttamente dall'utente</h3>
+    <ul>
+      <li><strong>Indirizzo email e password</strong> — necessari per creare un account e accedere al servizio. La password è conservata in forma crittografata (bcrypt) tramite Supabase Auth.</li>
+      <li><strong>Materiale di studio</strong> — testi, PDF e note caricate dall'utente per la generazione del piano di studio. Questi dati sono trattati localmente sul dispositivo o inviati ai nostri server esclusivamente per la generazione dei contenuti e non sono condivisi con terzi.</li>
+      <li><strong>Risposte e interazioni con l'AI</strong> — le risposte che inserisci durante le sessioni di studio vengono elaborate per fornirti feedback personalizzato. Non vengono utilizzate per addestrare modelli di intelligenza artificiale.</li>
+    </ul>
+
+    <h3>2.2 Dati raccolti automaticamente</h3>
+    <ul>
+      <li><strong>Dati di utilizzo dell'API AI</strong> — numero di chiamate e token utilizzati, conservati per gestire i limiti del piano gratuito e calcolare i costi del servizio. Non contengono il contenuto delle interazioni.</li>
+      <li><strong>Log di accesso</strong> — indirizzo IP, tipo di browser, sistema operativo e pagine visitate, conservati dai server di Supabase e GitHub Pages per motivi di sicurezza e diagnostica.</li>
+      <li><strong>Dati del dispositivo</strong> — informazioni tecniche necessarie al corretto funzionamento dell'applicazione web progressiva (PWA).</li>
+    </ul>
+
+    <h3>2.3 Finalità del trattamento</h3>
+    <ul>
+      <li>Erogazione del servizio Mnesti (piani di studio, quiz, feedback AI)</li>
+      <li>Autenticazione e gestione dell'account utente</li>
+      <li>Gestione dei limiti di utilizzo e dei piani in abbonamento</li>
+      <li>Comunicazioni di servizio (conferma email, notifiche di sistema)</li>
+      <li>Prevenzione di frodi e abusi</li>
+      <li>Adempimento di obblighi legali</li>
+    </ul>
+  </section>
+
+  <!-- 3. Base giuridica -->
+  <section class="section" id="base-giuridica">
+    <h2><span class="sec-num">Art. 3</span>Base giuridica del trattamento</h2>
+    <p>Il trattamento dei tuoi dati personali si fonda sulle seguenti basi giuridiche ai sensi dell'art. 6 del Regolamento UE 2016/679 (GDPR):</p>
+    <ul>
+      <li><strong>Esecuzione di un contratto</strong> (art. 6, par. 1, lett. b) — per fornire il servizio Mnesti agli utenti registrati.</li>
+      <li><strong>Adempimento di un obbligo legale</strong> (art. 6, par. 1, lett. c) — per rispettare le normative fiscali, contabili e di sicurezza applicabili.</li>
+      <li><strong>Legittimo interesse</strong> (art. 6, par. 1, lett. f) — per la prevenzione di frodi, la sicurezza del servizio e il miglioramento dell'esperienza utente attraverso dati aggregati anonimi.</li>
+      <li><strong>Consenso esplicito</strong> (art. 6, par. 1, lett. a) — per l'utilizzo di cookie funzionali e analitici non strettamente necessari, che richiedono consenso preventivo ai sensi della Direttiva ePrivacy 2002/58/CE.</li>
+    </ul>
+  </section>
+
+  <!-- 4. Conservazione -->
+  <section class="section" id="conservazione">
+    <h2><span class="sec-num">Art. 4</span>Conservazione dei dati</h2>
+    <ul>
+      <li><strong>Dati dell'account</strong> — conservati per tutta la durata dell'account e per 30 giorni successivi alla cancellazione, salvo obblighi legali diversi.</li>
+      <li><strong>Dati di utilizzo API</strong> — conservati per 24 mesi a fini di gestione del servizio.</li>
+      <li><strong>Log di accesso</strong> — conservati per 90 giorni a fini di sicurezza.</li>
+      <li><strong>Dati locali sul dispositivo</strong> — conservati nel browser dell'utente finché l'utente non li elimina manualmente o cancella i dati del browser.</li>
+      <li><strong>Consenso ai cookie</strong> — conservato per 12 mesi, dopo i quali il consenso è ri-richiesto.</li>
+    </ul>
+  </section>
+
+  <!-- 5. Terze parti -->
+  <section class="section" id="terze-parti">
+    <h2><span class="sec-num">Art. 5</span>Terze parti e trasferimenti internazionali</h2>
+    <p>Per fornire il servizio utilizziamo i seguenti fornitori terzi, ciascuno dei quali tratta i dati in qualità di responsabile del trattamento:</p>
+
+    <table class="cookie-table">
+      <thead>
+        <tr>
+          <th>Fornitore</th>
+          <th>Finalità</th>
+          <th>Sede</th>
+          <th>Garanzie</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Supabase Inc.</strong></td>
+          <td>Database, autenticazione, storage</td>
+          <td>USA (server EU – Ireland)</td>
+          <td>SCCs, <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></td>
+        </tr>
+        <tr>
+          <td><strong>Anthropic PBC</strong></td>
+          <td>Generazione contenuti AI</td>
+          <td>USA</td>
+          <td>SCCs, <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></td>
+        </tr>
+        <tr>
+          <td><strong>GitHub Inc.</strong></td>
+          <td>Hosting del sito web (GitHub Pages)</td>
+          <td>USA</td>
+          <td>SCCs, <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">Privacy Statement</a></td>
+        </tr>
+        <tr>
+          <td><strong>Resend Inc.</strong></td>
+          <td>Invio email transazionali</td>
+          <td>USA</td>
+          <td>SCCs, <a href="https://resend.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>I trasferimenti di dati verso Paesi extra-UE avvengono nel rispetto delle garanzie previste dal Capo V del GDPR, in particolare tramite <strong>Clausole Contrattuali Standard</strong> (Standard Contractual Clauses — SCCs) approvate dalla Commissione Europea.</p>
+    <p>I dati <strong>non vengono</strong> venduti, ceduti o comunicati a terzi per finalità di profilazione o marketing.</p>
+  </section>
+
+  <!-- 6. Cookie -->
+  <section class="section" id="cookie">
+    <h2><span class="sec-num">Art. 6</span>Cookie e tecnologie di tracciamento</h2>
+    <p>In conformità al D.Lgs. 196/2003 come modificato dal D.Lgs. 101/2018 e alla Direttiva ePrivacy 2002/58/CE, la presente sezione descrive le tecnologie di tracciamento utilizzate da Mnesti.</p>
+
+    <h3>6.1 Cookie strettamente necessari</h3>
+    <p>Questi cookie sono indispensabili al funzionamento del sito. Non richiedono consenso preventivo ai sensi dell'art. 122, comma 1, D.Lgs. 196/2003.</p>
+
+    <table class="cookie-table">
+      <thead>
+        <tr><th>Nome / Chiave</th><th>Tipo</th><th>Scopo</th><th>Durata</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>sb-*-auth-token</code></td>
+          <td><span class="badge badge-green">Sessione</span></td>
+          <td>Token di autenticazione Supabase</td>
+          <td>Sessione / 7 giorni</td>
+        </tr>
+        <tr>
+          <td><code>psico_theme</code></td>
+          <td><span class="badge badge-green">Preferenze</span></td>
+          <td>Tema chiaro/scuro selezionato</td>
+          <td>Persistente (localStorage)</td>
+        </tr>
+        <tr>
+          <td><code>mnesti_cookie_consent</code></td>
+          <td><span class="badge badge-green">Consenso</span></td>
+          <td>Registrazione delle preferenze cookie</td>
+          <td>12 mesi</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>6.2 Cookie funzionali (previo consenso)</h3>
+    <p>Attivati solo con il tuo consenso esplicito.</p>
+
+    <table class="cookie-table">
+      <thead>
+        <tr><th>Nome / Chiave</th><th>Tipo</th><th>Scopo</th><th>Durata</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>psico_ai_plan</code></td>
+          <td><span class="badge badge-yellow">Funzionale</span></td>
+          <td>Piano di studio generato dall'AI</td>
+          <td>Persistente (localStorage)</td>
+        </tr>
+        <tr>
+          <td><code>psico_sources</code></td>
+          <td><span class="badge badge-yellow">Funzionale</span></td>
+          <td>Materiali di studio caricati</td>
+          <td>Persistente (localStorage)</td>
+        </tr>
+        <tr>
+          <td><code>psico_state</code></td>
+          <td><span class="badge badge-yellow">Funzionale</span></td>
+          <td>Progressi e sessioni di studio</td>
+          <td>Persistente (localStorage)</td>
+        </tr>
+        <tr>
+          <td><code>psico_exam_info</code></td>
+          <td><span class="badge badge-yellow">Funzionale</span></td>
+          <td>Informazioni sull'esame corrente</td>
+          <td>Persistente (localStorage)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>6.3 Cookie analitici (previo consenso)</h3>
+    <p>Attualmente Mnesti <strong>non utilizza</strong> strumenti di analisi di terze parti (es. Google Analytics). In caso di futura implementazione, questa sezione verrà aggiornata e il consenso ri-richiesto.</p>
+
+    <h3>6.4 Cookie di profilazione e marketing</h3>
+    <p>Mnesti <strong>non utilizza</strong> cookie di profilazione o marketing di alcun tipo.</p>
+
+    <h3>6.5 Gestione e revoca del consenso</h3>
+    <p>Puoi modificare o revocare le tue preferenze cookie in qualsiasi momento:</p>
+    <a href="#" class="ck-prefs-link" onclick="if(window.cookieOpenPrefs){cookieOpenPrefs();}return false;">
+      ⚙️ Gestisci preferenze cookie
+    </a>
+    <p style="margin-top:14px;">Puoi inoltre eliminare i cookie direttamente dalle impostazioni del tuo browser. Tieni presente che la disattivazione dei cookie strettamente necessari potrebbe impedire il corretto funzionamento del servizio.</p>
+  </section>
+
+  <!-- 7. Diritti -->
+  <section class="section" id="diritti">
+    <h2><span class="sec-num">Art. 7</span>I tuoi diritti ai sensi del GDPR</h2>
+    <p>Ai sensi degli artt. 15–22 del Regolamento UE 2016/679, hai il diritto di:</p>
+    <ul>
+      <li><strong>Accesso</strong> (art. 15) — ottenere conferma che sia o meno in corso un trattamento di dati personali che ti riguarda e, in tal caso, ottenere l'accesso ai dati;</li>
+      <li><strong>Rettifica</strong> (art. 16) — ottenere la correzione di dati personali inesatti;</li>
+      <li><strong>Cancellazione ("diritto all'oblio")</strong> (art. 17) — ottenere la cancellazione dei tuoi dati personali;</li>
+      <li><strong>Limitazione del trattamento</strong> (art. 18) — ottenere la limitazione del trattamento in determinati casi;</li>
+      <li><strong>Portabilità dei dati</strong> (art. 20) — ricevere i tuoi dati in formato strutturato, di uso comune e leggibile da dispositivo automatico;</li>
+      <li><strong>Opposizione</strong> (art. 21) — opporti al trattamento dei tuoi dati personali basato su legittimo interesse;</li>
+      <li><strong>Revoca del consenso</strong> (art. 7, par. 3) — revocare in qualsiasi momento il consenso prestato, senza pregiudicare la liceità del trattamento basata sul consenso prima della revoca;</li>
+      <li><strong>Reclamo</strong> (art. 77) — presentare un reclamo all'autorità di controllo competente (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">Garante per la protezione dei dati personali</a>, Piazza Venezia 11, 00187 Roma).</li>
+    </ul>
+    <div class="hl-box">
+      <p>Per esercitare i tuoi diritti, invia una richiesta a <a href="mailto:contact@wordpresschef.it">contact@wordpresschef.it</a>. Risponderemo entro <strong>30 giorni</strong> dalla ricezione della richiesta, come previsto dall'art. 12 GDPR.</p>
+    </div>
+  </section>
+
+  <!-- 8. Sicurezza -->
+  <section class="section" id="sicurezza">
+    <h2><span class="sec-num">Art. 8</span>Sicurezza dei dati</h2>
+    <p>Adottiamo misure tecniche e organizzative adeguate per proteggere i tuoi dati personali da accessi non autorizzati, perdita, distruzione o divulgazione, tra cui:</p>
+    <ul>
+      <li>Trasmissione dei dati cifrata tramite protocollo <strong>TLS 1.2/1.3</strong> (HTTPS)</li>
+      <li>Archiviazione delle password con algoritmo di hashing sicuro (<strong>bcrypt</strong>)</li>
+      <li>Politiche di <strong>Row Level Security (RLS)</strong> sul database per garantire che ogni utente acceda solo ai propri dati</li>
+      <li>Chiavi API conservate come <strong>variabili d'ambiente cifrate</strong> (Supabase Secrets), mai esposte nel codice sorgente</li>
+      <li>Accesso amministrativo limitato tramite autenticazione a più fattori</li>
+    </ul>
+    <p>In caso di violazione dei dati personali (data breach) che presenti un rischio per i tuoi diritti e libertà, ti notificheremo senza ingiustificato ritardo, come previsto dall'art. 34 GDPR.</p>
+  </section>
+
+  <!-- 9. Minori -->
+  <section class="section" id="minori">
+    <h2><span class="sec-num">Art. 9</span>Minori</h2>
+    <p>Il servizio Mnesti è destinato a studenti universitari e a persone con età uguale o superiore a <strong>18 anni</strong>. Non raccogliamo consapevolmente dati personali di minori di 18 anni.</p>
+    <p>Se sei un genitore o tutore e ritieni che tuo figlio minore abbia fornito dati personali, ti invitiamo a contattarci all'indirizzo <a href="mailto:contact@wordpresschef.it">contact@wordpresschef.it</a> affinché possiamo provvedere alla loro cancellazione.</p>
+  </section>
+
+  <!-- 10. Modifiche -->
+  <section class="section" id="modifiche">
+    <h2><span class="sec-num">Art. 10</span>Modifiche alla presente informativa</h2>
+    <p>Ci riserviamo il diritto di modificare la presente informativa in qualsiasi momento, ad esempio in caso di variazioni normative, aggiornamenti del servizio o adozione di nuove tecnologie di trattamento.</p>
+    <p>Le modifiche sostanziali saranno comunicate agli utenti registrati via email e/o tramite avviso in evidenza sul sito. La data dell'ultimo aggiornamento è sempre indicata in cima alla presente pagina.</p>
+    <p>L'utilizzo continuato del servizio dopo la pubblicazione delle modifiche costituisce accettazione dell'informativa aggiornata.</p>
+  </section>
+
+  <!-- 11. Contatti -->
+  <section class="section" id="contatti">
+    <h2><span class="sec-num">Art. 11</span>Contatti</h2>
+    <p>Per qualsiasi domanda, richiesta o reclamo relativo al trattamento dei tuoi dati personali:</p>
+    <div class="hl-box">
+      <p>
+        <strong>Mnesti</strong><br>
+        Email: <a href="mailto:contact@wordpresschef.it">contact@wordpresschef.it</a><br>
+        Sito web: <a href="https://mnesti.it">https://mnesti.it</a><br><br>
+        <strong>Autorità di controllo competente:</strong><br>
+        Garante per la protezione dei dati personali<br>
+        Piazza Venezia 11, 00187 Roma (RM)<br>
+        <a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">www.garanteprivacy.it</a>
+      </p>
+    </div>
+  </section>
+
+  <footer class="page-footer">
+    <p>© <time datetime="2026">2026</time> Mnesti — Tutti i diritti riservati</p>
+    <p><a href="https://mnesti.it">← Torna alla home</a> · <a href="mailto:contact@wordpresschef.it">Contattaci</a></p>
+  </footer>
+
+</main>
+
+</body>
+</html>
