@@ -1,0 +1,7 @@
+# Test scripts con chiavi — non committare
+test-stripe.js
+
+# Supabase local
+supabase/.temp/
+.env
+.env.local
