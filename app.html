@@ -10760,15 +10760,52 @@ async function generateQuestionsFromSource(dayId) {
   if (!day) return;
   const topic = day.title || dayId;
 
-  // Build coverage map from day sections
+  // ── Raccoglie TUTTE le domande esistenti (piano + AI) ─────────
+  // Necessario perché le domande del piano statico non devono essere
+  // sovrapposte da quelle generate, e viceversa.
+  const planQs = (day.questions || []);
+  const aiQs   = (state[dayId]?.aiQuestions || []);
+  const allExisting = [...planQs, ...aiQs];
+
+  // ── Analisi copertura sezioni ─────────────────────────────────
   const daySections = (day.sections || []).filter(s => s.title);
-  const coverageMap = daySections.length
-    ? daySections.map((s, i) => `  ${i + 1}. ${s.title}${s.ref ? ' (' + s.ref + ')' : ''}`).join('\n')
+
+  // Considera una sezione "già coperta" se almeno una domanda esistente
+  // cita nel testo o nel sourceRef almeno 2 parole significative del titolo
+  function _isSectionCovered(sec, questions) {
+    const words = sec.title.toLowerCase()
+      .split(/[\s\-–—,;:()/]+/)
+      .filter(w => w.length > 3);
+    if (!words.length) return false;
+    return questions.some(q => {
+      const hay = ((q.text || '') + ' ' + (q.sourceRef || '')).toLowerCase();
+      const hits = words.filter(w => hay.includes(w));
+      return hits.length >= Math.min(2, words.length);
+    });
+  }
+
+  const coveredSections   = daySections.filter(s =>  _isSectionCovered(s, allExisting));
+  const uncoveredSections = daySections.filter(s => !_isSectionCovered(s, allExisting));
+
+  // Sezioni target = scoperte; se tutto è coperto genera domande extra su tutto
+  const targetSections = uncoveredSections.length > 0 ? uncoveredSections : daySections;
+  const nQuestions     = Math.max(3, targetSections.length);
+
+  // Mappe per il prompt
+  const targetCoverageMap = targetSections.length
+    ? targetSections.map((s, i) => `  ${i + 1}. ${s.title}${s.ref ? ' (' + s.ref + ')' : ''}`).join('\n')
     : null;
-  const nQuestions = Math.max(7, daySections.length);
+
+  const coveredNote = coveredSections.length > 0
+    ? `SEZIONI GIÀ COPERTE — NON generare domande che si sovrappongano a queste sezioni o ai loro concetti chiave:\n${coveredSections.map(s => `  • ${s.title}`).join('\n')}\n\n`
+    : '';
 
   const btn = document.getElementById('genq-btn-' + dayId);
-  if (btn) { btn.classList.add('loading'); btn.innerHTML = '<i data-lucide="loader-circle" style="width:11px;height:11px;stroke-width:2;flex-shrink:0;animation:spin 1s linear infinite"></i> Generazione…'; lucide.createIcons(); }
+  if (btn) {
+    btn.classList.add('loading');
+    btn.innerHTML = '<i data-lucide="loader-circle" style="width:11px;height:11px;stroke-width:2;flex-shrink:0;animation:spin 1s linear infinite"></i> Generazione…';
+    lucide.createIcons();
+  }
 
   const systemPrompt = `Sei un professore universitario di Psicologia Cognitiva (corso UNINETTUNO, Prof. Laura Serra) che prepara uno studente a un esame universitario scritto.
 
@@ -10779,17 +10816,16 @@ ${sourceCtx.slice(0, 20000)}
 
 Genera esattamente ${nQuestions} domande a risposta aperta sull'argomento specificato, basandoti ESCLUSIVAMENTE sulle fonti fornite.
 
-${coverageMap ? `MAPPA DI COPERTURA OBBLIGATORIA:
-Questa giornata di studio copre le seguenti sezioni — il set di domande DEVE coprire ciascuna sezione almeno una volta. Assegna ogni domanda a una sezione diversa, distribuendo uniformemente:
-${coverageMap}
+${coveredNote}${targetCoverageMap ? `SEZIONI DA COPRIRE (obbligatorio — genera domande SOLO per queste sezioni, una domanda per sezione):
+${targetCoverageMap}
 
 ` : ''}VINCOLO FONTI (critico): ogni domanda deve essere direttamente ricavabile dal materiale fornito. Ogni concetto, autore, modello o esperimento citato deve essere esplicitamente presente nelle fonti. NON generare domande basate su conoscenza generale della disciplina. NON fare domande generiche, metodologiche o metadisciplinari.
 
 DIVERSITÀ CONCETTUALE (critica — regola assoluta):
-• Ogni domanda deve testare un concetto, fenomeno o modello DISTINTO rispetto a tutte le altre
-• È VIETATO generare due domande che trattino lo stesso fenomeno anche se formulate diversamente (es. "natura vs nurtura" e "interazione geni-ambiente" sono la STESSA domanda camuffata — inaccettabile)
-• Ogni domanda deve coprire una sezione/slide range DIVERSO rispetto a tutte le altre — il campo "sourceRef" non può ripetere la stessa sezione
-• Se durante la composizione del set noti che due domande si sovrappongono concettualmente, RISCRIVI immediatamente la seconda coprendo una sezione non ancora esplorata
+• Ogni domanda deve testare un concetto, fenomeno o modello DISTINTO rispetto a TUTTE le altre domande del set E rispetto alle domande già presenti (elencate nel messaggio utente)
+• È VIETATO generare due domande che trattino lo stesso fenomeno anche se formulate diversamente
+• Ogni domanda deve fare riferimento a una sezione/slide DIVERSA — il campo "sourceRef" non può ripetere la stessa sezione
+• Se noti sovrapposizioni concettuali con le domande già presenti, riscrivi subito la nuova domanda su un argomento non ancora esplorato
 
 DISTRIBUZIONE (Tassonomia di Bloom):
 • domande tipo "definizione" (ricordo): definizioni precise, nomenclatura tecnica, autori chiave
@@ -10797,37 +10833,45 @@ DISTRIBUZIONE (Tassonomia di Bloom):
 • domande tipo "connessione" (applicazione/analisi): collegare concetti, confrontare teorie, applicare a casi
 
 AUTO-VALIDAZIONE ANTI-DUPLICATI (obbligatoria prima di produrre il JSON):
-✓ Nessuna coppia di domande testa lo stesso concetto/fenomeno, anche se formulato in modo diverso
-✓ Ogni domanda cita una sezione/slide range diversa nel suo "sourceRef"
-✓ Il set copre tutte le sezioni elencate nella mappa di copertura
+✓ Nessuna nuova domanda si sovrappone concettualmente alle domande già presenti
+✓ Nessuna coppia di nuove domande testa lo stesso concetto/fenomeno
+✓ Ogni domanda cita una sezione/slide range diversa nel "sourceRef"
+✓ Il set copre tutte le sezioni elencate in "SEZIONI DA COPRIRE"
 Se trovi violazioni, riscrivi la domanda problematica prima di includerla nel JSON finale.
 
-TRACCIABILITÀ FONTE (obbligatoria): il campo "sourceRef" deve contenere: nome del file/fonte, titolo sezione o numero slide, e un breve estratto testuale tra virgolette (max 120 caratteri). Formato: "NomeFonte — Sezione/Slide N: «estratto»"
+TRACCIABILITÀ FONTE (obbligatoria): il campo "sourceRef" deve contenere nome del file/fonte, titolo sezione o numero slide, e un breve estratto testuale tra virgolette (max 120 caratteri). Formato: "NomeFonte — Sezione/Slide N: «estratto»"
 
 Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo):
 [{"text":"testo della domanda","type":"definizione|meccanismo|connessione","sourceRef":"NomeFonte — Sezione: «estratto dal testo»"}]`;
 
   try {
+    // Costruisce la lista di TUTTE le domande esistenti da passare al modello
+    const existingBlock = allExisting.length
+      ? `\n\nDOMANDE GIÀ PRESENTI — NON ripetere, NON riformulare, NON sovrapporre concettualmente.\nOgni nuova domanda deve esplorare un aspetto NON ancora coperto da queste:\n${allExisting.map((q, i) => `${i + 1}. [${q.type || 'domanda'}] ${q.text}`).join('\n')}`
+      : '';
+
+    const userMsg = `Argomento: ${topic}${existingBlock}
+
+Genera esattamente ${nQuestions} domande per le SEZIONI DA COPRIRE elencate sopra.
+Ogni domanda deve testare un concetto DISTINTO da tutti quelli già presenti e fare riferimento a una sezione/slide DIVERSA.
+Esegui la validazione anti-duplicati prima di produrre il JSON.
+OBBLIGATORIO: includi "sourceRef" per ogni domanda con sezione/slide e estratto testuale specifico.`;
+
     const data = await _callClaude({
       model: 'claude-sonnet-4-6',
       max_tokens: 4000,
       temperature: 1,
       system: systemPrompt,
-      messages: [{ role: 'user', content: (() => {
-        const existingQs = state[dayId]?.aiQuestions || [];
-        const existingList = existingQs.length
-          ? `\n\nDOMINADE GIÀ PRESENTI (NON ripetere, NON riformulare, NON sovrapporre concettualmente — ogni nuova domanda deve esplorare un aspetto non ancora coperto):\n${existingQs.map((q,i) => `${i+1}. ${q.text}`).join('\n')}`
-          : '';
-        return `Argomento: ${topic}${existingList}\n\nGenera le domande coprendo TUTTE le sezioni elencate nella mappa di copertura. Ogni domanda deve testare un concetto DISTINTO e fare riferimento a una sezione/slide DIVERSA. Esegui la validazione anti-duplicati prima di produrre il JSON.\n\nOBBLIGATORIO: includi "sourceRef" per ogni domanda con sezione/slide e estratto testuale specifico.`;
-      })() }]
+      messages: [{ role: 'user', content: userMsg }]
     });
+
     let raw = data.content[0].text.trim();
     raw = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     const questions = JSON.parse(raw);
     if (!Array.isArray(questions) || !questions.length) throw new Error('Risposta non valida');
 
     if (!state[dayId]) state[dayId] = {};
-    // Append new questions — never overwrite existing ones to preserve answers/feedbacks
+    // Aggiunge le nuove domande senza sovrascrivere quelle esistenti (e relativi feedback)
     const prev = state[dayId].aiQuestions || [];
     state[dayId].aiQuestions = [...prev, ...questions];
     saveState();
