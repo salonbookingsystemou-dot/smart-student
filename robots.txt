@@ -4,6 +4,10 @@
 User-agent: *
 Allow: /
 
+# Pagine applicative — richiedono autenticazione, non indicizzare
+Disallow: /app.html
+Disallow: /admin.html
+
 # Non indicizzare la cartella Supabase (funzioni locali di sviluppo)
 Disallow: /supabase/
 
