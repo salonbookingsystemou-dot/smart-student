@@ -2299,18 +2299,46 @@
   }
   .quiz-abandon-btn:hover { color: var(--skip-text); }
 
-  /* Loading */
+  /* Loading — icona logo Mnesti (mask su logo-mark.png) */
   .quiz-loading { text-align: center; padding: 44px 0; }
   .quiz-spinner {
-    width: 32px; height: 32px;
-    border: 2.5px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: quiz-spin 0.75s linear infinite;
-    margin: 0 auto 12px;
+    box-sizing: border-box;
+    width: 32px;
+    height: 32px;
     flex-shrink: 0;
+    margin: 0 auto 12px;
+    border: none !important;
+    border-radius: 0;
+    background-color: var(--accent);
+    -webkit-mask-image: url(logo-mark.png);
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: url(logo-mark.png);
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    animation: mnesti-loader-breathe 1.15s ease-in-out infinite;
+    will-change: transform, opacity;
   }
-  @keyframes quiz-spin { to { transform: rotate(360deg); } }
+  .quiz-spinner--inline {
+    display: inline-block !important;
+    vertical-align: middle;
+    margin: 0 8px 0 0 !important;
+  }
+  /* In flex row con gap, niente margin extra sul logo */
+  .acct-usage-loading .quiz-spinner,
+  .quiz-warmup-footer .quiz-spinner,
+  .sources-extracting .quiz-spinner {
+    margin: 0 !important;
+  }
+  @keyframes mnesti-loader-breathe {
+    0%, 100% { opacity: 0.38; transform: scale(0.88); }
+    50%       { opacity: 1;    transform: scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .quiz-spinner { animation: none; opacity: 0.85; transform: none; }
+  }
   .quiz-loading-label {
     font-size: 11px; color: var(--text-3);
     font-family: 'Inter', sans-serif; text-align: center;
@@ -3035,7 +3063,6 @@
     from { opacity: 0; transform: scale(0.94) translateY(20px); }
     to   { opacity: 1; transform: scale(1)    translateY(0); }
   }
-  @keyframes mc-spin { to { transform: rotate(360deg); } }
   .mc-exit-btn {
     position: absolute; top: 14px; right: 16px;
     background: none; border: none; cursor: pointer;
@@ -3348,7 +3375,6 @@
     text-align: center; padding: 28px 0;
     font-size: 13px; color: var(--text-3); font-family: 'Inter', sans-serif;
   }
-  @keyframes bd-spin { to { transform: rotate(360deg); } }
   /* Results */
   .bd-results { animation: fadeIn 0.3s ease; }
   .bd-score-wrap {
@@ -5565,7 +5591,7 @@ function _obRenderFilesList() {
   list.innerHTML = _obPendingSources.map(s => {
     const icon  = s.status === 'done'       ? '✓'
                 : s.status === 'error'      ? '✗'
-                : '<div class="quiz-spinner" style="width:10px;height:10px;border-width:2px;flex-shrink:0;display:inline-block"></div>';
+                : '<div class="quiz-spinner quiz-spinner--inline" style="width:10px;height:10px" aria-hidden="true"></div>';
     const color = s.status === 'done' ? 'color:#27ae60' : s.status === 'error' ? 'color:#e74c3c' : '';
     const kb = Math.round(s.sizeBytes / 1024);
     return `<div class="ob-file-item ${s.status === 'processing' ? 'processing' : ''} ${s.status === 'error' ? 'error' : ''}">
@@ -9614,7 +9640,7 @@ async function startQuiz(dayId, topic) {
         </div>
         <div class="quiz-warmup-nav" id="warmupDots">${dots}</div>
         <div class="quiz-warmup-footer">
-          <div class="quiz-spinner"></div>
+          <div class="quiz-spinner" style="width:18px;height:18px" role="status" aria-label="Caricamento"></div>
           <div class="quiz-warmup-generating">Il quiz si sta preparando…</div>
         </div>
       </div>`;
@@ -9641,7 +9667,7 @@ async function startQuiz(dayId, topic) {
   } else {
     loading.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
-        <div class="quiz-spinner"></div>
+        <div class="quiz-spinner" role="status" aria-label="Caricamento"></div>
         <div class="quiz-loading-label">Generazione domande in corso…<br><span style="font-size:10px;color:var(--text-3)">${escHtml(topic)}</span></div>
       </div>`;
   }
@@ -10772,9 +10798,9 @@ async function generateTextbookReference() {
   const btn    = document.getElementById('textbookGenBtn');
   const status = document.getElementById('textbookGenStatus');
   btn.disabled = true;
-  btn.innerHTML = '<div class="quiz-spinner" style="width:13px;height:13px;border-width:2px;flex-shrink:0"></div> Generazione in corso…';
+    btn.innerHTML = '<span class="quiz-spinner quiz-spinner--inline" style="width:13px;height:13px" aria-hidden="true"></span> Generazione in corso…';
   status.style.display = 'flex';
-  status.innerHTML = '<div class="quiz-spinner" style="width:11px;height:11px;border-width:2px;flex-shrink:0"></div> Claude sta elaborando il riferimento bibliografico…';
+    status.innerHTML = '<span class="quiz-spinner quiz-spinner--inline" style="width:11px;height:11px" aria-hidden="true"></span> Claude sta elaborando il riferimento bibliografico…';
 
   const bookRef = [title, author && `di ${author}`, edition].filter(Boolean).join(' — ');
   const examInfo = JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
@@ -10942,7 +10968,7 @@ async function generateQuestionsFromSource(dayId) {
   const btn = document.getElementById('genq-btn-' + dayId);
   if (btn) {
     btn.classList.add('loading');
-    btn.innerHTML = '<i data-lucide="loader-circle" style="width:11px;height:11px;stroke-width:2;flex-shrink:0;animation:spin 1s linear infinite"></i> Generazione…';
+    btn.innerHTML = '<span class="quiz-spinner quiz-spinner--inline" style="width:11px;height:11px" aria-hidden="true"></span> Generazione…';
     lucide.createIcons();
   }
 
@@ -11495,7 +11521,7 @@ updateSourcesBtn();
       </div>
       <input type="file" id="pdfFileInput" accept=".pdf" style="display:none" onchange="handlePdfFileInput(this)">
       <div class="sources-extracting" id="sourcesExtracting">
-        <div class="quiz-spinner" style="width:28px;height:28px;border-width:3px;"></div>
+        <div class="quiz-spinner" style="width:28px;height:28px" role="status" aria-label="Estrazione PDF"></div>
         <div class="sources-extract-title" id="sourcesExtractTitle">Lettura PDF…</div>
         <div class="sources-extract-bar-wrap">
           <div class="sources-extract-bar" id="sourcesExtractBar"></div>
@@ -11658,7 +11684,7 @@ updateSourcesBtn();
         <div class="acct-section">
           <div class="acct-section-title"><i data-lucide="zap" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Utilizzo API</div>
           <div class="acct-usage-loading" id="acctUsageLoading">
-            <div class="quiz-spinner" style="width:13px;height:13px;border-width:2px"></div>
+            <div class="quiz-spinner" style="width:13px;height:13px" aria-hidden="true"></div>
             Caricamento…
           </div>
           <div id="acctUsageContent" style="display:none">
@@ -11714,7 +11740,7 @@ updateSourcesBtn();
         <div class="acct-section">
           <div class="acct-section-title"><i data-lucide="credit-card" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i> Piano attivato</div>
           <div class="acct-usage-loading" id="acctPlanLoading">
-            <div class="quiz-spinner" style="width:13px;height:13px;border-width:2px"></div>
+            <div class="quiz-spinner" style="width:13px;height:13px" aria-hidden="true"></div>
             Caricamento…
           </div>
           <div id="acctPlanContent" style="display:none">
@@ -11794,7 +11820,7 @@ updateSourcesBtn();
 <!-- Plan Generation Overlay -->
 <div class="plan-gen-overlay" id="planGenOverlay">
   <div class="plan-gen-box">
-    <div class="quiz-spinner" style="width:30px;height:30px;border-width:3px;margin:0 auto 16px;"></div>
+    <div class="quiz-spinner" style="width:30px;height:30px;margin:0 auto 16px" role="status" aria-label="Generazione piano"></div>
     <div class="plan-gen-title" id="planGenTitle">Generazione piano…</div>
     <div class="plan-gen-msg" id="planGenMsg">Claude sta analizzando le tue fonti e costruendo il calendario di studio…</div>
     <div class="plan-gen-bar-wrap">
@@ -11811,7 +11837,7 @@ updateSourcesBtn();
 
     <!-- Loading -->
     <div class="quiz-loading" id="quizLoading">
-      <div class="quiz-spinner"></div>
+      <div class="quiz-spinner" role="status" aria-label="Generazione quiz"></div>
       <div class="quiz-loading-label">Generazione domande in corso…</div>
       <div class="quiz-loading-sub" id="quizLoadingTopic"></div>
     </div>
@@ -11874,7 +11900,7 @@ updateSourcesBtn();
     <!-- Loading view -->
     <div id="mcLoadingView">
       <div class="mc-loading-inner">
-        <i data-lucide="loader-circle" style="width:28px;height:28px;stroke-width:1.8;animation:mc-spin 1s linear infinite;display:block;margin:0 auto 14px"></i>
+        <div class="quiz-spinner" style="width:28px;height:28px;margin:0 auto 14px" role="status" aria-label="Caricamento Memory Cards"></div>
         <div class="mc-loading-title" id="mcLoadingTitle">Estrazione autori in corso…</div>
         <div class="mc-loading-sub" id="mcLoadingSub">Claude sta analizzando le fonti per gli argomenti di oggi</div>
       </div>
@@ -12021,7 +12047,7 @@ updateSourcesBtn();
     <!-- Loading -->
     <div id="bdLoadingView" style="display:none">
       <div class="bd-loading">
-        <i data-lucide="loader-circle" style="width:28px;height:28px;stroke-width:1.8;animation:bd-spin 1s linear infinite;display:block;margin:0 auto 12px"></i>
+        <div class="quiz-spinner" style="width:28px;height:28px;margin:0 auto 12px" role="status" aria-label="Analisi brain dump"></div>
         Claude sta analizzando il tuo brain dump…
       </div>
     </div>
