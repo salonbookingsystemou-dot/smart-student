@@ -7,17 +7,25 @@
   <!-- Landing page — massima priorità -->
   <url>
     <loc>https://mnesti.it/</loc>
-    <lastmod>2026-05-03</lastmod>
+    <lastmod>2026-05-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
-  <!-- App (login / onboarding) -->
+  <!-- FAQ — contenuto informativo indicizzabile -->
   <url>
-    <loc>https://mnesti.it/app.html</loc>
-    <lastmod>2026-05-03</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://mnesti.it/faq.html</loc>
+    <lastmod>2026-05-04</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://mnesti.it/privacy.html</loc>
+    <lastmod>2026-05-03</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 
 </urlset>

@@ -7,9 +7,9 @@
   <script>if(location.protocol!=='https:')location.replace('https://'+location.host+location.pathname+location.search+location.hash);</script>
 
   <!-- ── Primary Meta ───────────────────────────────────────────── -->
-  <title>Mnesti — Studia meglio. Lauréati in tempo.</title>
-  <meta name="description" content="Mnesti è la web app di studio personalizzato con AI per studenti universitari italiani. Piano di studio automatico, quiz adattivi, feedback intelligente e Brain Dump. Gratis per iniziare." />
-  <meta name="keywords" content="studio universitario AI, piano di studio esame, quiz adattivi università, studenti fuori corso, preparazione esami AI, app studio universitari, Mnesti" />
+  <title>Mnesti — Piano di studio AI per universitari italiani | Active Recall e Quiz</title>
+  <meta name="description" content="Mnesti genera un piano di studio giorno per giorno basato sulle tue dispense, con domande a risposta aperta, quiz adattivi e feedback AI istantaneo. Per studenti universitari italiani. Gratis, nessuna carta richiesta." />
+  <meta name="keywords" content="piano di studio universitario AI, app studio esame università, active recall università italiana, generatore domande aperte esame, quiz adattivi università, brain dump studio, memory cards autori teorie, preparazione esami AI, studenti fuori corso, UNINETTUNO studio AI, Mnesti" />
   <meta name="author" content="Mnesti" />
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
   <meta name="google-site-verification" content="98c9b7cfc1978504" />
@@ -66,6 +66,8 @@
         "@id": "https://mnesti.it/#organization",
         "name": "Mnesti",
         "url": "https://mnesti.it",
+        "description": "Mnesti è la web app italiana di studio universitario con AI. Genera piani di studio personalizzati, domande a risposta aperta, quiz adattivi e Brain Dump basati sulle dispense dello studente.",
+        "foundingDate": "2025",
         "logo": {
           "@type": "ImageObject",
           "@id": "https://mnesti.it/#logo",
@@ -78,7 +80,18 @@
           "email": "contact@wordpresschef.it",
           "contactType": "customer support",
           "availableLanguage": "Italian"
-        }
+        },
+        "knowsAbout": [
+          "Active Recall",
+          "Spaced Repetition",
+          "Studio universitario",
+          "Intelligenza artificiale per l'educazione",
+          "Brain Dump",
+          "Preparazione esami universitari"
+        ],
+        "sameAs": [
+          "https://mnesti.it"
+        ]
       },
       {
         "@type": "WebSite",
@@ -162,14 +175,49 @@
         ]
       },
       {
+        "@type": "HowTo",
+        "@id": "https://mnesti.it/#howto",
+        "name": "Come creare un piano di studio con Mnesti",
+        "description": "Crea un piano di studio personalizzato con AI in tre passaggi partendo dalla data del tuo esame universitario.",
+        "totalTime": "PT3M",
+        "supply": [
+          { "@type": "HowToSupply", "name": "Dispense del corso in PDF" },
+          { "@type": "HowToSupply", "name": "Programma del corso" },
+          { "@type": "HowToSupply", "name": "Data dell'appello" }
+        ],
+        "tool": [{ "@type": "HowToTool", "name": "Mnesti (mnesti.it)" }],
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Inserisci i dati dell'esame",
+            "text": "Accedi a Mnesti e inserisci la materia, il nome del professore e la data dell'appello."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Carica le dispense",
+            "text": "Carica i file PDF delle tue dispense e incolla il programma del corso. Più materiale fornisci, più preciso sarà il piano."
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Ricevi il piano personalizzato",
+            "text": "L'AI analizza il materiale e genera un calendario di studio giorno per giorno con domande a risposta aperta per ogni sessione."
+          }
+        ]
+      },
+      {
         "@type": "FAQPage",
+        "@id": "https://mnesti.it/#faqpage",
+        "url": "https://mnesti.it/faq.html",
         "mainEntity": [
           {
             "@type": "Question",
             "name": "Cos'è Mnesti?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Mnesti è una web app gratuita di studio personalizzato basata su AI per studenti universitari italiani. Genera piani di studio su misura dalla data dell'esame, quiz adattivi, feedback intelligente sulle risposte aperte e analisi dei gap tramite Brain Dump."
+              "text": "Mnesti è una web app gratuita di studio personalizzato basata su AI per studenti universitari italiani. Genera piani di studio su misura dalla data dell'esame, domande a risposta aperta dalle tue dispense, quiz adattivi, feedback intelligente e Brain Dump per identificare i gap di preparazione."
             }
           },
           {
@@ -177,7 +225,7 @@
             "name": "Mnesti è gratuito?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Sì, Mnesti è gratuito per iniziare. Il piano base include 150 chiamate AI al giorno, 1 esame attivo e 5 MB di storage per le dispense. Non è necessaria la carta di credito."
+              "text": "Sì, Mnesti è gratuito per iniziare senza carta di credito. Il piano base include 150 chiamate AI al giorno, 1 esame attivo e 5 MB di storage per le dispense."
             }
           },
           {
@@ -185,15 +233,31 @@
             "name": "Come funziona il piano di studio di Mnesti?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Inserisci la data dell'esame e carica le tue dispense PDF. Mnesti analizza il materiale e crea automaticamente un calendario di studio giorno per giorno calibrato sul tuo ritmo e sulla data dell'appello, con domande specifiche per ogni sessione."
+              "text": "Inserisci la data dell'esame e carica le tue dispense PDF. Mnesti analizza il materiale con Claude AI e crea automaticamente un calendario di studio giorno per giorno calibrato sulla data dell'appello, con domande a risposta aperta specifiche per ogni sessione."
             }
           },
           {
             "@type": "Question",
-            "name": "Cosa sono i quiz adattivi di Mnesti?",
+            "name": "Qual è la differenza tra Mnesti e ChatGPT per studiare?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "I quiz adattivi di Mnesti sono sessioni a risposta multipla generate dall'AI sulle tue dispense. L'algoritmo adattivo identifica gli argomenti dove hai più difficoltà e li ripropone finché non li padroneggi. Include punteggi, streak e best score."
+              "text": "ChatGPT è un assistente generico. Mnesti è costruito sopra Claude AI ma aggiunge: un calendario di studio strutturato, domande generate dalle TUE dispense (non da conoscenza generica), tracciamento dei progressi, indicatore di preparazione, Brain Dump analitico e Memory Cards. È la differenza tra un LLM generico e un tutor che conosce il tuo corso specifico."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Cos'è il Brain Dump e perché è efficace per studiare?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Il Brain Dump è una tecnica di Active Recall: scrivi liberamente tutto quello che ricordi su un argomento senza consultare appunti. L'AI di Mnesti confronta il tuo testo con le fonti del corso e identifica concetti assimilati, lacune e gap reali. La ricerca cognitiva (Roediger & Karpicke, 2006) dimostra che il recupero attivo dalla memoria aumenta la ritenzione del 50% rispetto alla rilettura passiva."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Mnesti funziona per UNINETTUNO e gli atenei telematici?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sì, Mnesti funziona perfettamente per UNINETTUNO, Pegaso, eCampus, Mercatorum e tutti gli atenei telematici italiani. Poiché il piano è generato dalle tue dispense specifiche, la qualità è indipendente dall'istituzione."
             }
           },
           {
@@ -201,7 +265,7 @@
             "name": "Mnesti funziona su smartphone?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Sì, Mnesti è una Progressive Web App (PWA) completamente ottimizzata per mobile. Puoi installarla sulla schermata home di iPhone o Android come un'app nativa, senza scaricarla dall'App Store o da Google Play."
+              "text": "Sì, Mnesti è una Progressive Web App (PWA) ottimizzata per mobile. Puoi installarla sulla schermata home di iPhone (Safari → Condividi → Aggiungi a schermata Home) o Android (Chrome → menu → Aggiungi a schermata Home) come un'app nativa, senza App Store o Google Play."
             }
           },
           {
@@ -209,7 +273,15 @@
             "name": "Quanto costa rimanere fuori corso?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Un anno fuori corso costa in media €3.000–5.000 di tasse universitarie più €18.000 di mancato stipendio. Il costo reale stimato supera i €20.000 per ogni anno aggiuntivo rispetto alla durata legale del corso."
+              "text": "Un anno fuori corso costa in media 3.000–5.000 euro di tasse universitarie aggiuntive, più circa 18.000 euro di mancato stipendio. Il costo reale supera i 20.000 euro per ogni anno oltre la durata legale del corso."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "I miei appunti e dispense sono al sicuro con Mnesti?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sì. Mnesti usa TLS 1.3 per la trasmissione, bcrypt per le password, Row Level Security sul database e chiavi API cifrate. Il materiale caricato è usato esclusivamente per generare il tuo piano di studio e non viene condiviso, venduto o usato per addestrare modelli AI."
             }
           }
         ]
@@ -1292,9 +1364,9 @@
       <small>© <time datetime="2026">2026</time> Mnesti. Tutti i diritti riservati.</small>
     </address>
     <nav class="footer-links" aria-label="Link di servizio">
+      <a href="faq.html">FAQ</a>
       <a href="privacy.html">Privacy</a>
       <a href="privacy.html#cookie">Cookie</a>
-      <a href="privacy.html">Termini</a>
     </nav>
   </div>
 </footer>
