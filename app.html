@@ -459,6 +459,44 @@
   .acct-plan-option-price { font-size: 16px; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; margin: 2px 0; }
   .acct-plan-option-price span { font-size: 11px; font-weight: 500; color: var(--text-3); }
   .acct-plan-option-desc { font-size: 11px; color: var(--text-3); }
+  .acct-plan-option-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .acct-pay-btn {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    padding: 7px 13px; border-radius: 100px;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    border: 1px solid var(--border2, #333);
+    background: transparent; color: var(--text-2, #ccc);
+    transition: border-color .15s, background .15s, transform .1s;
+    white-space: nowrap;
+  }
+  .acct-pay-btn:hover { border-color: var(--accent); background: rgba(217,119,87,.07); }
+  .acct-pay-btn:active { transform: scale(.97); }
+  .acct-pay-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .acct-pay-btn.primary:hover { opacity: .88; }
+  .acct-pay-btn.loading { opacity: .5; pointer-events: none; }
+  .acct-plan-secure {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 10px; color: var(--text-4, #555);
+    margin-top: 8px;
+  }
+  .acct-plan-manage {
+    margin-top: 10px; padding: 12px;
+    background: rgba(76,175,80,.06); border: 1px solid rgba(76,175,80,.2);
+    border-radius: 8px;
+  }
+  .acct-plan-manage-title {
+    font-size: 11px; font-weight: 700; color: #4caf50;
+    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px;
+  }
+  .acct-plan-manage-info { font-size: 11px; color: var(--text-3); margin-bottom: 10px; }
+  .acct-cancel-btn {
+    font-size: 10px; color: var(--text-4, #555); background: none;
+    border: none; cursor: pointer; text-decoration: underline;
+    padding: 0; transition: color .15s;
+  }
+  .acct-cancel-btn:hover { color: #f44336; }
   .acct-plan-coming {
     margin-top: 10px; font-size: 11px; color: var(--text-3);
     text-align: center; padding: 8px;
@@ -10390,9 +10428,9 @@ async function _loadAccountPane() {
   // ── Piano attivato ─────────────────────────────────────────
   try {
     const planMeta = {
-      free:    { badge: 'FREE',  name: 'Piano gratuito',      desc: '150 chiamate/giorno · 1 esame · 5 MB', color: 'var(--text-3)' },
-      exam:    { badge: 'ESAME', name: 'Piano per esame',     desc: '500 chiamate/giorno · 1 esame · 20 MB', color: '#27ae60' },
-      monthly: { badge: 'PRO',   name: 'Abbonamento mensile', desc: '500 chiamate/giorno · esami illimitati · 20 MB', color: 'var(--accent)' },
+      free:    { badge: 'FREE',  name: 'Piano gratuito',      desc: '150 chiamate/giorno · 1 esame · 5 MB',               color: 'var(--text-3)' },
+      exam:    { badge: 'ESAME', name: 'Piano per esame',     desc: '500 chiamate/giorno · 2 esami · 50 MB · 90 giorni',  color: '#27ae60' },
+      monthly: { badge: 'PRO',   name: 'Abbonamento mensile', desc: '1000 chiamate/giorno · esami illimitati · 200 MB',   color: 'var(--accent)' },
     };
     const meta = planMeta[planType] || planMeta.free;
 
@@ -10407,7 +10445,25 @@ async function _loadAccountPane() {
     }
 
     const upgradeEl = document.getElementById('acctPlanUpgrade');
-    if (upgradeEl) upgradeEl.style.display = (planType === 'free') ? 'block' : 'none';
+    const manageEl  = document.getElementById('acctPlanManage');
+
+    if (planType === 'free') {
+      if (upgradeEl) upgradeEl.style.display = 'block';
+      if (manageEl)  manageEl.style.display  = 'none';
+    } else {
+      if (upgradeEl) upgradeEl.style.display = 'none';
+      if (manageEl)  manageEl.style.display  = 'block';
+      const manageInfo = document.getElementById('acctPlanManageInfo');
+      if (manageInfo) {
+        const expTxt = planData?.valid_until
+          ? `Attivo fino al <strong>${new Date(planData.valid_until).toLocaleDateString('it-IT')}</strong>`
+          : 'Abbonamento attivo';
+        manageInfo.innerHTML = expTxt;
+      }
+      // Nascondi il pulsante di cancellazione per il piano esame (one-time)
+      const cancelBtn = document.querySelector('.acct-cancel-btn');
+      if (cancelBtn) cancelBtn.style.display = planType === 'monthly' ? '' : 'none';
+    }
 
     if (planLoad) planLoad.style.display = 'none';
     if (planCont) planCont.style.display = 'block';
@@ -10415,6 +10471,69 @@ async function _loadAccountPane() {
     if (planLoad) planLoad.textContent = 'Dati non disponibili';
   }
 }
+
+// ── Stripe Checkout ───────────────────────────────────────────
+async function startCheckout(planType) {
+  const btnId = planType === 'exam' ? 'acctOptionExam' : 'acctOptionMonthly';
+  const btn   = document.querySelector(`#${btnId} .acct-pay-btn`);
+  if (btn) { btn.classList.add('loading'); btn.textContent = 'Apertura checkout…'; }
+
+  try {
+    const token = window._getSBToken ? await window._getSBToken() : null;
+    if (!token) throw new Error('Sessione scaduta — effettua di nuovo il login.');
+
+    const res = await fetch(`${window._SB_URL}/functions/v1/create-checkout`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ plan_type: planType }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Errore ${res.status}`);
+    if (!data.url) throw new Error('URL checkout non ricevuto');
+
+    // Redirect alla pagina Stripe
+    window.location.href = data.url;
+
+  } catch (err) {
+    if (btn) { btn.classList.remove('loading'); lucide.createIcons({ nodes: [btn] }); }
+    alert('Errore nell\'apertura del checkout:\n' + (err.message || err));
+  }
+}
+
+async function cancelSubscription() {
+  if (!confirm('Sei sicuro di voler annullare l\'abbonamento?\nIl piano resterà attivo fino alla scadenza del periodo corrente.')) return;
+  alert('Per annullare il tuo abbonamento scrivi a contact@wordpresschef.it — ti risponderemo entro 24 ore.');
+}
+
+// ── Gestione redirect post-checkout ──────────────────────────
+(function _handleCheckoutReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const checkout = params.get('checkout');
+  const plan     = params.get('plan');
+  if (!checkout) return;
+
+  // Pulisci l'URL senza ricaricare la pagina
+  const cleanUrl = window.location.pathname;
+  window.history.replaceState({}, '', cleanUrl);
+
+  if (checkout === 'success') {
+    // Piccolo ritardo per dare tempo al webhook di aggiornare il DB
+    setTimeout(() => {
+      const msg = plan === 'monthly'
+        ? '🎉 Abbonamento attivato! Le nuove funzionalità sono ora disponibili.'
+        : '🎉 Piano per esame attivato! Hai 500 chiamate AI/giorno e 90 giorni di accesso.';
+      alert(msg);
+      // Ricarica il tab account per mostrare il nuovo piano
+      _loadAccountPane();
+      openSettings('account');
+    }, 2000);
+  } else if (checkout === 'cancelled') {
+    console.log('[checkout] pagamento annullato dall\'utente');
+  }
+})();
 
 async function _acctChangePassword() {
   const pw1   = document.getElementById('acctNewPw')?.value || '';
@@ -11589,18 +11708,45 @@ updateSourcesBtn();
             <div class="acct-plan-upgrade" id="acctPlanUpgrade">
               <div class="acct-plan-upgrade-title">Passa a un piano superiore</div>
               <div class="acct-plan-options">
-                <div class="acct-plan-option">
-                  <div class="acct-plan-option-name">Per esame</div>
-                  <div class="acct-plan-option-price">€30 <span>una tantum</span></div>
-                  <div class="acct-plan-option-desc">500 chiamate/giorno · accesso illimitato per un esame</div>
+                <div class="acct-plan-option" id="acctOptionExam">
+                  <div class="acct-plan-option-header">
+                    <div>
+                      <div class="acct-plan-option-name">Per esame</div>
+                      <div class="acct-plan-option-price">€9,99 <span>una tantum</span></div>
+                      <div class="acct-plan-option-desc">500 chiamate/giorno · 1 esame aggiuntivo · 50 MB · 90 giorni</div>
+                    </div>
+                    <button class="acct-pay-btn" onclick="startCheckout('exam')">
+                      <i data-lucide="credit-card" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
+                      Acquista
+                    </button>
+                  </div>
                 </div>
-                <div class="acct-plan-option">
-                  <div class="acct-plan-option-name">Mensile</div>
-                  <div class="acct-plan-option-price">€15 <span>/ mese</span></div>
-                  <div class="acct-plan-option-desc">500 chiamate/giorno · esami illimitati · priorità AI</div>
+                <div class="acct-plan-option" id="acctOptionMonthly">
+                  <div class="acct-plan-option-header">
+                    <div>
+                      <div class="acct-plan-option-name">Mensile</div>
+                      <div class="acct-plan-option-price">€9,99 <span>/ mese</span></div>
+                      <div class="acct-plan-option-desc">1000 chiamate/giorno · esami illimitati · 200 MB storage</div>
+                    </div>
+                    <button class="acct-pay-btn primary" onclick="startCheckout('monthly')">
+                      <i data-lucide="zap" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
+                      Abbonati
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div class="acct-plan-coming">Pagamenti in arrivo — <strong>disponibili presto</strong></div>
+              <div class="acct-plan-secure">
+                <i data-lucide="lock" style="width:10px;height:10px;stroke-width:2;flex-shrink:0"></i>
+                Pagamento sicuro via Stripe · Nessun addebito prima del checkout
+              </div>
+            </div>
+            <!-- Sezione gestione abbonamento (visibile solo per utenti paid) -->
+            <div class="acct-plan-manage" id="acctPlanManage" style="display:none">
+              <div class="acct-plan-manage-title">Il tuo abbonamento</div>
+              <div class="acct-plan-manage-info" id="acctPlanManageInfo"></div>
+              <button class="acct-cancel-btn" onclick="cancelSubscription()">
+                Annulla abbonamento
+              </button>
             </div>
           </div>
         </div>
