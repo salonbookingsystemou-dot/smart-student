@@ -9563,6 +9563,23 @@ function _setMicPauseIcon(isPlaying) {
 // ── Quiz ────────────────────────────────────────────────────
 let _quiz = null;
 
+/** Ripara JSON quiz da risposte Claude con virgolette tipografiche o testo extra. */
+function _repairAndParseQuiz(raw) {
+  try { return JSON.parse(raw); } catch { /* fall through */ }
+
+  let fixed = raw
+    .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')
+    .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
+  try { return JSON.parse(fixed); } catch { /* fall through */ }
+
+  const match = fixed.match(/\[[\s\S]*\]/);
+  if (match) {
+    try { return JSON.parse(match[0]); } catch { /* fall through */ }
+  }
+
+  throw new Error('JSON non valido: ' + raw.slice(0, 120) + '…');
+}
+
 async function startQuiz(dayId, topic) {
 
   _quiz = null;
@@ -9670,6 +9687,9 @@ TRACCIABILITÀ FONTE (obbligatoria): per ogni domanda includi il campo "sourceRe
 
 Rispondi ESCLUSIVAMENTE con un array JSON valido (nessun altro testo prima o dopo) nel formato:
 [{"q":"testo domanda","opts":["opzione A","opzione B","opzione C","opzione D"],"ans":0,"exp":"spiegazione della risposta corretta (1-2 frasi, spiega perché è giusta e perché le altre sono errate)","diff":"base|intermedio|avanzato","bloom":"ricordo|comprensione|applicazione","sourceRef":"NomeFonte — Sezione: «estratto dal testo»"}]
+
+REGOLA JSON CRITICA: i valori stringa NON devono contenere virgolette doppie non escapate. Se devi citare qualcosa, usa virgolette singole o il carattere \". USA SOLO virgolette ASCII standard ", mai virgolette tipografiche (" " ' ').
+
 Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
 
   try {
@@ -9685,7 +9705,7 @@ Dove "ans" è l'indice 0-3 dell'opzione corretta. Usa solo italiano.`;
     });
     let raw = data.content[0].text.trim();
     raw = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-    const questions = JSON.parse(raw);
+    const questions = _repairAndParseQuiz(raw);
     if (!Array.isArray(questions) || questions.length === 0) throw new Error('Risposta non valida');
 
     _quiz = {
