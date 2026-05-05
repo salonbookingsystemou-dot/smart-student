@@ -546,30 +546,12 @@
       background: linear-gradient(to bottom, var(--accent), transparent);
     }
     .hero-fine-print {
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       color: var(--grey2);
-      margin-bottom: 12px;
-    }
-    .hero-fine-print strong { color: var(--grey); }
-    .pricing-teaser {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .pt-chip {
       display: flex;
       align-items: center;
-      gap: 7px;
-      font-size: 0.8rem;
-      color: #bbb;
+      margin-top: 14px;
     }
-    .pt-chip .dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .dot-green { background: #4caf50; }
-    .dot-amber { background: var(--accent); }
 
     /* ─── SECTION SHARED ─── */
     section { padding: 100px 0; }
@@ -1198,11 +1180,7 @@
           Sapienza, Bocconi, UNINETTUNO e altri…
         </p>
       </div>
-      <p class="hero-fine-print fade-in fade-in-delay-3">Nessuna carta di credito per il primo esame · <strong>Piani a pagamento opzionali</strong> per più esami</p>
-      <div class="pricing-teaser fade-in fade-in-delay-4">
-        <div class="pt-chip"><span class="dot dot-green"></span>Primo esame — sempre gratis</div>
-        <div class="pt-chip"><span class="dot dot-amber"></span>Più esami → piani mensili via Stripe</div>
-      </div>
+      <p class="hero-fine-print fade-in fade-in-delay-4"><span class="dot dot-green" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4caf50;margin-right:6px;vertical-align:middle;"></span>1° esame gratis — nessuna carta richiesta</p>
 
     </div>
   </div>
