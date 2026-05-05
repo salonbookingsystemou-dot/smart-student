@@ -8553,6 +8553,8 @@ function _mcSetPhotoEl(wrapId, photoUrl, authorName) {
     const img = document.createElement('img');
     img.src = photoUrl;
     img.alt = authorName;
+    img.draggable = false;
+    img.setAttribute('draggable', 'false');
     img.onerror = () => { wrap.innerHTML = _mcAvatarHTML(authorName); };
     wrap.appendChild(img);
   } else {
@@ -8588,6 +8590,8 @@ function _mcBindGestures() {
 
   const TH = 68;
   const ROT = 0.05;
+  /** Piccoli spostamenti (touch / trackpad) ancora considerati “tap” per girare la card */
+  const TAP_SLOP = 32;
   const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let sx = 0, sy = 0, active = false, pid = 0, committed = false;
   const flagL = document.getElementById('mcSwipeFlagL');
@@ -8681,7 +8685,7 @@ function _mcBindGestures() {
     const horiz = Math.abs(dx) > Math.abs(dy) * 1.05;
 
     if (prefersReduce) {
-      if (Math.abs(dx) < 14 && Math.abs(dy) < 14) _mcFlip();
+      if (Math.hypot(dx, dy) < TAP_SLOP) _mcFlip();
       else if (horiz && Math.abs(dx) >= TH) {
         const goRight = dx > 0;
         if (_mcMode === 'study') {
@@ -8697,7 +8701,7 @@ function _mcBindGestures() {
     }
 
     if (!horiz || Math.abs(dx) < 14) {
-      if (Math.abs(dx) < 14 && Math.abs(dy) < 14) _mcFlip();
+      if (Math.hypot(dx, dy) < TAP_SLOP) _mcFlip();
       else bounceBack();
       return;
     }
