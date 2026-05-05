@@ -1,5 +1,5 @@
 // Mnesti Service Worker — offline shell cache
-const CACHE = 'mnesti-v11';
+const CACHE = 'mnesti-v14';
 const SHELL = [
   '/',
   '/index.html',
@@ -49,16 +49,30 @@ self.addEventListener('fetch', e => {
     return; // pass through, no caching
   }
 
-  // Network-first for navigation (always get latest app shell)
+  // Network-first for navigation — bypass HTTP disk cache so deploys show up immediately
   if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request)
+      fetch(e.request, { cache: 'no-store' })
         .then(res => {
           const clone = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
           return res;
         })
         .catch(() => caches.match('/app.html'))
+    );
+    return;
+  }
+
+  // app.html: network-first; no-store avoids stale shell from browser/CDN HTTP cache
+  if (/app\.html$/i.test(url.pathname)) {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-store' })
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request).then(m => m || caches.match('/app.html')))
     );
     return;
   }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script>if(location.protocol!=='https:'&&location.hostname!=='localhost')location.replace('https://'+location.host+location.pathname+location.search+location.hash);</script>
+<script>(function(){if(location.protocol==='https:')return;if(location.protocol==='file:')return;var h=location.hostname;if(h==='localhost'||h==='127.0.0.1'||h==='[::1]')return;location.replace('https://'+location.host+location.pathname+location.search+location.hash);})();</script>
 <title>Mnesti — Piano di Studio</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="googlebot" content="noindex, nofollow">
@@ -2299,7 +2299,7 @@
   }
   .quiz-abandon-btn:hover { color: var(--skip-text); }
 
-  /* Loading — icona logo Mnesti (mask su logo-mark.png) */
+  /* Loading — pallino che segue il profilo (SVG + animateMotion) */
   .quiz-loading { text-align: center; padding: 44px 0; }
   .quiz-spinner {
     box-sizing: border-box;
@@ -2309,17 +2309,26 @@
     margin: 0 auto 12px;
     border: none !important;
     border-radius: 0;
-    background-color: var(--accent);
-    -webkit-mask-image: url(logo-mark.png);
-    -webkit-mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center;
-    mask-image: url(logo-mark.png);
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
-    animation: mnesti-loader-breathe 1.15s ease-in-out infinite;
-    will-change: transform, opacity;
+    position: relative;
+    color: var(--accent);
+    background: none !important;
+    overflow: visible;
+  }
+  .quiz-spinner > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  /* Pallino e contorno leggibili anche a 10–13px (senza stroke/r scalati col viewBox) */
+  .quiz-spinner > svg path {
+    vector-effect: non-scaling-stroke;
+    stroke-width: 1.15px;
+    opacity: 0.42;
+  }
+  .quiz-spinner > svg circle {
+    vector-effect: non-scaling-stroke;
+    r: 2.25px;
   }
   .quiz-spinner--inline {
     display: inline-block !important;
@@ -2332,12 +2341,9 @@
   .sources-extracting .quiz-spinner {
     margin: 0 !important;
   }
-  @keyframes mnesti-loader-breathe {
-    0%, 100% { opacity: 0.38; transform: scale(0.88); }
-    50%       { opacity: 1;    transform: scale(1); }
-  }
   @media (prefers-reduced-motion: reduce) {
-    .quiz-spinner { animation: none; opacity: 0.85; transform: none; }
+    .quiz-spinner > svg circle { display: none; }
+    .quiz-spinner > svg path { opacity: 0.55; }
   }
   .quiz-loading-label {
     font-size: 11px; color: var(--text-3);
@@ -3023,6 +3029,13 @@
     pointer-events: none; opacity: 0.3;
   }
   body.focus-mode .setup-btn { pointer-events: none; opacity: 0.3; }
+  /* Esci deve restare sempre usabile (logout non è “navigazione distratta”) */
+  body.focus-mode #logoutBtn {
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    position: relative;
+    z-index: 5;
+  }
   body.focus-mode .mobile-day-nav {
     pointer-events: none; opacity: 0.2;
   }
@@ -3059,6 +3072,8 @@
     padding: 24px 22px 28px; position: relative;
     animation: mc-in 0.32s cubic-bezier(0.22,1,0.36,1);
   }
+  /* In vista carte: niente clip sul box così si vede lo stack sotto + ombre */
+  .mc-box.mc-box--cards { overflow: visible; }
   @keyframes mc-in {
     from { opacity: 0; transform: scale(0.94) translateY(20px); }
     to   { opacity: 1; transform: scale(1)    translateY(0); }
@@ -3126,32 +3141,300 @@
   }
   .mc-mode-hint {
     font-size: 11px; color: var(--text-3); font-family: 'Inter', sans-serif;
-    text-align: center; margin-bottom: 16px; min-height: 16px;
+    text-align: center; margin-bottom: 12px; min-height: 28px; line-height: 1.35;
+  }
+  /* ── Deck Tinder-like (carta davanti più stretta → si intravede la prossima) ── */
+  .mc-deck {
+    position: relative;
+    margin-bottom: 18px;
+    min-height: 300px;
+    touch-action: manipulation;
+  }
+  .mc-stack-next {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 18px;
+    min-height: 272px;
+    border-radius: 18px;
+    background: var(--surface3);
+    border: 1px solid var(--accent-border);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    transform: scale(0.86) translateY(8px);
+    opacity: 0.78;
+    z-index: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    box-sizing: border-box;
+  }
+  .mc-stack-preview {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    text-align: center; max-width: 100%;
+  }
+  .mc-stack-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-3);
+    font-family: 'Inter', sans-serif;
+  }
+  .mc-stack-name {
+    font-size: 15px; font-weight: 700; color: var(--text-2);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.2;
+  }
+  .mc-stack-theory {
+    font-size: 12px; font-weight: 600; color: var(--text-2);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.35;
+  }
+  .mc-stack-end {
+    font-size: 12px; color: var(--text-3); font-family: 'Inter', sans-serif;
+  }
+  .mc-scene-outer {
+    position: relative;
+    z-index: 1;
+    width: 82%;
+    max-width: 360px;
+    margin: 0 auto;
+    perspective: 900px;
+    filter: drop-shadow(0 14px 28px rgba(0,0,0,0.45));
+  }
+  .mc-swipe-flags {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .mc-swipe-flag {
+    position: absolute;
+    top: 26px;
+    padding: 7px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+    border-radius: 8px;
+    border: 2.5px solid;
+    opacity: 0;
+    transition: opacity 0.06s ease;
+  }
+  .mc-swipe-flag--left {
+    left: 12px;
+    color: #e74c3c;
+    border-color: rgba(231,76,60,0.85);
+    transform: rotate(-14deg);
+  }
+  .mc-swipe-flag--right {
+    right: 12px;
+    color: #27ae60;
+    border-color: rgba(39,174,96,0.85);
+    transform: rotate(14deg);
+  }
+  .mc-swipe-layer {
+    position: relative;
+    z-index: 2;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
   }
   /* ── Flip card scene ── */
   .mc-scene {
-    perspective: 900px; cursor: pointer;
-    margin-bottom: 14px;
+    cursor: grab;
+    transform-style: preserve-3d;
   }
+  .mc-scene:active { cursor: grabbing; }
   .mc-card {
+    --mc-pan: 0px;
+    --mc-tilt: 0deg;
     position: relative;
     width: 100%; min-height: 280px;
     transform-style: preserve-3d;
     transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
     border-radius: 16px;
+    transform: translateX(var(--mc-pan)) rotate(var(--mc-tilt)) rotateY(0deg);
   }
-  .mc-card.flipped { transform: rotateY(180deg); }
+  .mc-card.flipped {
+    transform: translateX(var(--mc-pan)) rotate(var(--mc-tilt)) rotateY(180deg);
+  }
   .mc-face {
     position: absolute; inset: 0;
     backface-visibility: hidden; -webkit-backface-visibility: hidden;
-    border-radius: 16px; overflow: hidden;
+    border-radius: 20px; overflow: hidden;
     border: 1.5px solid var(--border);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     padding: 24px 20px; gap: 10px;
     background: var(--surface);
   }
-  .mc-back { transform: rotateY(180deg); justify-content: flex-start; }
+  /* Studio autori — layout “scheda” (foto in alto, nome su fascia, swipe visibile) */
+  .mc-front.mc-front--study-layout {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    border: 2px solid rgba(217,119,87,0.35);
+    background: linear-gradient(165deg, #2c2622 0%, #1f1b18 42%, #161311 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .mc-study-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 268px;
+  }
+  .mc-front-top {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 22px 16px 12px;
+    position: relative;
+  }
+  .mc-front-top::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0; height: 55%;
+    background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .mc-front.mc-front--study-layout .mc-photo-wrap {
+    width: 118px;
+    height: 118px;
+    border-radius: 50%;
+    border: 3px solid rgba(217,119,87,0.45);
+    box-shadow: 0 10px 36px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+  }
+  .mc-front.mc-front--study-layout .mc-photo-avatar {
+    font-size: 34px;
+  }
+  .mc-front-year-chip {
+    margin-top: 10px;
+    position: relative;
+    z-index: 1;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    background: rgba(217,119,87,0.12);
+    border: 1px solid rgba(217,119,87,0.35);
+  }
+  .mc-front-lower {
+    position: relative;
+    z-index: 2;
+    padding: 14px 16px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(to top, rgba(10,8,7,0.95), rgba(18,15,13,0.88));
+  }
+  .mc-front.mc-front--study-layout .mc-author-name {
+    font-size: 17px;
+    font-weight: 800;
+    color: #faf7f2;
+    text-align: center;
+    line-height: 1.25;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.85);
+    margin: 0;
+  }
+  .mc-front.mc-front--study-layout > .mc-front-hint {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 8px 14px 12px;
+    font-size: 10px;
+    color: rgba(231,224,216,0.5);
+    text-align: center;
+    line-height: 1.35;
+    background: #100e0c;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .mc-front:not(.mc-front--study-layout) > .mc-front-hint {
+    width: 100%;
+    text-align: center;
+    margin-top: 6px;
+  }
+  .mc-swipe-ends {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding: 0 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+    color: rgba(231,224,216,0.42);
+  }
+  .mc-swipe-ends span { pointer-events: none; }
+  .mc-back {
+    transform: rotateY(180deg);
+    justify-content: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Retro Studio (teoria) — stesso linguaggio visivo della nuova faccia autore */
+  .mc-back.mc-back--theory-panel {
+    padding: 0;
+    align-items: stretch;
+    background: linear-gradient(168deg, #2c2622 0%, #1f1b18 48%, #141210 100%);
+    border: 2px solid rgba(217,119,87,0.32);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .mc-back.mc-back--theory-panel .mc-back-theory {
+    padding: 20px 18px 18px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .mc-back.mc-back--theory-panel .mc-theory-label {
+    text-align: left;
+    margin-bottom: 8px;
+  }
+  .mc-back.mc-back--theory-panel .mc-theory-text {
+    font-size: 17px;
+    font-weight: 800;
+    text-align: left;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    color: #f5f0ea;
+  }
+  .mc-back.mc-back--theory-panel .mc-year-badge {
+    margin-bottom: 14px;
+  }
+  .mc-back.mc-back--theory-panel .mc-theory-detail {
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba(231,224,216,0.88);
+  }
+  .mc-back.mc-back--theory-panel .mc-key-idea {
+    border-top-color: rgba(255,255,255,0.1);
+    color: rgba(231,224,216,0.72);
+    font-size: 12px;
+  }
+  .mc-back.mc-back--theory-panel .mc-source-ref {
+    margin-top: auto;
+    align-self: stretch;
+    text-align: center;
+  }
+  [data-theme="light"] .mc-back.mc-back--theory-panel {
+    background: linear-gradient(168deg, var(--surface2) 0%, var(--surface) 55%, #ebe8e4 100%);
+    border-color: var(--accent-border);
+  }
+  [data-theme="light"] .mc-back.mc-back--theory-panel .mc-theory-text {
+    color: var(--text-1);
+  }
+  [data-theme="light"] .mc-back.mc-back--theory-panel .mc-theory-detail {
+    color: var(--text-2);
+  }
   /* Front: photo + name */
   .mc-photo-wrap {
     width: 88px; height: 88px; border-radius: 50%;
@@ -3191,6 +3474,13 @@
     font-size: 14px; font-weight: 600;
     color: var(--text-1); font-family: 'Inter', sans-serif;
     line-height: 1.4; text-align: center; margin-bottom: 10px;
+  }
+  .mc-theory-detail {
+    font-size: 12px; font-weight: 400;
+    color: var(--text-2); font-family: 'Inter', sans-serif;
+    line-height: 1.55; text-align: left;
+    margin-top: 4px; margin-bottom: 4px;
+    width: 100%;
   }
   .mc-year-badge {
     display: inline-flex; align-items: center;
@@ -3273,12 +3563,20 @@
   }
   .mc-dot.active { background: var(--accent); transform: scale(1.3); }
   /* Mobile tweaks */
+  @media (prefers-reduced-motion: reduce) {
+    .mc-stack-next { opacity: 0.35; transform: scale(0.96) translateY(8px); }
+  }
   @media (max-width: 540px) {
     .mc-box { border-radius: 20px 20px 0 0; padding: 18px 14px 32px; }
     .mc-overlay { align-items: flex-end; padding: 0; }
     .mc-card { min-height: 250px; }
-    .mc-author-name { font-size: 16px; }
-    .mc-photo-wrap { width: 72px; height: 72px; }
+    .mc-deck { min-height: 268px; }
+    .mc-stack-next { min-height: 242px; top: 14px; transform: scale(0.84) translateY(6px); }
+    .mc-scene-outer { width: 90%; max-width: none; }
+    .mc-front:not(.mc-front--study-layout) .mc-author-name { font-size: 16px; }
+    .mc-front:not(.mc-front--study-layout) .mc-photo-wrap { width: 72px; height: 72px; }
+    .mc-front.mc-front--study-layout .mc-photo-wrap { width: 104px; height: 104px; }
+    .mc-front.mc-front--study-layout .mc-author-name { font-size: 15px; }
   }
   /* ── Brain Dump modal ──────────────────────────────────────── */
   .bd-overlay {
@@ -4663,6 +4961,57 @@
 </style>
 </head>
 <body>
+<template id="mnestiLoaderSvgTpl">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+  <path d="M32 6 C48 8 58 20 54 34 C50 44 42 50 36 48 C34 46 33 40 32 36 C31 40 30 46 28 48 C22 50 14 44 10 34 C6 20 16 8 32 6 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="0" cy="0" r="8" fill="currentColor">
+    <animateMotion dur="2.7s" repeatCount="indefinite" rotate="auto" calcMode="linear" path="M32 6 C48 8 58 20 54 34 C50 44 42 50 36 48 C34 46 33 40 32 36 C31 40 30 46 28 48 C22 50 14 44 10 34 C6 20 16 8 32 6 Z"/>
+  </circle>
+</svg>
+</template>
+<script>
+(function(){
+  function fillSpinner(el) {
+    if (!el || el.getAttribute('data-mnesti-loaded')) return;
+    var tpl = document.getElementById('mnestiLoaderSvgTpl');
+    if (!tpl) return;
+    el.setAttribute('data-mnesti-loaded', '1');
+    var frag = tpl.content.cloneNode(true);
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      var am = frag.querySelector('animateMotion');
+      if (am) am.remove();
+    }
+    el.textContent = '';
+    el.appendChild(frag);
+  }
+  function scan(root) {
+    if (!root || root.nodeType !== 1) return;
+    if (root.classList && root.classList.contains('quiz-spinner') && !root.getAttribute('data-mnesti-loaded'))
+      fillSpinner(root);
+    var list = root.querySelectorAll && root.querySelectorAll('.quiz-spinner:not([data-mnesti-loaded])');
+    if (list) list.forEach(fillSpinner);
+  }
+  function onReady() {
+    if (!document.body) return;
+    scan(document.body);
+    new MutationObserver(function(records) {
+      for (var i = 0; i < records.length; i++) {
+        var nodes = records[i].addedNodes;
+        for (var j = 0; j < nodes.length; j++) {
+          var n = nodes[j];
+          if (n.nodeType === 1) scan(n);
+        }
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', onReady);
+  else onReady();
+  window.addEventListener('load', function() {
+    if (document.body) scan(document.body);
+  });
+})();
+</script>
 
 <!-- Login Screen -->
 <div id="splashScreen">
@@ -4765,11 +5114,11 @@
     <span id="sourcesCount" style="display:none"></span>
     <div id="syncChip" style="display:none"><span class="sync-status-dot" id="syncStatusDot"></span><span id="syncChipLabel"></span></div>
     <span id="apiLabel" style="display:none"></span>
-    <button class="setup-btn" id="setupBtn" onclick="openSetupDrawer('fonti')" title="Impostazioni">
+    <button type="button" class="setup-btn" id="setupBtn" onclick="openSetupDrawer('fonti')" title="Impostazioni">
       <i data-lucide="settings-2" style="width:13px;height:13px;stroke-width:2.2"></i>
       <span class="setup-btn-label">Setup</span>
     </button>
-    <button class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;display:flex;align-items:center;gap:5px;">
+    <button type="button" class="sources-btn" id="logoutBtn" onclick="doLogout()" title="Esci dall'account" style="padding:5px 10px;font-size:12px;display:flex;align-items:center;gap:5px;">
       <i data-lucide="log-out" style="width:12px;height:12px;stroke-width:2.2"></i><span class="logout-label">Esci</span>
     </button>
   </div>
@@ -5276,6 +5625,7 @@ const _ACCENT_PRESETS = [
 
   /* ── Post-auth bootstrap ── */
   let _bootstrapped = false;
+  let _logoutInProgress = false;
   async function _bootstrap(session, isNewLogin) {
     if (_bootstrapped) return;
     _bootstrapped = true;
@@ -5377,10 +5727,17 @@ const _ACCENT_PRESETS = [
 
   /* ── Logout ── */
   window.doLogout = async function() {
+    _logoutInProgress = true;
     window._currentUserId = null;
-    if (_sb) await _sb.auth.signOut();
-    localStorage.removeItem('psico_state');
-    localStorage.removeItem('anthropic_api_key');
+    try {
+      if (_sb) await _sb.auth.signOut();
+    } catch (e) {
+      console.warn('[Logout] signOut:', e);
+    }
+    try {
+      localStorage.removeItem('psico_state');
+      localStorage.removeItem('anthropic_api_key');
+    } catch (_) {}
     location.reload();
   };
 
@@ -5415,7 +5772,7 @@ const _ACCENT_PRESETS = [
     // Listen for auth state changes (token refresh, logout, email confirmation)
     _sb.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
-        location.reload();
+        if (!_logoutInProgress) location.reload();
       } else if (event === 'SIGNED_IN' && session && !_bootstrapped) {
         _loadFromSupabase(session.user.id).then(loaded => {
           if (loaded && typeof window._reinitApp === 'function') window._reinitApp();
@@ -7801,7 +8158,7 @@ let _mcKnown    = 0;
 let _mcAnswered = 0;
 let _mcDayId    = null;    // current day context
 
-function _mcCacheKey(dayId) { return `psico_mc_${dayId}`; }
+function _mcCacheKey(dayId) { return `psico_mc_v3_${dayId}`; }
 
 // ── Public entry-point ─────────────────────────────────────
 async function startMemoryCards(dayId) {
@@ -7849,6 +8206,8 @@ async function startMemoryCards(dayId) {
 function _closeMc() {
   document.getElementById('mcOverlay').classList.remove('open');
   document.getElementById('mcCard').classList.remove('flipped');
+  const swipe = document.getElementById('mcSwipeLayer');
+  if (swipe) delete swipe.dataset.mcSwipeBound;
 }
 
 // ── LocalStorage helpers ───────────────────────────────────
@@ -7919,7 +8278,8 @@ Per ciascun autore fornisci:
 - "author": nome completo (es. "Alan Baddeley")
 - "theory": nome della teoria, modello o contributo principale pertinente agli argomenti di oggi
 - "year": anno di pubblicazione/formulazione (usa la tua conoscenza se non esplicito; formato "AAAA" o "AAAA–AAAA")
-- "keyIdea": frase concisa (max 90 caratteri) che cattura l'essenza del contributo
+- "theoryDetail": da 2 a 4 frasi (minimo ~220 caratteri, massimo ~520 caratteri) in italiano: contesto scientifico, assunti o struttura del modello, cosa spiega o predice, perché è rilevante per l'argomento della giornata. Scrivi in modo chiaro per uno studente universitario, senza elenchi puntati.
+- "keyIdea": una sola frase breve (max 100 caratteri) che riassume in sintesi il messaggio da ricordare a memoria
 
 Regole:
 - Solo autori rilevanti per gli argomenti della giornata — NON tutti gli autori del corso
@@ -7932,7 +8292,7 @@ ${combined}`;
 
   const result = await _callClaude({
     model: 'claude-opus-4-5',
-    max_tokens: 1600,
+    max_tokens: 4200,
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.1,
   });
@@ -7952,6 +8312,7 @@ ${combined}`;
       author:  String(c.author).trim(),
       theory:  String(c.theory).trim(),
       year:    String(c.year   || '—').trim(),
+      theoryDetail: String(c.theoryDetail || '').trim(),
       keyIdea: String(c.keyIdea || '').trim(),
       photoUrl: null,
     }));
@@ -7999,9 +8360,15 @@ function _mcShowView(v) {
   const loading = document.getElementById('mcLoadingView');
   const empty   = document.getElementById('mcEmptyView');
   const cards   = document.getElementById('mcCardsView');
+  const box     = document.querySelector('#mcOverlay .mc-box');
   loading.style.display = v === 'loading' ? ''      : 'none';
   empty.style.display   = v === 'empty'   ? ''      : 'none';
   cards.style.display   = v === 'cards'   ? ''      : 'none';
+  if (box) box.classList.toggle('mc-box--cards', v === 'cards');
+  if (v === 'cards') {
+    const swipe = document.getElementById('mcSwipeLayer');
+    if (swipe) delete swipe.dataset.mcSwipeBound;
+  }
 }
 
 function _mcRender() {
@@ -8019,6 +8386,60 @@ function _mcRender() {
   _mcUpdateCardDOM(_mcCards[_mcIdx]);
   _mcUpdateNav();
   if (typeof lucide !== 'undefined') lucide.createIcons();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => { _mcBindGestures(); });
+  });
+}
+
+function _mcRenderStackNext() {
+  const el = document.getElementById('mcStackNext');
+  if (!el) return;
+  const next = _mcCards[_mcIdx + 1];
+  if (!next) {
+    el.innerHTML = '<span class="mc-stack-end">Hai finito il mazzo</span>';
+    return;
+  }
+  if (_mcMode === 'study') {
+    el.innerHTML = `<div class="mc-stack-preview"><span class="mc-stack-label">Prossima</span><span class="mc-stack-name">${escHtml(next.author)}</span></div>`;
+  } else {
+    const t = escHtml((next.theory || '').slice(0, 96));
+    const ell = (next.theory || '').length > 96 ? '…' : '';
+    el.innerHTML = `<div class="mc-stack-preview"><span class="mc-stack-label">Prossima</span><span class="mc-stack-theory">${t}${ell}</span></div>`;
+  }
+}
+
+function _mcResetSwipeVisuals() {
+  const card = document.getElementById('mcCard');
+  if (card) {
+    card.classList.remove('mc-fly-right', 'mc-fly-left');
+    card.style.removeProperty('transform');
+    card.style.removeProperty('transition');
+    card.style.setProperty('--mc-pan', '0px');
+    card.style.setProperty('--mc-tilt', '0deg');
+  }
+  ['mcSwipeFlagL', 'mcSwipeFlagR'].forEach(id => {
+    const n = document.getElementById(id);
+    if (n) n.style.opacity = '';
+  });
+}
+
+function _mcUpdateSwipeFlagTexts() {
+  const L = document.getElementById('mcSwipeFlagL');
+  const R = document.getElementById('mcSwipeFlagR');
+  if (!L || !R) return;
+  if (_mcMode === 'challenge' && _mcFlipped) {
+    L.textContent = 'NON SAPEVO';
+    R.textContent = 'LO SAPEVO';
+  } else if (_mcMode === 'challenge') {
+    L.textContent = 'SCOPRI';
+    R.textContent = 'SCOPRI';
+  } else if (_mcFlipped) {
+    L.textContent = 'INDIETRO';
+    R.textContent = 'AVANTI';
+  } else {
+    L.textContent = 'TEORIA';
+    R.textContent = 'AVANTI';
+  }
 }
 
 function _mcUpdateCardDOM(card) {
@@ -8028,16 +8449,37 @@ function _mcUpdateCardDOM(card) {
   const counter = document.getElementById('mcCounter');
   if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
 
+  _mcResetSwipeVisuals();
+
   // Reset flip state
   document.getElementById('mcCard').classList.remove('flipped');
   _mcFlipped = false;
+  _mcUpdateSwipeFlagTexts();
 
   if (_mcMode === 'study') {
-    // FRONT: author photo + name
+    const frontEl = document.getElementById('mcFront');
+    const studyShell = document.getElementById('mcStudyShell');
+    if (frontEl) frontEl.classList.add('mc-front--study-layout');
+    if (studyShell) studyShell.style.display = '';
+
+    // FRONT: author photo + name (layout “scheda”)
     _mcSetPhotoEl('mcPhotoWrap', card.photoUrl, card.author);
     const nameEl = document.getElementById('mcAuthorName');
     if (nameEl) nameEl.textContent = card.author;
-    document.getElementById('mcFrontHint').textContent = 'Tocca per vedere la teoria →';
+    const hintEl = document.getElementById('mcFrontHint');
+    if (hintEl) hintEl.textContent = 'Tocca o scorri · ← teoria · → prossima';
+
+    const yChip = document.getElementById('mcFrontYearChip');
+    if (yChip) {
+      const y = (card.year || '').trim();
+      if (y && y !== '—') {
+        yChip.textContent = y;
+        yChip.style.display = 'inline-flex';
+      } else {
+        yChip.textContent = '';
+        yChip.style.display = 'none';
+      }
+    }
 
     const theoryBlock = document.getElementById('mcTheoryBlock');
     if (theoryBlock) theoryBlock.style.display = 'none';
@@ -8052,6 +8494,11 @@ function _mcUpdateCardDOM(card) {
     document.getElementById('mcBackTheory').style.display    = '';
 
   } else {
+    const frontEl = document.getElementById('mcFront');
+    const studyShell = document.getElementById('mcStudyShell');
+    if (frontEl) frontEl.classList.remove('mc-front--study-layout');
+    if (studyShell) studyShell.style.display = 'none';
+
     // FRONT: theory (anonymous)
     document.getElementById('mcPhotoWrap').style.display   = 'none';
     document.getElementById('mcAuthorName').style.display  = 'none';
@@ -8073,8 +8520,29 @@ function _mcUpdateCardDOM(card) {
   // Shared back fields (always populated)
   document.getElementById('mcTheoryBack').textContent = card.theory;
   document.getElementById('mcYearBack').textContent   = card.year;
-  document.getElementById('mcKeyIdea').textContent    = card.keyIdea || '';
+  const detailEl = document.getElementById('mcTheoryDetail');
+  const det = (card.theoryDetail || '').trim();
+  if (detailEl) {
+    if (det) {
+      detailEl.textContent = det;
+      detailEl.style.display = '';
+    } else {
+      detailEl.textContent = '';
+      detailEl.style.display = 'none';
+    }
+  }
+  const kEl = document.getElementById('mcKeyIdea');
+  const ki = (card.keyIdea || '').trim();
+  if (kEl) {
+    kEl.textContent = ki || '';
+    kEl.style.display = ki ? '' : 'none';
+  }
   document.getElementById('mcSourceRef').textContent  = '';
+
+  const backEl = document.getElementById('mcBack');
+  if (backEl) backEl.classList.toggle('mc-back--theory-panel', _mcMode === 'study');
+
+  _mcRenderStackNext();
 }
 
 function _mcSetPhotoEl(wrapId, photoUrl, authorName) {
@@ -8112,11 +8580,167 @@ function _mcUpdateNav() {
   ).join('');
 }
 
+function _mcBindGestures() {
+  const layer = document.getElementById('mcSwipeLayer');
+  const card = document.getElementById('mcCard');
+  if (!layer || !card || layer.dataset.mcSwipeBound === '1') return;
+  layer.dataset.mcSwipeBound = '1';
+
+  const TH = 68;
+  const ROT = 0.05;
+  const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sx = 0, sy = 0, active = false, pid = 0, committed = false;
+  const flagL = document.getElementById('mcSwipeFlagL');
+  const flagR = document.getElementById('mcSwipeFlagR');
+
+  function setFlags(dx) {
+    const t = Math.min(Math.abs(dx) / TH, 1);
+    if (flagL) flagL.style.opacity = dx < 0 ? String(t * 0.95) : '0';
+    if (flagR) flagR.style.opacity = dx > 0 ? String(t * 0.95) : '0';
+  }
+
+  function applyDx(dx) {
+    if (prefersReduce) return;
+    card.style.transition = 'none';
+    card.style.removeProperty('transform');
+    card.style.setProperty('--mc-pan', dx + 'px');
+    card.style.setProperty('--mc-tilt', (dx * ROT) + 'deg');
+    setFlags(dx);
+  }
+
+  function bounceBack() {
+    if (prefersReduce) { setFlags(0); return; }
+    card.style.transition = 'transform 0.24s cubic-bezier(0.22,1,0.36,1)';
+    card.style.removeProperty('transform');
+    card.style.setProperty('--mc-pan', '0px');
+    card.style.setProperty('--mc-tilt', '0deg');
+    setFlags(0);
+  }
+
+  function commitFly(dir, onDone) {
+    const c = document.getElementById('mcCard');
+    if (!c) { onDone(); return; }
+    if (prefersReduce) {
+      onDone();
+      return;
+    }
+    const flipped = c.classList.contains('flipped');
+    const y = flipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+    c.style.removeProperty('transform');
+    c.style.transition = 'transform 0.32s cubic-bezier(0.22,1,0.36,1)';
+    const x = dir === 'right' ? '120%' : '-120%';
+    const rot = dir === 'right' ? '18deg' : '-18deg';
+    c.style.transform = `translateX(${x}) rotate(${rot}) ${y}`;
+    setTimeout(() => {
+      c.style.removeProperty('transform');
+      c.style.removeProperty('transition');
+      c.style.setProperty('--mc-pan', '0px');
+      c.style.setProperty('--mc-tilt', '0deg');
+      setFlags(0);
+      onDone();
+    }, 340);
+  }
+
+  function runStudySwipe(goRight) {
+    if (goRight) {
+      if (_mcIdx >= _mcCards.length - 1) { bounceBack(); return; }
+      committed = true;
+      commitFly('right', () => { _mcNext(); });
+    } else {
+      bounceBack();
+      requestAnimationFrame(() => _mcFlip());
+    }
+  }
+
+  layer.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    active = true;
+    committed = false;
+    sx = e.clientX;
+    sy = e.clientY;
+    pid = e.pointerId;
+    try { layer.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  layer.addEventListener('pointermove', e => {
+    if (!active || committed) return;
+    const dx = e.clientX - sx;
+    const dy = e.clientY - sy;
+    if (Math.abs(dx) < Math.abs(dy) * 1.12 && Math.abs(dy) > 16) return;
+    applyDx(dx);
+  });
+
+  layer.addEventListener('pointerup', e => {
+    if (!active) return;
+    active = false;
+    try { layer.releasePointerCapture(pid); } catch (_) {}
+    if (committed) return;
+
+    const dx = e.clientX - sx;
+    const dy = e.clientY - sy;
+    const horiz = Math.abs(dx) > Math.abs(dy) * 1.05;
+
+    if (prefersReduce) {
+      if (Math.abs(dx) < 14 && Math.abs(dy) < 14) _mcFlip();
+      else if (horiz && Math.abs(dx) >= TH) {
+        const goRight = dx > 0;
+        if (_mcMode === 'study') {
+          if (goRight) {
+            if (_mcIdx < _mcCards.length - 1) _mcNext();
+          } else _mcFlip();
+        } else if (!_mcFlipped) {
+          _mcFlip();
+        } else if (goRight) _mcMark(true, true);
+        else _mcMark(false, true);
+      } else bounceBack();
+      return;
+    }
+
+    if (!horiz || Math.abs(dx) < 14) {
+      if (Math.abs(dx) < 14 && Math.abs(dy) < 14) _mcFlip();
+      else bounceBack();
+      return;
+    }
+
+    if (Math.abs(dx) < TH) {
+      bounceBack();
+      return;
+    }
+
+    const goRight = dx > 0;
+
+    if (_mcMode === 'study') {
+      runStudySwipe(goRight);
+      return;
+    }
+
+    if (!_mcFlipped) {
+      bounceBack();
+      requestAnimationFrame(() => _mcFlip());
+      return;
+    }
+
+    if (goRight) {
+      committed = true;
+      commitFly('right', () => { _mcMark(true, true); });
+    } else {
+      committed = true;
+      commitFly('left', () => { _mcMark(false, true); });
+    }
+  });
+
+  layer.addEventListener('pointercancel', () => {
+    active = false;
+    bounceBack();
+  });
+}
+
 // ── User interactions ──────────────────────────────────────
 function _mcFlip() {
   const card = document.getElementById('mcCard');
   _mcFlipped = !_mcFlipped;
   card.classList.toggle('flipped', _mcFlipped);
+  _mcUpdateSwipeFlagTexts();
 }
 
 function _mcNext() {
@@ -8155,9 +8779,19 @@ function _mcSetMode(mode, silent) {
   if (challengeBtn) challengeBtn.classList.toggle('active', mode === 'challenge');
 
   if (hint) {
-    hint.textContent = mode === 'study'
-      ? 'Tocca la card per vedere la teoria'
-      : 'Indovina l\'autore — poi tocca per scoprirlo';
+    if (mode === 'study') {
+      hint.innerHTML =
+        'Tocca per girare la card · <strong>→</strong> prossima · <strong>←</strong> teoria · sul retro: <strong>→</strong> avanti · <strong>←</strong> torna al nome' +
+        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? ' · Puoi usare anche i pulsanti <strong>←</strong> <strong>→</strong> sotto.'
+          : ' · Puoi anche <strong>scorrere</strong> la card a destra/sinistra.');
+    } else {
+      hint.innerHTML =
+        'Tocca per scoprire l\'autore · sul retro: <strong>→</strong> lo sapevo · <strong>←</strong> non ricordavo' +
+        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? ' · Usa i pulsanti sotto o le frecce.'
+          : ' · Anche swipe o pulsanti sotto.');
+    }
   }
   if (strip) strip.style.display = mode === 'challenge' ? 'flex' : 'none';
 
@@ -8174,13 +8808,21 @@ function _mcSetMode(mode, silent) {
   }
 }
 
-function _mcMark(known) {
+function _mcMark(known, immediateNext) {
   if (!_mcFlipped) return; // must have flipped first
   if (known) _mcKnown++;
   _mcAnswered++;
   _mcUpdateChallengeScore();
-  // Auto-advance
-  setTimeout(() => _mcNext(), 320);
+  const go = () => {
+    if (_mcIdx < _mcCards.length - 1) {
+      _mcIdx++;
+      _mcUpdateCardDOM(_mcCards[_mcIdx]);
+      _mcUpdateNav();
+    }
+    _mcFlipped = false;
+  };
+  if (immediateNext) go();
+  else setTimeout(go, 320);
 }
 
 function _mcUpdateChallengeScore() {
@@ -8691,7 +9333,7 @@ function _showDayCompleteModal(dayId) {
   if (sessionStorage.getItem(_sKey)) return;
   sessionStorage.setItem(_sKey, '1');
 
-  const day = _getPlanDay(dayId);
+  const day = getActiveDays().find(d => d.id === dayId);
   if (!day) return;
 
   const ds        = state[dayId] || {};
@@ -11938,20 +12580,37 @@ updateSourcesBtn();
         <div class="mc-counter" id="mcCounter">1 / —</div>
       </div>
 
-      <!-- Mode hint -->
-      <div class="mc-mode-hint" id="mcModeHint">Tocca la card per vedere la teoria</div>
+      <!-- Mode hint (testo aggiornato da _mcSetMode) -->
+      <div class="mc-mode-hint" id="mcModeHint"></div>
 
-      <!-- Flip card -->
-      <div class="mc-scene" onclick="_mcFlip()">
+      <div class="mc-deck" id="mcDeck">
+        <div class="mc-stack-next" id="mcStackNext" aria-hidden="true"></div>
+        <div class="mc-scene-outer">
+          <div class="mc-swipe-flags" aria-hidden="true">
+            <div class="mc-swipe-flag mc-swipe-flag--left" id="mcSwipeFlagL">—</div>
+            <div class="mc-swipe-flag mc-swipe-flag--right" id="mcSwipeFlagR">—</div>
+          </div>
+          <div class="mc-swipe-layer" id="mcSwipeLayer">
+            <div class="mc-scene" id="mcScene">
         <div class="mc-card" id="mcCard">
 
           <!-- FRONT (Studio: autore → teoria | Sfida: teoria → autore) -->
           <div class="mc-face mc-front" id="mcFront">
-            <div class="mc-photo-wrap" id="mcPhotoWrap">
-              <!-- img or svg avatar injected by JS -->
+            <div id="mcStudyShell" class="mc-study-shell">
+              <div class="mc-front-top">
+                <div class="mc-photo-wrap" id="mcPhotoWrap">
+                  <!-- img or svg avatar injected by JS -->
+                </div>
+                <span class="mc-front-year-chip" id="mcFrontYearChip" style="display:none" aria-hidden="true"></span>
+              </div>
+              <div class="mc-front-lower">
+                <div class="mc-author-name" id="mcAuthorName">—</div>
+                <div class="mc-swipe-ends" aria-hidden="true">
+                  <span>← Teoria</span>
+                  <span>Prossima →</span>
+                </div>
+              </div>
             </div>
-            <div class="mc-author-name" id="mcAuthorName">—</div>
-            <div class="mc-front-hint" id="mcFrontHint">Tocca per vedere la teoria →</div>
 
             <!-- Challenge mode: shows theory, hides author (swapped in JS) -->
             <div class="mc-theory-block" id="mcTheoryBlock" style="display:none">
@@ -11959,6 +12618,8 @@ updateSourcesBtn();
               <div class="mc-theory-text" id="mcTheoryFront">—</div>
               <div class="mc-year-badge" id="mcYearFront">—</div>
             </div>
+
+            <div class="mc-front-hint" id="mcFrontHint">Tocca o scorri · ← teoria · → prossima</div>
           </div>
 
           <!-- BACK -->
@@ -11972,11 +12633,15 @@ updateSourcesBtn();
               <div class="mc-theory-label">Teoria / Contributo</div>
               <div class="mc-theory-text" id="mcTheoryBack">—</div>
               <div class="mc-year-badge" id="mcYearBack">—</div>
+              <div class="mc-theory-detail" id="mcTheoryDetail" style="display:none"></div>
               <div class="mc-key-idea" id="mcKeyIdea">—</div>
             </div>
             <div class="mc-source-ref" id="mcSourceRef">—</div>
           </div>
 
+        </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -12121,7 +12786,7 @@ updateSourcesBtn();
 // Register service worker for PWA / offline support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js').then(function(reg) {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg) {
       console.info('[SW] registered, scope:', reg.scope);
 
       // When a new SW is found, tell it to skip waiting immediately

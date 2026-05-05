@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Force HTTPS — runs before anything else renders -->
-  <script>if(location.protocol!=='https:')location.replace('https://'+location.host+location.pathname+location.search+location.hash);</script>
+  <!-- Force HTTPS (skip file://, localhost, loopback — evita redirect rotti e link che non navigano) -->
+  <script>(function(){if(location.protocol==='https:')return;if(location.protocol==='file:')return;var h=location.hostname;if(h==='localhost'||h==='127.0.0.1'||h==='[::1]')return;location.replace('https://'+location.host+location.pathname+location.search+location.hash);})();</script>
 
   <!-- ── Primary Meta ───────────────────────────────────────────── -->
   <title>Mnesti — Piano di studio AI per universitari italiani | Active Recall e Quiz</title>
@@ -406,6 +406,7 @@
       width: 100%;
       height: 100%;
       z-index: 0;
+      pointer-events: none;
     }
     .hero-content {
       position: relative;
@@ -1486,7 +1487,7 @@ document.querySelectorAll('[data-target]').forEach(el => counterObserver.observe
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js').then(function(reg) {
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function(reg) {
       reg.addEventListener('updatefound', function() {
         var newSW = reg.installing;
         newSW.addEventListener('statechange', function() {
@@ -1688,11 +1689,11 @@ if ('serviceWorker' in navigator) {
 }
 
 /* ── Cookie Modal ─────────────────────────────────────────────── */
+/* display solo via inline JS (evita conflitto con style="display:none" su alcuni browser) */
 #cookie-modal {
   position: fixed;
   inset: 0;
   z-index: 9100;
-  display: flex;
   align-items: flex-end;
   justify-content: center;
 }
