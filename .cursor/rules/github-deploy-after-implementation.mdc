@@ -1,0 +1,22 @@
+---
+description: Dopo implementazioni, eseguire commit e push su GitHub (deploy Pages)
+alwaysApply: true
+---
+
+# Deploy su GitHub dopo le implementazioni
+
+Quando completi un’implementazione che modifica file versionati in questo repo (codice, `app.html`, `sw.js`, asset del sito, ecc.):
+
+1. **Verifica lo stato** con `git status` e includi nel commit solo i file pertinenti al task (niente file sensibili o rumore non richiesto).
+2. **Esegui il deploy** nello stesso turno, salvo che l’utente abbia chiesto esplicitamente di non pushare:
+   - `git add` sui path modificati per il task
+   - `git commit -m "..."` con messaggio chiaro in italiano o inglese coerente con il progetto
+   - `git push origin main` (o il branch di default attivo se diverso: controlla con `git branch --show-current`).
+
+3. **Permessi**: per `git push` richiedi `git_write` e `network` nell’esecuzione del comando.
+
+4. **Se il push fallisce** (401, autenticazione, permesso negato): spiega in una frase che le credenziali GitHub sul Mac non sono configurate o sono scadute, e che serve un push manuale o `gh auth login` / PAT nel portachiavi — **non** reinserire token o password nella chat o nel remote URL.
+
+5. **Eccezioni**: non fare commit/push se l’utente chiede solo analisi, lettura, o dice esplicitamente di non voler pubblicare ancora.
+
+Obiettivo: il sito su **GitHub Pages** resti allineato al codice locale senza lasciare modifiche solo sulla macchina dell’utente.

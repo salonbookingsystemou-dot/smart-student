@@ -3073,7 +3073,46 @@
     animation: mc-in 0.32s cubic-bezier(0.22,1,0.36,1);
   }
   /* In vista carte: niente clip sul box così si vede lo stack sotto + ombre */
-  .mc-box.mc-box--cards { overflow: visible; }
+  .mc-box.mc-box--cards {
+    overflow: visible;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    max-height: min(96dvh, 920px);
+    min-height: 0;
+  }
+  #mcCardsView {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 6px;
+  }
+  /* Pulsante flip dedicato (mobile): non dipende da pointer vs scroll browser */
+  .mc-mobile-flip-wrap {
+    display: none;
+    flex-shrink: 0;
+    margin: 2px 0 8px;
+  }
+  @media (max-width: 540px) {
+    .mc-mobile-flip-wrap { display: block; }
+  }
+  .mc-mobile-flip-btn {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--accent-border);
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .mc-mobile-flip-btn:active { opacity: 0.88; transform: scale(0.99); }
   @keyframes mc-in {
     from { opacity: 0; transform: scale(0.94) translateY(20px); }
     to   { opacity: 1; transform: scale(1)    translateY(0); }
@@ -3141,14 +3180,18 @@
   }
   .mc-mode-hint {
     font-size: 11px; color: var(--text-3); font-family: 'Inter', sans-serif;
-    text-align: center; margin-bottom: 12px; min-height: 28px; line-height: 1.35;
+    text-align: center; margin-bottom: 6px; min-height: 0; line-height: 1.4;
+    padding: 0 4px;
   }
   /* ── Deck Tinder-like (carta davanti più stretta → si intravede la prossima) ── */
   .mc-deck {
     position: relative;
-    margin-bottom: 18px;
+    flex: 1 1 auto;
     min-height: 300px;
-    touch-action: manipulation;
+    margin-bottom: 12px;
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
   }
   .mc-stack-next {
     position: absolute;
@@ -3200,6 +3243,10 @@
     margin: 0 auto;
     perspective: 900px;
     filter: drop-shadow(0 14px 28px rgba(0,0,0,0.45));
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   .mc-swipe-flags {
     pointer-events: none;
@@ -3238,21 +3285,45 @@
   .mc-swipe-layer {
     position: relative;
     z-index: 2;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
+  }
+  /* Studio: niente pan sul browser (tap/swipe). Sfida sul fronte: teoria lunga → scroll verticale */
+  .mc-face.mc-front {
+    touch-action: pan-y;
+  }
+  .mc-front.mc-front--study-layout {
+    touch-action: none;
+  }
+  /* touch-action non si eredita: la foto restava `auto` e su iOS il tap non girava la card */
+  .mc-front.mc-front--study-layout * {
+    touch-action: none;
+  }
+  .mc-face.mc-back {
+    touch-action: pan-y;
+    overscroll-behavior: contain;
   }
   /* ── Flip card scene ── */
   .mc-scene {
     cursor: grab;
     transform-style: preserve-3d;
+    touch-action: none;
+    flex: 1 1 auto;
+    min-height: 280px;
   }
   .mc-scene:active { cursor: grabbing; }
   .mc-card {
     --mc-pan: 0px;
     --mc-tilt: 0deg;
     position: relative;
-    width: 100%; min-height: 280px;
+    width: 100%;
+    min-height: 280px;
+    touch-action: none;
     transform-style: preserve-3d;
     transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
     border-radius: 16px;
@@ -3284,16 +3355,18 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 268px;
+    min-height: 0;
+    justify-content: space-between;
   }
   .mc-front-top {
-    flex: 1;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 22px 16px 12px;
+    padding: 14px 16px 10px;
     position: relative;
+    min-height: 0;
   }
   .mc-front-top::after {
     content: '';
@@ -3333,7 +3406,8 @@
   .mc-front-lower {
     position: relative;
     z-index: 2;
-    padding: 14px 16px 16px;
+    flex-shrink: 0;
+    padding: 12px 16px 14px;
     border-top: 1px solid rgba(255,255,255,0.06);
     background: linear-gradient(to top, rgba(10,8,7,0.95), rgba(18,15,13,0.88));
   }
@@ -3349,11 +3423,11 @@
   .mc-front.mc-front--study-layout > .mc-front-hint {
     flex-shrink: 0;
     margin: 0;
-    padding: 8px 14px 12px;
-    font-size: 10px;
-    color: rgba(231,224,216,0.5);
+    padding: 10px 14px 12px;
+    font-size: 11px;
+    color: rgba(231,224,216,0.58);
     text-align: center;
-    line-height: 1.35;
+    line-height: 1.4;
     background: #100e0c;
     border-top: 1px solid rgba(255,255,255,0.05);
   }
@@ -3366,14 +3440,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 12px;
-    padding: 0 2px;
-    font-size: 10px;
+    margin-top: 10px;
+    padding: 6px 4px 0;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     font-family: 'Inter', sans-serif;
-    color: rgba(231,224,216,0.42);
+    color: rgba(231,224,216,0.5);
   }
   .mc-swipe-ends span { pointer-events: none; }
   .mc-back {
@@ -3442,6 +3516,8 @@
     border: 2.5px solid var(--border);
     background: var(--surface2);
     display: flex; align-items: center; justify-content: center;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
   }
   .mc-photo-wrap img {
     width: 100%; height: 100%; object-fit: cover;
@@ -3567,16 +3643,21 @@
     .mc-stack-next { opacity: 0.35; transform: scale(0.96) translateY(8px); }
   }
   @media (max-width: 540px) {
-    .mc-box { border-radius: 20px 20px 0 0; padding: 18px 14px 32px; }
+    .mc-box { border-radius: 20px 20px 0 0; padding: 14px 12px 24px; }
     .mc-overlay { align-items: flex-end; padding: 0; }
-    .mc-card { min-height: 250px; }
-    .mc-deck { min-height: 268px; }
-    .mc-stack-next { min-height: 242px; top: 14px; transform: scale(0.84) translateY(6px); }
-    .mc-scene-outer { width: 90%; max-width: none; }
+    .mc-header { margin-bottom: 2px; row-gap: 4px; }
+    .mc-mode-hint { font-size: 12px; line-height: 1.45; margin-bottom: 2px; padding: 0 2px; }
+    .mc-card { min-height: min(46dvh, 340px); }
+    .mc-deck { min-height: min(50dvh, 380px); margin-bottom: 10px; }
+    .mc-stack-next { min-height: min(44dvh, 300px); top: 12px; transform: scale(0.84) translateY(6px); }
+    .mc-scene-outer { width: 92%; max-width: none; }
+    .mc-scene { min-height: min(44dvh, 320px); }
     .mc-front:not(.mc-front--study-layout) .mc-author-name { font-size: 16px; }
     .mc-front:not(.mc-front--study-layout) .mc-photo-wrap { width: 72px; height: 72px; }
-    .mc-front.mc-front--study-layout .mc-photo-wrap { width: 104px; height: 104px; }
-    .mc-front.mc-front--study-layout .mc-author-name { font-size: 15px; }
+    .mc-front.mc-front--study-layout .mc-photo-wrap { width: 118px; height: 118px; }
+    .mc-front.mc-front--study-layout .mc-author-name { font-size: 17px; }
+    .mc-counter { font-size: 10px; }
+    .mc-mode-btn { padding: 6px 10px; font-size: 10px; }
   }
   /* ── Brain Dump modal ──────────────────────────────────────── */
   .bd-overlay {
@@ -7581,8 +7662,8 @@ function _renderQsPanel(dayId) {
       </div>
       <div class="done-questions-area"><div class="done-qs-header">Domande completate</div>${_completedHtml()}</div>`;
     lucide.createIcons();
-    // Show full-screen celebration modal (only once per session)
-    if (!sessionStorage.getItem('dcm_' + dayId)) {
+    // Modale “Giornata completata!”: una sola volta per giornata (persiste tra visite / tab)
+    if (!localStorage.getItem('dcm_' + dayId)) {
       setTimeout(() => _showDayCompleteModal(dayId), 350);
     }
     return;
@@ -8543,6 +8624,7 @@ function _mcUpdateCardDOM(card) {
   if (backEl) backEl.classList.toggle('mc-back--theory-panel', _mcMode === 'study');
 
   _mcRenderStackNext();
+  _mcRefreshMobileFlipBar();
 }
 
 function _mcSetPhotoEl(wrapId, photoUrl, authorName) {
@@ -8590,10 +8672,12 @@ function _mcBindGestures() {
 
   const TH = 68;
   const ROT = 0.05;
-  /** Piccoli spostamenti (touch / trackpad) ancora considerati “tap” per girare la card */
-  const TAP_SLOP = 32;
+  /** Piccoli spostamenti ancora considerati “tap” (touch più tollerante) */
+  const TAP_SLOP_MOUSE = 36;
+  const TAP_SLOP_TOUCH = 52;
   const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let sx = 0, sy = 0, active = false, pid = 0, committed = false;
+  let lastPtrType = 'mouse';
   const flagL = document.getElementById('mcSwipeFlagL');
   const flagR = document.getElementById('mcSwipeFlagR');
 
@@ -8658,6 +8742,7 @@ function _mcBindGestures() {
 
   layer.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
+    lastPtrType = e.pointerType || 'mouse';
     active = true;
     committed = false;
     sx = e.clientX;
@@ -8683,9 +8768,10 @@ function _mcBindGestures() {
     const dx = e.clientX - sx;
     const dy = e.clientY - sy;
     const horiz = Math.abs(dx) > Math.abs(dy) * 1.05;
+    const tapSlop = lastPtrType === 'touch' ? TAP_SLOP_TOUCH : TAP_SLOP_MOUSE;
 
     if (prefersReduce) {
-      if (Math.hypot(dx, dy) < TAP_SLOP) _mcFlip();
+      if (Math.hypot(dx, dy) < tapSlop) _mcFlip();
       else if (horiz && Math.abs(dx) >= TH) {
         const goRight = dx > 0;
         if (_mcMode === 'study') {
@@ -8701,7 +8787,7 @@ function _mcBindGestures() {
     }
 
     if (!horiz || Math.abs(dx) < 14) {
-      if (Math.hypot(dx, dy) < TAP_SLOP) _mcFlip();
+      if (Math.hypot(dx, dy) < tapSlop) _mcFlip();
       else bounceBack();
       return;
     }
@@ -8745,6 +8831,26 @@ function _mcFlip() {
   _mcFlipped = !_mcFlipped;
   card.classList.toggle('flipped', _mcFlipped);
   _mcUpdateSwipeFlagTexts();
+  _mcRefreshMobileFlipBar();
+}
+
+/** Pulsante mobile (tap sicuro iOS) */
+function _mcMobileFlipTap(ev) {
+  if (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+  _mcFlip();
+}
+
+function _mcRefreshMobileFlipBar() {
+  const btn = document.getElementById('mcMobileFlipBtn');
+  if (!btn) return;
+  if (_mcMode === 'study') {
+    btn.textContent = _mcFlipped ? 'Torna all\'autore' : 'Mostra la teoria';
+  } else {
+    btn.textContent = _mcFlipped ? 'Torna alla teoria' : 'Mostra l\'autore';
+  }
 }
 
 function _mcNext() {
@@ -8783,18 +8889,28 @@ function _mcSetMode(mode, silent) {
   if (challengeBtn) challengeBtn.classList.toggle('active', mode === 'challenge');
 
   if (hint) {
+    const narrow = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 540px)').matches;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (mode === 'study') {
-      hint.innerHTML =
-        'Tocca per girare la card · <strong>→</strong> prossima · <strong>←</strong> teoria · sul retro: <strong>→</strong> avanti · <strong>←</strong> torna al nome' +
-        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? ' · Puoi usare anche i pulsanti <strong>←</strong> <strong>→</strong> sotto.'
-          : ' · Puoi anche <strong>scorrere</strong> la card a destra/sinistra.');
+      if (narrow) {
+        hint.innerHTML = reduce
+          ? '<strong>Tap</strong> sulla card o pulsante arancio per la teoria. Frecce: prossima / teoria.'
+          : '<strong>Tap</strong> sulla card o pulsante arancio · Scorri la card: <strong>→</strong> prossima, <strong>←</strong> teoria.';
+      } else {
+        hint.innerHTML =
+          '<strong>Tap sulla card</strong> per la teoria · Scorri <strong>→</strong> prossima, <strong>←</strong> teoria · Sul retro: <strong>→</strong> avanti, <strong>←</strong> nome' +
+          (reduce
+            ? ' · Oppure pulsanti <strong>←</strong> <strong>→</strong> sotto.'
+            : ' · Anche <strong>swipe</strong> sulla card.');
+      }
+    } else if (narrow) {
+      hint.innerHTML = reduce
+        ? 'Pulsante arancio o tap per l\'autore. Retro: valuta con i pulsanti o le frecce.'
+        : 'Tap o pulsante arancio per l\'autore · Sul retro: <strong>→</strong> lo sapevo, <strong>←</strong> non ricordavo.';
     } else {
       hint.innerHTML =
-        'Tocca per scoprire l\'autore · sul retro: <strong>→</strong> lo sapevo · <strong>←</strong> non ricordavo' +
-        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-          ? ' · Usa i pulsanti sotto o le frecce.'
-          : ' · Anche swipe o pulsanti sotto.');
+        'Tap sulla card per l\'autore · Sul retro: <strong>→</strong> lo sapevo · <strong>←</strong> non ricordavo' +
+        (reduce ? ' · Usa i pulsanti sotto o le frecce.' : ' · Swipe o pulsanti sotto.');
     }
   }
   if (strip) strip.style.display = mode === 'challenge' ? 'flex' : 'none';
@@ -8810,6 +8926,7 @@ function _mcSetMode(mode, silent) {
     _mcUpdateCardDOM(_mcCards[_mcIdx]);
     _mcUpdateNav();
   }
+  _mcRefreshMobileFlipBar();
 }
 
 function _mcMark(known, immediateNext) {
@@ -9332,10 +9449,8 @@ function _autoSetStatus(dayId) {
 
 // ── Day Complete Modal ────────────────────────────────────────
 function _showDayCompleteModal(dayId) {
-  // Show only once per browser session per day
   const _sKey = 'dcm_' + dayId;
-  if (sessionStorage.getItem(_sKey)) return;
-  sessionStorage.setItem(_sKey, '1');
+  if (localStorage.getItem(_sKey)) return;
 
   const day = getActiveDays().find(d => d.id === dayId);
   if (!day) return;
@@ -9409,7 +9524,9 @@ function _showDayCompleteModal(dayId) {
       <span class="dcm-action-desc">Memorizza teorie e date</span>
     </button>`;
 
-  // Show
+  // Segna come già visto solo se il modale viene effettivamente mostrato
+  try { localStorage.setItem(_sKey, '1'); } catch (_) {}
+
   overlay.style.display = 'flex';
 
   // Confetti
@@ -12586,6 +12703,10 @@ updateSourcesBtn();
 
       <!-- Mode hint (testo aggiornato da _mcSetMode) -->
       <div class="mc-mode-hint" id="mcModeHint"></div>
+
+      <div class="mc-mobile-flip-wrap" id="mcMobileFlipWrap">
+        <button type="button" class="mc-mobile-flip-btn" id="mcMobileFlipBtn" onclick="_mcMobileFlipTap(event)">Mostra la teoria</button>
+      </div>
 
       <div class="mc-deck" id="mcDeck">
         <div class="mc-stack-next" id="mcStackNext" aria-hidden="true"></div>
