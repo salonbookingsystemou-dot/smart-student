@@ -4262,6 +4262,37 @@
   }
   .welcome-exam-badge.show { display: flex; }
 
+  /* ── Exam outcome modal (after exam date passed) ───────────── */
+  .exam-outcome-box .welcome-footer { border-top: none; }
+  .exam-outcome-btns {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;
+  }
+  .exam-outcome-btn {
+    padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: var(--surface); color: var(--text-1);
+    transition: opacity 0.15s, transform 0.1s, border-color 0.15s;
+  }
+  .exam-outcome-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+  .exam-outcome-btn.fail { border-color: #c0392b44; color: #c0392b; }
+  .exam-outcome-btn.pass { background: var(--accent); color: #fff; border-color: transparent; }
+  .exam-outcome-grade-wrap { margin-top: 14px; }
+  .exam-outcome-grade-wrap label {
+    display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-3); margin-bottom: 6px;
+  }
+  .exam-outcome-grade-wrap input {
+    width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text-1);
+    font-family: inherit; font-size: 16px; margin-bottom: 10px;
+  }
+  .exam-outcome-confirm {
+    width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+    background: var(--accent); color: #fff;
+  }
+  .exam-outcome-confirm:hover { opacity: 0.9; }
+
   @media (max-width: 480px) {
     .welcome-hero-number { font-size: 64px; }
     .welcome-hero-label  { font-size: 16px; }
@@ -5206,6 +5237,28 @@
   </div>
 </div>
 
+<!-- Exam outcome (after calendar exam date has passed) -->
+<div class="welcome-overlay" id="examOutcomeOverlay" style="z-index:9100" aria-hidden="true">
+  <div class="welcome-box exam-outcome-box">
+    <div class="welcome-greeting">Esame svolto</div>
+    <div class="welcome-footer">
+      <div class="welcome-message" id="examOutcomeIntro" style="color:var(--text-2);font-size:13px">
+        Come è andato?
+      </div>
+      <div class="exam-outcome-btns">
+        <button type="button" class="exam-outcome-btn fail" onclick="_saveExamOutcome('failed')">Non superato</button>
+        <button type="button" class="exam-outcome-btn pass" onclick="_examOutcomeShowGrade()">Superato</button>
+      </div>
+      <div class="exam-outcome-grade-wrap" id="examOutcomeGradeWrap" style="display:none">
+        <label for="examOutcomeGrade">Voto (18–30)</label>
+        <input type="number" id="examOutcomeGrade" inputmode="numeric" min="18" max="30" step="1" placeholder="es. 24">
+        <button type="button" class="exam-outcome-confirm" onclick="_saveExamOutcome('passed')">Salva voto</button>
+      </div>
+      <div class="ob-error" id="examOutcomeErr" style="margin-top:10px;min-height:1.2em"></div>
+    </div>
+  </div>
+</div>
+
 <!-- API Key Modal (legacy stub — functionality moved to Setup drawer) -->
 <div id="apiModal" style="display:none"></div>
 
@@ -5595,6 +5648,10 @@ const _ACCENT_PRESETS = [
       setTimeout(() => {
         if (typeof showWelcomeModal === 'function') showWelcomeModal();
       }, 600);
+    } else {
+      setTimeout(() => {
+        if (typeof window._maybeShowExamOutcomeModal === 'function') window._maybeShowExamOutcomeModal();
+      }, 800);
     }
   }
 
@@ -7264,6 +7321,9 @@ function showWelcomeModal() {
 function closeWelcomeModal() {
   document.getElementById('welcomeOverlay')?.classList.remove('open');
   sessionStorage.setItem('ss_welcome_shown', '1');
+  setTimeout(() => {
+    if (typeof window._maybeShowExamOutcomeModal === 'function') window._maybeShowExamOutcomeModal();
+  }, 450);
 }
 
 // ── Claude API proxy helper ───────────────────────────────────
@@ -11558,14 +11618,127 @@ OBBLIGATORIO: includi "sourceRef" per ogni domanda con sezione/slide e estratto 
 function getExamInfo() {
   return JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
 }
+
+/** Local calendar date from YYYY-MM-DD (no UTC shift). */
+function _examInfoParseYMD(s) {
+  const p = (s || '').trim().split('-');
+  if (p.length !== 3) return null;
+  const y = parseInt(p[0], 10), m = parseInt(p[1], 10) - 1, d = parseInt(p[2], 10);
+  if (!y || m < 0 || m > 11 || d < 1 || d > 31) return null;
+  return new Date(y, m, d);
+}
+
+/** True when the exam day is strictly before today (local). */
+function _examDateHasPassed(examDateStr) {
+  const exam = _examInfoParseYMD(examDateStr);
+  if (!exam) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  exam.setHours(0, 0, 0, 0);
+  return exam < today;
+}
+
+window._examOutcomeShowGrade = function() {
+  const wrap = document.getElementById('examOutcomeGradeWrap');
+  const err = document.getElementById('examOutcomeErr');
+  if (err) err.textContent = '';
+  if (wrap) wrap.style.display = 'block';
+  document.getElementById('examOutcomeGrade')?.focus();
+};
+
+window._saveExamOutcome = function(outcome) {
+  const errEl = document.getElementById('examOutcomeErr');
+  if (errEl) errEl.textContent = '';
+
+  const info = getExamInfo();
+  if (!info.date) return;
+
+  let grade = null;
+  if (outcome === 'passed') {
+    const raw = (document.getElementById('examOutcomeGrade')?.value || '').trim();
+    const g = parseInt(raw, 10);
+    if (!Number.isFinite(g) || g < 18 || g > 30) {
+      if (errEl) errEl.textContent = 'Inserisci un voto valido tra 18 e 30.';
+      window._examOutcomeShowGrade();
+      return;
+    }
+    grade = g;
+  }
+
+  const readiness = typeof calculateGlobalReadiness === 'function' ? calculateGlobalReadiness() : null;
+
+  info.result = {
+    outcome,
+    grade,
+    examDate: info.date,
+    recordedAt: new Date().toISOString(),
+    readiness
+  };
+  _safeLSSet('psico_exam_info', JSON.stringify(info));
+
+  const overlay = document.getElementById('examOutcomeOverlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+  const wrap = document.getElementById('examOutcomeGradeWrap');
+  if (wrap) wrap.style.display = 'none';
+  const inp = document.getElementById('examOutcomeGrade');
+  if (inp) inp.value = '';
+
+  if (typeof window._syncToSupabase === 'function') window._syncToSupabase();
+};
+
+window._maybeShowExamOutcomeModal = function() {
+  const ob = document.getElementById('obOverlay');
+  if (ob?.classList.contains('active')) return;
+  if (document.getElementById('welcomeOverlay')?.classList.contains('open')) return;
+
+  const info = getExamInfo();
+  if (!info.date || info.skipped) return;
+  if (!_examDateHasPassed(info.date)) return;
+  if (info.result && info.result.examDate === info.date) return;
+
+  const overlay = document.getElementById('examOutcomeOverlay');
+  if (!overlay) return;
+
+  const intro = document.getElementById('examOutcomeIntro');
+  if (intro) {
+    const months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+    const ex = _examInfoParseYMD(info.date);
+    const dateHuman = ex
+      ? `${ex.getDate()} ${months[ex.getMonth()]} ${ex.getFullYear()}`
+      : info.date;
+    const subj = (info.subject || 'Esame').trim();
+    intro.textContent = `L'esame del ${dateHuman}${subj ? ' (' + subj + ')' : ''} è nel passato. Come è andato? Il voto e la tua preparazione (punteggi) verranno salvati nel profilo.`;
+  }
+
+  const err = document.getElementById('examOutcomeErr');
+  if (err) err.textContent = '';
+  const wrap = document.getElementById('examOutcomeGradeWrap');
+  if (wrap) wrap.style.display = 'none';
+  const inp = document.getElementById('examOutcomeGrade');
+  if (inp) inp.value = '';
+
+  overlay.setAttribute('aria-hidden', 'false');
+  overlay.classList.add('open');
+};
+
 function saveExamInfo() {
+  const prev = getExamInfo();
   const info = {
     subject:   (document.getElementById('examSubject')?.value   || '').trim(),
     professor: (document.getElementById('examProfessor')?.value || '').trim(),
     date:      (document.getElementById('examDate')?.value      || '').trim()
   };
+  if (prev.skipped) info.skipped = prev.skipped;
+  if (prev.result && prev.result.examDate === info.date) info.result = prev.result;
   _safeLSSet('psico_exam_info', JSON.stringify(info));
   updateGenPlanBtn();
+  if (typeof window._syncToSupabase === 'function') window._syncToSupabase();
+  setTimeout(() => {
+    if (typeof window._maybeShowExamOutcomeModal === 'function') window._maybeShowExamOutcomeModal();
+  }, 500);
 }
 function loadExamInfoUI() {
   const info = getExamInfo();
