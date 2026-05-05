@@ -3072,7 +3072,7 @@
     padding: 24px 22px 28px; position: relative;
     animation: mc-in 0.32s cubic-bezier(0.22,1,0.36,1);
   }
-  /* In vista carte: niente clip sul box così si vede lo stack sotto + ombre */
+  /* Vista carte: flex per carosello + nav */
   .mc-box.mc-box--cards {
     overflow: visible;
     overscroll-behavior: contain;
@@ -3088,31 +3088,6 @@
     min-height: 0;
     gap: 6px;
   }
-  /* Pulsante flip dedicato (mobile): non dipende da pointer vs scroll browser */
-  .mc-mobile-flip-wrap {
-    display: none;
-    flex-shrink: 0;
-    margin: 2px 0 8px;
-  }
-  @media (max-width: 540px) {
-    .mc-mobile-flip-wrap { display: block; }
-  }
-  .mc-mobile-flip-btn {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1.5px solid var(--accent-border);
-    background: var(--accent-bg);
-    color: var(--accent);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  .mc-mobile-flip-btn:active { opacity: 0.88; transform: scale(0.99); }
   @keyframes mc-in {
     from { opacity: 0; transform: scale(0.94) translateY(20px); }
     to   { opacity: 1; transform: scale(1)    translateY(0); }
@@ -3178,159 +3153,84 @@
     border-color: var(--accent); color: var(--accent);
     background: var(--accent-bg);
   }
-  .mc-mode-hint {
-    font-size: 11px; color: var(--text-3); font-family: 'Inter', sans-serif;
-    text-align: center; margin-bottom: 6px; min-height: 0; line-height: 1.4;
-    padding: 0 4px;
-  }
-  /* ── Deck Tinder-like (carta davanti più stretta → si intravede la prossima) ── */
+  /* ── Carosello orizzontale (nav) + tap sulla card (flip) ── */
   .mc-deck {
     position: relative;
     flex: 1 1 auto;
-    min-height: 300px;
-    margin-bottom: 12px;
-    touch-action: none;
+    min-height: 280px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .mc-carousel {
+    flex: 1 1 auto;
+    min-height: min(52dvh, 400px);
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .mc-carousel::-webkit-scrollbar { display: none; }
+  .mc-carousel-track {
+    display: flex;
+    height: 100%;
+    align-items: stretch;
+  }
+  .mc-carousel-slide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    max-width: 100%;
+    width: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    box-sizing: border-box;
+    padding: 0 6px;
     display: flex;
     flex-direction: column;
   }
-  .mc-stack-next {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 18px;
-    min-height: 272px;
-    border-radius: 18px;
-    background: var(--surface3);
-    border: 1px solid var(--accent-border);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-    transform: scale(0.86) translateY(8px);
-    opacity: 0.78;
-    z-index: 0;
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px 16px;
-    box-sizing: border-box;
-  }
-  .mc-stack-preview {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    text-align: center; max-width: 100%;
-  }
-  .mc-stack-label {
-    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--text-3);
-    font-family: 'Inter', sans-serif;
-  }
-  .mc-stack-name {
-    font-size: 15px; font-weight: 700; color: var(--text-2);
-    font-family: 'Inter', sans-serif;
-    line-height: 1.2;
-  }
-  .mc-stack-theory {
-    font-size: 12px; font-weight: 600; color: var(--text-2);
-    font-family: 'Inter', sans-serif;
-    line-height: 1.35;
-  }
-  .mc-stack-end {
-    font-size: 12px; color: var(--text-3); font-family: 'Inter', sans-serif;
-  }
-  .mc-scene-outer {
-    position: relative;
-    z-index: 1;
-    width: 82%;
-    max-width: 360px;
+  .mc-carousel-slide .mc-scene {
+    flex: 1 1 auto;
+    min-height: 260px;
+    width: 100%;
+    max-width: 400px;
     margin: 0 auto;
     perspective: 900px;
-    filter: drop-shadow(0 14px 28px rgba(0,0,0,0.45));
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
+    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.4));
+    cursor: default;
+    transform-style: preserve-3d;
+    touch-action: manipulation;
   }
-  .mc-swipe-flags {
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    border-radius: 16px;
-    overflow: hidden;
+  .mc-carousel-slide .mc-face.mc-front {
+    touch-action: manipulation;
   }
-  .mc-swipe-flag {
-    position: absolute;
-    top: 26px;
-    padding: 7px 12px;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-family: 'Inter', sans-serif;
-    border-radius: 8px;
-    border: 2.5px solid;
-    opacity: 0;
-    transition: opacity 0.06s ease;
+  .mc-carousel-slide .mc-front.mc-front--study-layout,
+  .mc-carousel-slide .mc-front.mc-front--study-layout * {
+    touch-action: manipulation;
   }
-  .mc-swipe-flag--left {
-    left: 12px;
-    color: #e74c3c;
-    border-color: rgba(231,76,60,0.85);
-    transform: rotate(-14deg);
-  }
-  .mc-swipe-flag--right {
-    right: 12px;
-    color: #27ae60;
-    border-color: rgba(39,174,96,0.85);
-    transform: rotate(14deg);
-  }
-  .mc-swipe-layer {
-    position: relative;
-    z-index: 2;
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  /* Studio: niente pan sul browser (tap/swipe). Sfida sul fronte: teoria lunga → scroll verticale */
-  .mc-face.mc-front {
-    touch-action: pan-y;
-  }
-  .mc-front.mc-front--study-layout {
-    touch-action: none;
-  }
-  /* touch-action non si eredita: la foto restava `auto` e su iOS il tap non girava la card */
-  .mc-front.mc-front--study-layout * {
-    touch-action: none;
-  }
-  .mc-face.mc-back {
+  .mc-carousel-slide .mc-face.mc-back {
     touch-action: pan-y;
     overscroll-behavior: contain;
   }
-  /* ── Flip card scene ── */
-  .mc-scene {
-    cursor: grab;
-    transform-style: preserve-3d;
-    touch-action: none;
-    flex: 1 1 auto;
-    min-height: 280px;
-  }
-  .mc-scene:active { cursor: grabbing; }
-  .mc-card {
-    --mc-pan: 0px;
-    --mc-tilt: 0deg;
+  .mc-carousel-slide .mc-card {
     position: relative;
     width: 100%;
-    min-height: 280px;
-    touch-action: none;
+    min-height: min(48dvh, 360px);
+    height: 100%;
     transform-style: preserve-3d;
-    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+    transition: transform 0.52s cubic-bezier(0.4,0,0.2,1);
     border-radius: 16px;
-    transform: translateX(var(--mc-pan)) rotate(var(--mc-tilt)) rotateY(0deg);
+    transform: rotateY(0deg);
+    -webkit-tap-highlight-color: transparent;
   }
-  .mc-card.flipped {
-    transform: translateX(var(--mc-pan)) rotate(var(--mc-tilt)) rotateY(180deg);
+  .mc-carousel-slide .mc-card.flipped {
+    transform: rotateY(180deg);
   }
   .mc-face {
     position: absolute; inset: 0;
@@ -3420,36 +3320,6 @@
     text-shadow: 0 2px 12px rgba(0,0,0,0.85);
     margin: 0;
   }
-  .mc-front.mc-front--study-layout > .mc-front-hint {
-    flex-shrink: 0;
-    margin: 0;
-    padding: 10px 14px 12px;
-    font-size: 11px;
-    color: rgba(231,224,216,0.58);
-    text-align: center;
-    line-height: 1.4;
-    background: #100e0c;
-    border-top: 1px solid rgba(255,255,255,0.05);
-  }
-  .mc-front:not(.mc-front--study-layout) > .mc-front-hint {
-    width: 100%;
-    text-align: center;
-    margin-top: 6px;
-  }
-  .mc-swipe-ends {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 10px;
-    padding: 6px 4px 0;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    font-family: 'Inter', sans-serif;
-    color: rgba(231,224,216,0.5);
-  }
-  .mc-swipe-ends span { pointer-events: none; }
   .mc-back {
     transform: rotateY(180deg);
     justify-content: flex-start;
@@ -3534,10 +3404,6 @@
     font-size: 18px; font-weight: 800;
     color: var(--text-1); font-family: 'Inter', sans-serif;
     text-align: center; line-height: 1.2;
-  }
-  .mc-front-hint {
-    font-size: 11px; color: var(--text-3); font-family: 'Inter', sans-serif;
-    margin-top: 4px;
   }
   /* Front challenge mode: theory block */
   .mc-theory-block { width: 100%; text-align: center; }
@@ -3639,19 +3505,12 @@
   }
   .mc-dot.active { background: var(--accent); transform: scale(1.3); }
   /* Mobile tweaks */
-  @media (prefers-reduced-motion: reduce) {
-    .mc-stack-next { opacity: 0.35; transform: scale(0.96) translateY(8px); }
-  }
   @media (max-width: 540px) {
     .mc-box { border-radius: 20px 20px 0 0; padding: 14px 12px 24px; }
     .mc-overlay { align-items: flex-end; padding: 0; }
     .mc-header { margin-bottom: 2px; row-gap: 4px; }
-    .mc-mode-hint { font-size: 12px; line-height: 1.45; margin-bottom: 2px; padding: 0 2px; }
-    .mc-card { min-height: min(46dvh, 340px); }
-    .mc-deck { min-height: min(50dvh, 380px); margin-bottom: 10px; }
-    .mc-stack-next { min-height: min(44dvh, 300px); top: 12px; transform: scale(0.84) translateY(6px); }
-    .mc-scene-outer { width: 92%; max-width: none; }
-    .mc-scene { min-height: min(44dvh, 320px); }
+    .mc-carousel { min-height: min(50dvh, 420px); }
+    .mc-carousel-slide .mc-card { min-height: min(46dvh, 380px); }
     .mc-front:not(.mc-front--study-layout) .mc-author-name { font-size: 16px; }
     .mc-front:not(.mc-front--study-layout) .mc-photo-wrap { width: 72px; height: 72px; }
     .mc-front.mc-front--study-layout .mc-photo-wrap { width: 118px; height: 118px; }
@@ -8286,9 +8145,13 @@ async function startMemoryCards(dayId) {
 
 function _closeMc() {
   document.getElementById('mcOverlay').classList.remove('open');
-  document.getElementById('mcCard').classList.remove('flipped');
-  const swipe = document.getElementById('mcSwipeLayer');
-  if (swipe) delete swipe.dataset.mcSwipeBound;
+  const track = document.getElementById('mcCarouselTrack');
+  if (track) {
+    track.querySelectorAll('.mc-card').forEach(c => c.classList.remove('flipped'));
+    track.innerHTML = '';
+  }
+  const car = document.getElementById('mcCarousel');
+  if (car) delete car.dataset.mcCarouselBound;
 }
 
 // ── LocalStorage helpers ───────────────────────────────────
@@ -8432,7 +8295,7 @@ async function _mcFetchAllPhotos(dayId) {
   _mcSaveCache(dayId || _mcDayId, _mcCards);
   // Re-render current card photo if visible
   if (document.getElementById('mcCardsView').style.display !== 'none') {
-    _mcUpdateCardDOM(_mcCards[_mcIdx]);
+    _mcUpdateCardDOM();
   }
 }
 
@@ -8447,110 +8310,109 @@ function _mcShowView(v) {
   cards.style.display   = v === 'cards'   ? ''      : 'none';
   if (box) box.classList.toggle('mc-box--cards', v === 'cards');
   if (v === 'cards') {
-    const swipe = document.getElementById('mcSwipeLayer');
-    if (swipe) delete swipe.dataset.mcSwipeBound;
+    const car = document.getElementById('mcCarousel');
+    if (car) delete car.dataset.mcCarouselBound;
   }
 }
 
-function _mcRender() {
-  if (!_mcCards.length) { _mcShowView('empty'); return; }
-  _mcShowView('cards');
-
-  // Show day context label
-  const dayLabelEl = document.getElementById('mcDayLabel');
-  if (dayLabelEl && _mcDayId) {
-    const day = getActiveDays().find(d => d.id === _mcDayId);
-    dayLabelEl.textContent = day?.title || day?.label || '';
-  }
-
-  _mcSetMode(_mcMode, true);
-  _mcUpdateCardDOM(_mcCards[_mcIdx]);
-  _mcUpdateNav();
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => { _mcBindGestures(); });
-  });
+function _mcSlideHtml(i) {
+  return `<div class="mc-carousel-slide" data-mc-i="${i}">
+  <div class="mc-scene">
+    <div class="mc-card">
+      <div class="mc-face mc-front">
+        <div class="mc-study-shell">
+          <div class="mc-front-top">
+            <div class="mc-photo-wrap"></div>
+            <span class="mc-front-year-chip" style="display:none" aria-hidden="true"></span>
+          </div>
+          <div class="mc-front-lower">
+            <div class="mc-author-name"></div>
+          </div>
+        </div>
+        <div class="mc-theory-block" style="display:none">
+          <div class="mc-theory-label">Teoria / Contributo</div>
+          <div class="mc-theory-text mc-theory-front-text"></div>
+          <div class="mc-year-badge mc-theory-front-year"></div>
+        </div>
+      </div>
+      <div class="mc-face mc-back">
+        <div class="mc-back-photo-wrap" style="display:none"></div>
+        <div class="mc-back-author" style="display:none"></div>
+        <div class="mc-back-theory">
+          <div class="mc-theory-label">Teoria / Contributo</div>
+          <div class="mc-theory-text mc-theory-back-text"></div>
+          <div class="mc-year-badge mc-theory-back-year"></div>
+          <div class="mc-theory-detail" style="display:none"></div>
+          <div class="mc-key-idea" style="display:none"></div>
+        </div>
+        <div class="mc-source-ref"></div>
+      </div>
+    </div>
+  </div>
+</div>`;
 }
 
-function _mcRenderStackNext() {
-  const el = document.getElementById('mcStackNext');
-  if (!el) return;
-  const next = _mcCards[_mcIdx + 1];
-  if (!next) {
-    el.innerHTML = '<span class="mc-stack-end">Hai finito il mazzo</span>';
-    return;
-  }
-  if (_mcMode === 'study') {
-    el.innerHTML = `<div class="mc-stack-preview"><span class="mc-stack-label">Prossima</span><span class="mc-stack-name">${escHtml(next.author)}</span></div>`;
-  } else {
-    const t = escHtml((next.theory || '').slice(0, 96));
-    const ell = (next.theory || '').length > 96 ? '…' : '';
-    el.innerHTML = `<div class="mc-stack-preview"><span class="mc-stack-label">Prossima</span><span class="mc-stack-theory">${t}${ell}</span></div>`;
-  }
+function _mcBuildCarouselTrack() {
+  const track = document.getElementById('mcCarouselTrack');
+  if (!track) return;
+  track.innerHTML = _mcCards.map((_, i) => _mcSlideHtml(i)).join('');
 }
 
-function _mcResetSwipeVisuals() {
-  const card = document.getElementById('mcCard');
-  if (card) {
-    card.classList.remove('mc-fly-right', 'mc-fly-left');
-    card.style.removeProperty('transform');
-    card.style.removeProperty('transition');
-    card.style.setProperty('--mc-pan', '0px');
-    card.style.setProperty('--mc-tilt', '0deg');
-  }
-  ['mcSwipeFlagL', 'mcSwipeFlagR'].forEach(id => {
-    const n = document.getElementById(id);
-    if (n) n.style.opacity = '';
-  });
+function _mcCarouselSnapIndex() {
+  const car = document.getElementById('mcCarousel');
+  if (!car || !_mcCards.length) return 0;
+  const w = car.clientWidth || 1;
+  return Math.min(_mcCards.length - 1, Math.max(0, Math.round(car.scrollLeft / w)));
 }
 
-function _mcUpdateSwipeFlagTexts() {
-  const L = document.getElementById('mcSwipeFlagL');
-  const R = document.getElementById('mcSwipeFlagR');
-  if (!L || !R) return;
-  if (_mcMode === 'challenge' && _mcFlipped) {
-    L.textContent = 'NON SAPEVO';
-    R.textContent = 'LO SAPEVO';
-  } else if (_mcMode === 'challenge') {
-    L.textContent = 'SCOPRI';
-    R.textContent = 'SCOPRI';
-  } else if (_mcFlipped) {
-    L.textContent = 'INDIETRO';
-    R.textContent = 'AVANTI';
-  } else {
-    L.textContent = 'TEORIA';
-    R.textContent = 'AVANTI';
-  }
+function _mcScrollToIdx(i, smooth) {
+  const car = document.getElementById('mcCarousel');
+  if (!car || !_mcCards.length) return;
+  const maxI = _mcCards.length - 1;
+  const idx = Math.max(0, Math.min(maxI, i));
+  const w = car.clientWidth || 1;
+  const beh = smooth && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    ? 'smooth' : 'auto';
+  car.scrollTo({ left: idx * w, behavior: beh });
 }
 
-function _mcUpdateCardDOM(card) {
-  if (!card) return;
-
-  // Counter
-  const counter = document.getElementById('mcCounter');
-  if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
-
-  _mcResetSwipeVisuals();
-
-  // Reset flip state
-  document.getElementById('mcCard').classList.remove('flipped');
+function _mcUnflipAll() {
+  document.querySelectorAll('#mcCarouselTrack .mc-card').forEach(c => c.classList.remove('flipped'));
   _mcFlipped = false;
-  _mcUpdateSwipeFlagTexts();
+}
+
+function _mcFillSlide(slideEl, i) {
+  const card = _mcCards[i];
+  if (!card || !slideEl) return;
+  const sheet = slideEl.querySelector('.mc-card');
+  const front = slideEl.querySelector('.mc-front');
+  const back = slideEl.querySelector('.mc-back');
+  if (!sheet || !front || !back) return;
+
+  sheet.classList.remove('flipped');
+  const studyShell = front.querySelector('.mc-study-shell');
+  const theoryBlock = front.querySelector('.mc-theory-block');
+  const photoWrap = front.querySelector('.mc-photo-wrap');
+  const nameEl = front.querySelector('.mc-author-name');
+  const yChip = front.querySelector('.mc-front-year-chip');
+  const tf = front.querySelector('.mc-theory-front-text');
+  const yf = front.querySelector('.mc-theory-front-year');
+  const bp = back.querySelector('.mc-back-photo-wrap');
+  const ba = back.querySelector('.mc-back-author');
+  const bthy = back.querySelector('.mc-back-theory');
+  const tb = back.querySelector('.mc-theory-back-text');
+  const yb = back.querySelector('.mc-theory-back-year');
+  const detailEl = back.querySelector('.mc-theory-detail');
+  const kEl = back.querySelector('.mc-key-idea');
+  const src = back.querySelector('.mc-source-ref');
 
   if (_mcMode === 'study') {
-    const frontEl = document.getElementById('mcFront');
-    const studyShell = document.getElementById('mcStudyShell');
-    if (frontEl) frontEl.classList.add('mc-front--study-layout');
+    front.classList.add('mc-front--study-layout');
     if (studyShell) studyShell.style.display = '';
-
-    // FRONT: author photo + name (layout “scheda”)
-    _mcSetPhotoEl('mcPhotoWrap', card.photoUrl, card.author);
-    const nameEl = document.getElementById('mcAuthorName');
-    if (nameEl) nameEl.textContent = card.author;
-    const hintEl = document.getElementById('mcFrontHint');
-    if (hintEl) hintEl.textContent = 'Tocca o scorri · ← teoria · → prossima';
-
-    const yChip = document.getElementById('mcFrontYearChip');
+    if (theoryBlock) theoryBlock.style.display = 'none';
+    if (photoWrap) photoWrap.style.display = '';
+    if (nameEl) { nameEl.style.display = ''; nameEl.textContent = card.author; }
+    _mcSetPhotoEl(photoWrap, card.photoUrl, card.author);
     if (yChip) {
       const y = (card.year || '').trim();
       if (y && y !== '—') {
@@ -8561,47 +8423,24 @@ function _mcUpdateCardDOM(card) {
         yChip.style.display = 'none';
       }
     }
-
-    const theoryBlock = document.getElementById('mcTheoryBlock');
-    if (theoryBlock) theoryBlock.style.display = 'none';
-    const photoWrap = document.getElementById('mcPhotoWrap');
-    if (photoWrap) photoWrap.style.display = '';
-    const nameEl2 = document.getElementById('mcAuthorName');
-    if (nameEl2) nameEl2.style.display = '';
-
-    // BACK: theory
-    document.getElementById('mcBackPhotoWrap').style.display = 'none';
-    document.getElementById('mcBackAuthor').style.display    = 'none';
-    document.getElementById('mcBackTheory').style.display    = '';
-
+    if (bp) bp.style.display = 'none';
+    if (ba) ba.style.display = 'none';
+    if (bthy) bthy.style.display = '';
   } else {
-    const frontEl = document.getElementById('mcFront');
-    const studyShell = document.getElementById('mcStudyShell');
-    if (frontEl) frontEl.classList.remove('mc-front--study-layout');
+    front.classList.remove('mc-front--study-layout');
     if (studyShell) studyShell.style.display = 'none';
-
-    // FRONT: theory (anonymous)
-    document.getElementById('mcPhotoWrap').style.display   = 'none';
-    document.getElementById('mcAuthorName').style.display  = 'none';
-    document.getElementById('mcFrontHint').textContent     = 'Tocca per scoprire l\'autore →';
-
-    const theoryBlock = document.getElementById('mcTheoryBlock');
-    theoryBlock.style.display = '';
-    document.getElementById('mcTheoryFront').textContent = card.theory;
-    document.getElementById('mcYearFront').textContent   = card.year;
-
-    // BACK: author reveal
-    document.getElementById('mcBackPhotoWrap').style.display = '';
-    _mcSetPhotoEl('mcBackPhotoWrap', card.photoUrl, card.author);
-    document.getElementById('mcBackAuthor').style.display    = '';
-    document.getElementById('mcBackAuthor').textContent      = card.author;
-    document.getElementById('mcBackTheory').style.display    = 'none';
+    if (theoryBlock) theoryBlock.style.display = '';
+    if (photoWrap) photoWrap.style.display = 'none';
+    if (nameEl) nameEl.style.display = 'none';
+    if (tf) tf.textContent = card.theory;
+    if (yf) yf.textContent = card.year;
+    if (bp) { bp.style.display = ''; _mcSetPhotoEl(bp, card.photoUrl, card.author); }
+    if (ba) { ba.style.display = ''; ba.textContent = card.author; }
+    if (bthy) bthy.style.display = 'none';
   }
 
-  // Shared back fields (always populated)
-  document.getElementById('mcTheoryBack').textContent = card.theory;
-  document.getElementById('mcYearBack').textContent   = card.year;
-  const detailEl = document.getElementById('mcTheoryDetail');
+  if (tb) tb.textContent = card.theory;
+  if (yb) yb.textContent = card.year;
   const det = (card.theoryDetail || '').trim();
   if (detailEl) {
     if (det) {
@@ -8612,35 +8451,115 @@ function _mcUpdateCardDOM(card) {
       detailEl.style.display = 'none';
     }
   }
-  const kEl = document.getElementById('mcKeyIdea');
   const ki = (card.keyIdea || '').trim();
   if (kEl) {
     kEl.textContent = ki || '';
     kEl.style.display = ki ? '' : 'none';
   }
-  document.getElementById('mcSourceRef').textContent  = '';
+  if (src) src.textContent = '';
 
-  const backEl = document.getElementById('mcBack');
-  if (backEl) backEl.classList.toggle('mc-back--theory-panel', _mcMode === 'study');
-
-  _mcRenderStackNext();
-  _mcRefreshMobileFlipBar();
+  back.classList.toggle('mc-back--theory-panel', _mcMode === 'study');
 }
 
-function _mcSetPhotoEl(wrapId, photoUrl, authorName) {
-  const wrap = document.getElementById(wrapId);
-  if (!wrap) return;
-  wrap.innerHTML = '';
+function _mcFillAllSlides() {
+  const track = document.getElementById('mcCarouselTrack');
+  if (!track) return;
+  track.querySelectorAll('.mc-carousel-slide').forEach(sl => {
+    const j = +sl.dataset.mcI;
+    if (!Number.isNaN(j)) _mcFillSlide(sl, j);
+  });
+}
+
+function _mcBindCarousel() {
+  const carousel = document.getElementById('mcCarousel');
+  const track = document.getElementById('mcCarouselTrack');
+  if (!carousel || !track || carousel.dataset.mcCarouselBound === '1') return;
+  carousel.dataset.mcCarouselBound = '1';
+
+  let scrollT = null;
+  function syncFromScroll() {
+    const snap = _mcCarouselSnapIndex();
+    if (snap !== _mcIdx) {
+      _mcIdx = snap;
+      _mcUnflipAll();
+      const counter = document.getElementById('mcCounter');
+      if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
+      _mcUpdateNav();
+    }
+  }
+  carousel.addEventListener('scroll', () => {
+    if (scrollT) clearTimeout(scrollT);
+    scrollT = setTimeout(syncFromScroll, 80);
+  }, { passive: true });
+  try { carousel.addEventListener('scrollend', syncFromScroll, { passive: true }); } catch (_) {}
+
+  track.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    const slide = e.target.closest('.mc-carousel-slide');
+    if (!slide) return;
+    const i = +slide.dataset.mcI;
+    if (i !== _mcCarouselSnapIndex()) return;
+    _mcIdx = i;
+    const cardEl = slide.querySelector('.mc-card');
+    if (!cardEl) return;
+    cardEl.classList.toggle('flipped');
+    _mcFlipped = cardEl.classList.contains('flipped');
+  });
+}
+
+function _mcRender() {
+  if (!_mcCards.length) { _mcShowView('empty'); return; }
+  _mcShowView('cards');
+
+  const dayLabelEl = document.getElementById('mcDayLabel');
+  if (dayLabelEl && _mcDayId) {
+    const day = getActiveDays().find(d => d.id === _mcDayId);
+    dayLabelEl.textContent = day?.title || day?.label || '';
+  }
+
+  const car = document.getElementById('mcCarousel');
+  if (car) delete car.dataset.mcCarouselBound;
+  _mcBuildCarouselTrack();
+  _mcSetMode(_mcMode, true);
+  _mcIdx = Math.min(Math.max(0, _mcIdx), _mcCards.length - 1);
+  _mcUnflipAll();
+  _mcFillAllSlides();
+  const counter = document.getElementById('mcCounter');
+  if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
+  _mcUpdateNav();
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      _mcBindCarousel();
+      _mcScrollToIdx(_mcIdx, false);
+    });
+  });
+}
+
+function _mcUpdateCardDOM() {
+  if (!_mcCards.length) return;
+  _mcUnflipAll();
+  const counter = document.getElementById('mcCounter');
+  if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
+  _mcFillAllSlides();
+  _mcScrollToIdx(_mcIdx, false);
+  _mcUpdateNav();
+}
+
+function _mcSetPhotoEl(wrap, photoUrl, authorName) {
+  const el = typeof wrap === 'string' ? document.getElementById(wrap) : wrap;
+  if (!el) return;
+  el.innerHTML = '';
   if (photoUrl) {
     const img = document.createElement('img');
     img.src = photoUrl;
     img.alt = authorName;
     img.draggable = false;
     img.setAttribute('draggable', 'false');
-    img.onerror = () => { wrap.innerHTML = _mcAvatarHTML(authorName); };
-    wrap.appendChild(img);
+    img.onerror = () => { el.innerHTML = _mcAvatarHTML(authorName); };
+    el.appendChild(img);
   } else {
-    wrap.innerHTML = _mcAvatarHTML(authorName);
+    el.innerHTML = _mcAvatarHTML(authorName);
   }
 }
 
@@ -8664,255 +8583,53 @@ function _mcUpdateNav() {
   ).join('');
 }
 
-function _mcBindGestures() {
-  const layer = document.getElementById('mcSwipeLayer');
-  const card = document.getElementById('mcCard');
-  if (!layer || !card || layer.dataset.mcSwipeBound === '1') return;
-  layer.dataset.mcSwipeBound = '1';
-
-  const TH = 68;
-  const ROT = 0.05;
-  /** Piccoli spostamenti ancora considerati “tap” (touch più tollerante) */
-  const TAP_SLOP_MOUSE = 36;
-  const TAP_SLOP_TOUCH = 52;
-  const prefersReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let sx = 0, sy = 0, active = false, pid = 0, committed = false;
-  let lastPtrType = 'mouse';
-  const flagL = document.getElementById('mcSwipeFlagL');
-  const flagR = document.getElementById('mcSwipeFlagR');
-
-  function setFlags(dx) {
-    const t = Math.min(Math.abs(dx) / TH, 1);
-    if (flagL) flagL.style.opacity = dx < 0 ? String(t * 0.95) : '0';
-    if (flagR) flagR.style.opacity = dx > 0 ? String(t * 0.95) : '0';
-  }
-
-  function applyDx(dx) {
-    if (prefersReduce) return;
-    card.style.transition = 'none';
-    card.style.removeProperty('transform');
-    card.style.setProperty('--mc-pan', dx + 'px');
-    card.style.setProperty('--mc-tilt', (dx * ROT) + 'deg');
-    setFlags(dx);
-  }
-
-  function bounceBack() {
-    if (prefersReduce) { setFlags(0); return; }
-    card.style.transition = 'transform 0.24s cubic-bezier(0.22,1,0.36,1)';
-    card.style.removeProperty('transform');
-    card.style.setProperty('--mc-pan', '0px');
-    card.style.setProperty('--mc-tilt', '0deg');
-    setFlags(0);
-  }
-
-  function commitFly(dir, onDone) {
-    const c = document.getElementById('mcCard');
-    if (!c) { onDone(); return; }
-    if (prefersReduce) {
-      onDone();
-      return;
-    }
-    const flipped = c.classList.contains('flipped');
-    const y = flipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
-    c.style.removeProperty('transform');
-    c.style.transition = 'transform 0.32s cubic-bezier(0.22,1,0.36,1)';
-    const x = dir === 'right' ? '120%' : '-120%';
-    const rot = dir === 'right' ? '18deg' : '-18deg';
-    c.style.transform = `translateX(${x}) rotate(${rot}) ${y}`;
-    setTimeout(() => {
-      c.style.removeProperty('transform');
-      c.style.removeProperty('transition');
-      c.style.setProperty('--mc-pan', '0px');
-      c.style.setProperty('--mc-tilt', '0deg');
-      setFlags(0);
-      onDone();
-    }, 340);
-  }
-
-  function runStudySwipe(goRight) {
-    if (goRight) {
-      if (_mcIdx >= _mcCards.length - 1) { bounceBack(); return; }
-      committed = true;
-      commitFly('right', () => { _mcNext(); });
-    } else {
-      bounceBack();
-      requestAnimationFrame(() => _mcFlip());
-    }
-  }
-
-  layer.addEventListener('pointerdown', e => {
-    if (e.button !== 0) return;
-    lastPtrType = e.pointerType || 'mouse';
-    active = true;
-    committed = false;
-    sx = e.clientX;
-    sy = e.clientY;
-    pid = e.pointerId;
-    try { layer.setPointerCapture(e.pointerId); } catch (_) {}
-  });
-
-  layer.addEventListener('pointermove', e => {
-    if (!active || committed) return;
-    const dx = e.clientX - sx;
-    const dy = e.clientY - sy;
-    if (Math.abs(dx) < Math.abs(dy) * 1.12 && Math.abs(dy) > 16) return;
-    applyDx(dx);
-  });
-
-  layer.addEventListener('pointerup', e => {
-    if (!active) return;
-    active = false;
-    try { layer.releasePointerCapture(pid); } catch (_) {}
-    if (committed) return;
-
-    const dx = e.clientX - sx;
-    const dy = e.clientY - sy;
-    const horiz = Math.abs(dx) > Math.abs(dy) * 1.05;
-    const tapSlop = lastPtrType === 'touch' ? TAP_SLOP_TOUCH : TAP_SLOP_MOUSE;
-
-    if (prefersReduce) {
-      if (Math.hypot(dx, dy) < tapSlop) _mcFlip();
-      else if (horiz && Math.abs(dx) >= TH) {
-        const goRight = dx > 0;
-        if (_mcMode === 'study') {
-          if (goRight) {
-            if (_mcIdx < _mcCards.length - 1) _mcNext();
-          } else _mcFlip();
-        } else if (!_mcFlipped) {
-          _mcFlip();
-        } else if (goRight) _mcMark(true, true);
-        else _mcMark(false, true);
-      } else bounceBack();
-      return;
-    }
-
-    if (!horiz || Math.abs(dx) < 14) {
-      if (Math.hypot(dx, dy) < tapSlop) _mcFlip();
-      else bounceBack();
-      return;
-    }
-
-    if (Math.abs(dx) < TH) {
-      bounceBack();
-      return;
-    }
-
-    const goRight = dx > 0;
-
-    if (_mcMode === 'study') {
-      runStudySwipe(goRight);
-      return;
-    }
-
-    if (!_mcFlipped) {
-      bounceBack();
-      requestAnimationFrame(() => _mcFlip());
-      return;
-    }
-
-    if (goRight) {
-      committed = true;
-      commitFly('right', () => { _mcMark(true, true); });
-    } else {
-      committed = true;
-      commitFly('left', () => { _mcMark(false, true); });
-    }
-  });
-
-  layer.addEventListener('pointercancel', () => {
-    active = false;
-    bounceBack();
-  });
-}
-
-// ── User interactions ──────────────────────────────────────
+// ── User interactions (carosello = swipe orizzontale; tap sulla card = flip) ──
 function _mcFlip() {
-  const card = document.getElementById('mcCard');
-  _mcFlipped = !_mcFlipped;
-  card.classList.toggle('flipped', _mcFlipped);
-  _mcUpdateSwipeFlagTexts();
-  _mcRefreshMobileFlipBar();
-}
-
-/** Pulsante mobile (tap sicuro iOS) */
-function _mcMobileFlipTap(ev) {
-  if (ev) {
-    ev.preventDefault();
-    ev.stopPropagation();
-  }
-  _mcFlip();
-}
-
-function _mcRefreshMobileFlipBar() {
-  const btn = document.getElementById('mcMobileFlipBtn');
-  if (!btn) return;
-  if (_mcMode === 'study') {
-    btn.textContent = _mcFlipped ? 'Torna all\'autore' : 'Mostra la teoria';
-  } else {
-    btn.textContent = _mcFlipped ? 'Torna alla teoria' : 'Mostra l\'autore';
-  }
+  const slide = document.querySelector('.mc-carousel-slide[data-mc-i="' + _mcIdx + '"]');
+  const card = slide && slide.querySelector('.mc-card');
+  if (!card) return;
+  card.classList.toggle('flipped');
+  _mcFlipped = card.classList.contains('flipped');
 }
 
 function _mcNext() {
-  if (_mcIdx < _mcCards.length - 1) {
-    _mcIdx++;
-    _mcUpdateCardDOM(_mcCards[_mcIdx]);
-    _mcUpdateNav();
-    _mcFlipped = false;
-  }
+  if (_mcIdx >= _mcCards.length - 1) return;
+  _mcIdx++;
+  _mcUnflipAll();
+  _mcScrollToIdx(_mcIdx, false);
+  const counter = document.getElementById('mcCounter');
+  if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
+  _mcUpdateNav();
 }
 
 function _mcPrev() {
-  if (_mcIdx > 0) {
-    _mcIdx--;
-    _mcUpdateCardDOM(_mcCards[_mcIdx]);
-    _mcUpdateNav();
-    _mcFlipped = false;
-  }
+  if (_mcIdx <= 0) return;
+  _mcIdx--;
+  _mcUnflipAll();
+  _mcScrollToIdx(_mcIdx, false);
+  const counter = document.getElementById('mcCounter');
+  if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
+  _mcUpdateNav();
 }
 
 function _mcGoTo(i) {
-  _mcIdx = i;
-  _mcUpdateCardDOM(_mcCards[_mcIdx]);
+  _mcIdx = Math.max(0, Math.min(_mcCards.length - 1, i));
+  _mcUnflipAll();
+  _mcScrollToIdx(_mcIdx, false);
+  const counter = document.getElementById('mcCounter');
+  if (counter) counter.textContent = `${_mcIdx + 1} / ${_mcCards.length}`;
   _mcUpdateNav();
-  _mcFlipped = false;
 }
 
 function _mcSetMode(mode, silent) {
   _mcMode = mode;
   const studyBtn     = document.getElementById('mcModeStudy');
   const challengeBtn = document.getElementById('mcModeChallenge');
-  const hint         = document.getElementById('mcModeHint');
   const strip        = document.getElementById('mcChallengeStrip');
 
   if (studyBtn)     studyBtn.classList.toggle('active',     mode === 'study');
   if (challengeBtn) challengeBtn.classList.toggle('active', mode === 'challenge');
 
-  if (hint) {
-    const narrow = typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 540px)').matches;
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (mode === 'study') {
-      if (narrow) {
-        hint.innerHTML = reduce
-          ? '<strong>Tap</strong> sulla card o pulsante arancio per la teoria. Frecce: prossima / teoria.'
-          : '<strong>Tap</strong> sulla card o pulsante arancio · Scorri la card: <strong>→</strong> prossima, <strong>←</strong> teoria.';
-      } else {
-        hint.innerHTML =
-          '<strong>Tap sulla card</strong> per la teoria · Scorri <strong>→</strong> prossima, <strong>←</strong> teoria · Sul retro: <strong>→</strong> avanti, <strong>←</strong> nome' +
-          (reduce
-            ? ' · Oppure pulsanti <strong>←</strong> <strong>→</strong> sotto.'
-            : ' · Anche <strong>swipe</strong> sulla card.');
-      }
-    } else if (narrow) {
-      hint.innerHTML = reduce
-        ? 'Pulsante arancio o tap per l\'autore. Retro: valuta con i pulsanti o le frecce.'
-        : 'Tap o pulsante arancio per l\'autore · Sul retro: <strong>→</strong> lo sapevo, <strong>←</strong> non ricordavo.';
-    } else {
-      hint.innerHTML =
-        'Tap sulla card per l\'autore · Sul retro: <strong>→</strong> lo sapevo · <strong>←</strong> non ricordavo' +
-        (reduce ? ' · Usa i pulsanti sotto o le frecce.' : ' · Swipe o pulsanti sotto.');
-    }
-  }
   if (strip) strip.style.display = mode === 'challenge' ? 'flex' : 'none';
 
   if (mode === 'challenge') {
@@ -8923,10 +8640,12 @@ function _mcSetMode(mode, silent) {
 
   if (!silent) {
     _mcIdx = 0;
-    _mcUpdateCardDOM(_mcCards[_mcIdx]);
+    _mcUpdateCardDOM();
     _mcUpdateNav();
+  } else {
+    const tr = document.getElementById('mcCarouselTrack');
+    if (tr && tr.children.length) _mcFillAllSlides();
   }
-  _mcRefreshMobileFlipBar();
 }
 
 function _mcMark(known, immediateNext) {
@@ -8937,8 +8656,9 @@ function _mcMark(known, immediateNext) {
   const go = () => {
     if (_mcIdx < _mcCards.length - 1) {
       _mcIdx++;
-      _mcUpdateCardDOM(_mcCards[_mcIdx]);
-      _mcUpdateNav();
+      _mcUpdateCardDOM();
+    } else {
+      _mcUnflipAll();
     }
     _mcFlipped = false;
   };
@@ -12701,72 +12421,9 @@ updateSourcesBtn();
         <div class="mc-counter" id="mcCounter">1 / —</div>
       </div>
 
-      <!-- Mode hint (testo aggiornato da _mcSetMode) -->
-      <div class="mc-mode-hint" id="mcModeHint"></div>
-
-      <div class="mc-mobile-flip-wrap" id="mcMobileFlipWrap">
-        <button type="button" class="mc-mobile-flip-btn" id="mcMobileFlipBtn" onclick="_mcMobileFlipTap(event)">Mostra la teoria</button>
-      </div>
-
       <div class="mc-deck" id="mcDeck">
-        <div class="mc-stack-next" id="mcStackNext" aria-hidden="true"></div>
-        <div class="mc-scene-outer">
-          <div class="mc-swipe-flags" aria-hidden="true">
-            <div class="mc-swipe-flag mc-swipe-flag--left" id="mcSwipeFlagL">—</div>
-            <div class="mc-swipe-flag mc-swipe-flag--right" id="mcSwipeFlagR">—</div>
-          </div>
-          <div class="mc-swipe-layer" id="mcSwipeLayer">
-            <div class="mc-scene" id="mcScene">
-        <div class="mc-card" id="mcCard">
-
-          <!-- FRONT (Studio: autore → teoria | Sfida: teoria → autore) -->
-          <div class="mc-face mc-front" id="mcFront">
-            <div id="mcStudyShell" class="mc-study-shell">
-              <div class="mc-front-top">
-                <div class="mc-photo-wrap" id="mcPhotoWrap">
-                  <!-- img or svg avatar injected by JS -->
-                </div>
-                <span class="mc-front-year-chip" id="mcFrontYearChip" style="display:none" aria-hidden="true"></span>
-              </div>
-              <div class="mc-front-lower">
-                <div class="mc-author-name" id="mcAuthorName">—</div>
-                <div class="mc-swipe-ends" aria-hidden="true">
-                  <span>← Teoria</span>
-                  <span>Prossima →</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Challenge mode: shows theory, hides author (swapped in JS) -->
-            <div class="mc-theory-block" id="mcTheoryBlock" style="display:none">
-              <div class="mc-theory-label">Teoria / Contributo</div>
-              <div class="mc-theory-text" id="mcTheoryFront">—</div>
-              <div class="mc-year-badge" id="mcYearFront">—</div>
-            </div>
-
-            <div class="mc-front-hint" id="mcFrontHint">Tocca o scorri · ← teoria · → prossima</div>
-          </div>
-
-          <!-- BACK -->
-          <div class="mc-face mc-back" id="mcBack">
-            <div class="mc-back-photo-wrap" id="mcBackPhotoWrap" style="display:none">
-              <!-- Challenge mode: author revealed on back -->
-            </div>
-            <div class="mc-back-author" id="mcBackAuthor" style="display:none">—</div>
-
-            <div class="mc-back-theory" id="mcBackTheory">
-              <div class="mc-theory-label">Teoria / Contributo</div>
-              <div class="mc-theory-text" id="mcTheoryBack">—</div>
-              <div class="mc-year-badge" id="mcYearBack">—</div>
-              <div class="mc-theory-detail" id="mcTheoryDetail" style="display:none"></div>
-              <div class="mc-key-idea" id="mcKeyIdea">—</div>
-            </div>
-            <div class="mc-source-ref" id="mcSourceRef">—</div>
-          </div>
-
-        </div>
-            </div>
-          </div>
+        <div class="mc-carousel" id="mcCarousel">
+          <div class="mc-carousel-track" id="mcCarouselTrack"></div>
         </div>
       </div>
 
