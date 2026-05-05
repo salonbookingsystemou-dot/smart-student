@@ -843,9 +843,77 @@
     .pricing-header .section-sub { margin: 0 auto; }
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       position: relative; z-index: 1;
+    }
+    .calcolo-banner {
+      margin-top: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(217,119,87,0.2);
+      background: rgba(217,119,87,0.05);
+      padding: 36px 48px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto;
+      align-items: center;
+      gap: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .calcolo-banner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(217,119,87,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cb-item {
+      text-align: center;
+      padding: 0 24px;
+    }
+    .cb-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--grey);
+      margin-bottom: 6px;
+    }
+    .cb-value {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: var(--white);
+    }
+    .cb-value.cb-accent { color: var(--accent); }
+    .cb-note {
+      font-size: 0.78rem;
+      color: var(--grey2);
+      margin-top: 4px;
+    }
+    .cb-sep {
+      font-size: 2rem;
+      color: var(--border);
+      font-weight: 300;
+      line-height: 1;
+      padding: 0 8px;
+    }
+    .cb-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding-left: 40px;
+      border-left: 1px solid var(--border);
+      margin-left: 16px;
+    }
+    .cb-tagline {
+      font-size: 0.82rem;
+      color: var(--grey2);
+      text-align: center;
+      max-width: 180px;
+      line-height: 1.4;
     }
     .plan-card {
       background: var(--bg3); border: 1px solid var(--border); border-radius: 20px;
@@ -879,8 +947,8 @@
     .plan-cta-outline:hover { border-color: var(--accent); color: var(--accent); }
     .pricing-note { text-align: center; margin-top: 28px; font-size: 0.82rem; color: var(--grey2); }
     .pricing-note a { color: var(--accent); text-decoration: none; }
-    @media (max-width: 1100px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 640px)  { .pricing-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px)  { .pricing-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px)  { .calcolo-banner { grid-template-columns: 1fr; gap: 24px; padding: 28px 24px; } .cb-sep { display: none; } .cb-cta-wrap { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 24px; margin-left: 0; margin-top: 8px; } }
 
     /* ─── RISPARMIO ─── */
     #risparmio {
@@ -1357,20 +1425,40 @@
         <a href="./app.html" class="plan-cta plan-cta-primary">Inizia gratis</a>
       </div>
 
-      <!-- IL CALCOLO -->
-      <div class="plan-card fade-in fade-in-delay-3" style="background:rgba(217,119,87,0.05);border-color:rgba(217,119,87,0.15);">
-        <p class="plan-name">Il calcolo</p>
-        <p class="plan-price" style="font-size:2rem;line-height:1.2;color:var(--accent);">1 anno<br>fuori corso</p>
-        <p class="plan-desc" style="margin-top:8px;">Costa in media oltre <strong style="color:var(--white);">€20.000</strong> tra tasse universitarie e mancato stipendio. Mnesti Pro costa una frazione di quello.</p>
-        <ul class="plan-features">
-          <li><span class="check">✓</span> Tasse risparmiate: ~€4.000+/anno</li>
-          <li><span class="check">✓</span> Stipendio anticipato: ~€18.000/anno</li>
-          <li><span class="check">✓</span> Stress e tempo: impagabili</li>
-        </ul>
-        <a href="./app.html" class="plan-cta plan-cta-outline">Inizia gratis</a>
+    </div>
+
+    <!-- IL CALCOLO – banner orizzontale full-width -->
+    <div class="calcolo-banner fade-in">
+
+      <div class="cb-item">
+        <p class="cb-label">Tasse / anno fuori corso</p>
+        <p class="cb-value cb-accent" data-target="4000" data-prefix="€" data-suffix="+">€0</p>
+        <p class="cb-note">Media tra atenei pubblici e privati</p>
+      </div>
+
+      <div class="cb-sep">+</div>
+
+      <div class="cb-item">
+        <p class="cb-label">Mancato stipendio / anno</p>
+        <p class="cb-value" data-target="18000" data-prefix="€" data-suffix="">€0</p>
+        <p class="cb-note">Reddito medio primo anno post-laurea</p>
+      </div>
+
+      <div class="cb-sep">=</div>
+
+      <div class="cb-item">
+        <p class="cb-label">Costo reale stimato</p>
+        <p class="cb-value cb-accent" data-target="20000" data-prefix="€" data-suffix="+">€0</p>
+        <p class="cb-note">In gioco ogni anno fuori corso</p>
+      </div>
+
+      <div class="cb-cta-wrap">
+        <p class="cb-tagline">Mnesti Pro costa <strong style="color:var(--white);">€15/mese</strong>.<br>Il resto è investimento.</p>
+        <a href="./app.html" class="plan-cta plan-cta-primary" style="white-space:nowrap;">Inizia gratis</a>
       </div>
 
     </div>
+
     <p class="pricing-note fade-in">Pagamenti sicuri tramite <strong>Stripe</strong> · Disdici in qualsiasi momento · I prezzi definitivi sono confermati al checkout</p>
   </div>
 </section>
