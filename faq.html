@@ -56,7 +56,7 @@
             "name": "Cos'è Mnesti?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Mnesti è una web app gratuita di studio personalizzato con intelligenza artificiale (AI), progettata specificamente per studenti universitari italiani. Partendo dalla data del tuo esame e dalle tue dispense, Mnesti genera automaticamente un piano di studio giorno per giorno, domande a risposta aperta basate sul tuo materiale, quiz adattivi con punteggio e feedback immediato su ogni risposta. Include anche il Brain Dump, uno strumento per identificare rapidamente i concetti che non hai ancora assimilato, e le Memory Cards per memorizzare autori e teorie."
+              "text": "Mnesti è una web app di studio personalizzato con intelligenza artificiale (AI), progettata per studenti universitari italiani. Il primo esame è incluso nel piano gratuito (senza carta di credito). Partendo dalla data del tuo esame e dalle tue dispense, Mnesti genera un piano di studio giorno per giorno, domande a risposta aperta basate sul tuo materiale, quiz adattivi con punteggio e feedback immediato su ogni risposta. Include Brain Dump per i gap di preparazione e Memory Cards per autori e teorie. Per chi prepara più esami o vuole limiti più alti sono disponibili piani a pagamento opzionali (Stripe), attivabili dall'app."
             }
           },
           {
@@ -64,7 +64,15 @@
             "name": "Mnesti è gratuito?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Sì, Mnesti è gratuito per iniziare senza nessuna carta di credito. Il piano gratuito include: 150 chiamate AI al giorno, 1 esame attivo contemporaneamente, 5 MB di storage per le dispense. Sono in arrivo piani avanzati per chi ha bisogno di più esami in parallelo o più spazio per i materiali."
+              "text": "Sì: puoi preparare il primo esame senza carta di credito. Il piano gratuito include 150 chiamate AI al giorno, 1 esame attivo alla volta, 5 MB di storage per le dispense e tutte le funzionalità principali (piano, domande, quiz, Brain Dump, Memory Cards). Se ti servono più esami in parallelo, più chiamate AI al giorno o più spazio, puoi passare a un piano a pagamento dall'area Account nell'app (pagamento sicuro con Stripe)."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Quali piani a pagamento offre Mnesti e quanto costano?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Oltre al piano gratuito, nell'app (Impostazioni → Account) puoi attivare: Piano Per esame — circa 9,99 € una tantum: fino a 500 chiamate AI al giorno, fino a 2 esami attivi, 50 MB di storage, validità circa 90 giorni. Abbonamento Mensile — circa 9,99 € al mese: fino a 1000 chiamate AI al giorno, esami illimitati, 200 MB di storage, rinnovo mensile. I prezzi effettivi e le condizioni sono quelli mostrati al checkout Stripe al momento dell'acquisto."
             }
           },
           {
@@ -176,7 +184,7 @@
             "name": "Posso usare Mnesti per più esami contemporaneamente?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Il piano gratuito supporta 1 esame attivo alla volta. Puoi comunque creare un nuovo piano di studio per un esame diverso: il vecchio piano viene archiviato e i tuoi progressi sono conservati. Sono in arrivo piani avanzati che permetteranno di gestire più esami attivi in parallelo, utili per chi deve preparare più appelli ravvicinati."
+              "text": "Con il piano gratuito hai 1 esame attivo alla volta: puoi comunque sostituire l'esame creando un nuovo piano (il precedente viene archiviato e i progressi restano salvati). Per avere fino a 2 esami attivi in parallelo con limiti più alti puoi attivare il Piano Per esame; per esami illimitati e ancora più chiamate AI giornaliere, l'Abbonamento mensile. Attivazione da Account nell'app, pagamento Stripe."
             }
           },
           {
@@ -197,6 +205,14 @@
           },
           {
             "@type": "Question",
+            "name": "Cosa succede dopo la data dell'esame?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Quando la data dell'esame è passata, alla prossima apertura dell'app Mnesti può chiederti in modo facoltativo come è andato (superato o non superato) e, se superato, il voto. Queste informazioni vengono salvate nel tuo profilo insieme a uno snapshot degli indicatori di preparazione, così puoi tenere traccia del risultato."
+            }
+          },
+          {
+            "@type": "Question",
             "name": "Mnesti funziona per i corsi UNINETTUNO o altri atenei telematici?",
             "acceptedAnswer": {
               "@type": "Answer",
@@ -208,7 +224,7 @@
             "name": "Cosa succede quando finisco le 150 chiamate AI giornaliere?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Quando raggiungi il limite giornaliero di 150 chiamate AI, Mnesti ti avvisa con un messaggio. Il contatore si azzera automaticamente ogni giorno alla mezzanotte. Puoi continuare a studiare, rivedere le domande già generate e consultare i piani esistenti anche senza nuove chiamate AI. Per chi studia intensamente ogni giorno, sono in arrivo piani con limiti più alti."
+              "text": "Quando raggiungi il limite giornaliero (150 sul piano gratuito), Mnesti ti avvisa. Il contatore si azzera a mezzanotte. Puoi continuare a rivedere domande, feedback e piani già generati. Con i piani a pagamento il limite giornaliero è più alto (fino a 500 o 1000 chiamate, a seconda del piano). Puoi passare di piano dall'area Account nell'app."
             }
           },
           {
@@ -440,7 +456,7 @@
         <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
       <div class="faq-a">
-        <p>Mnesti è una <strong>web app gratuita di studio personalizzato con intelligenza artificiale</strong>, progettata per studenti universitari italiani. Partendo dalla data del tuo esame e dalle tue dispense, genera automaticamente:</p>
+        <p>Mnesti è una <strong>web app di studio personalizzato con intelligenza artificiale</strong> per studenti universitari italiani: <strong>il primo esame è incluso nel piano gratuito</strong> (senza carta di credito). Partendo dalla data del tuo esame e dalle tue dispense, genera automaticamente:</p>
         <ul>
           <li>Un <strong>piano di studio giorno per giorno</strong> calibrato sulla tua data di appello</li>
           <li><strong>Domande a risposta aperta</strong> generate dal tuo materiale specifico</li>
@@ -458,14 +474,40 @@
         <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
       <div class="faq-a">
-        <p>Sì, Mnesti è <strong>gratuito per iniziare</strong>, senza carta di credito. Il piano gratuito include:</p>
+        <p>Sì: <strong>il primo esame lo prepari gratis</strong>, senza carta di credito. Il piano gratuito include:</p>
         <ul>
           <li>150 chiamate AI al giorno</li>
-          <li>1 esame attivo contemporaneamente</li>
+          <li>1 esame attivo alla volta</li>
           <li>5 MB di storage per le dispense</li>
-          <li>Accesso a tutte le funzionalità: piano di studio, domande, quiz, Brain Dump, Memory Cards</li>
+          <li>Tutte le funzionalità principali: piano di studio, domande, quiz, Brain Dump, Memory Cards</li>
         </ul>
-        <p>Sono in arrivo piani avanzati per chi gestisce più esami in parallelo o ha bisogno di più spazio per i materiali.</p>
+        <p>Se ti servono <strong>più esami in parallelo</strong>, <strong>più chiamate AI al giorno</strong> o <strong>più spazio</strong> per i file, puoi passare a un <strong>piano a pagamento</strong> dall'area <strong>Account</strong> nell'app (pagamento con <strong>Stripe</strong>). Dettagli e prezzi aggiornati sono sempre quelli mostrati al checkout.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">
+        <span class="faq-q-text">Quali piani a pagamento ci sono e quanto costano?</span>
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div class="faq-a">
+        <p>Oltre al piano gratuito (primo esame incluso), nell'app trovi:</p>
+        <ul>
+          <li><strong>Piano Per esame</strong> — <strong>€9,99</strong> una tantum (indicativo): fino a <strong>500</strong> chiamate AI al giorno, fino a <strong>2 esami</strong> attivi, <strong>50 MB</strong> di storage, validità <strong>circa 90 giorni</strong>.</li>
+          <li><strong>Abbonamento mensile</strong> — <strong>€9,99</strong> al mese (indicativo): fino a <strong>1000</strong> chiamate AI al giorno, <strong>esami illimitati</strong>, <strong>200 MB</strong> di storage, rinnovo mensile.</li>
+        </ul>
+        <p>Attivazione da <strong>Impostazioni → Account → Passa a un piano superiore</strong>. L'importo e le condizioni definitive sono quelli confermati nella pagina di <strong>checkout Stripe</strong>.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">
+        <span class="faq-q-text">Posso usare Mnesti per più esami contemporaneamente?</span>
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div class="faq-a">
+        <p>Con il <strong>piano gratuito</strong> hai <strong>un esame attivo alla volta</strong>. Puoi comunque preparare un esame dopo l'altro: creando un nuovo piano, quello precedente viene archiviato e i progressi restano salvati.</p>
+        <p>Per <strong>due esami in parallelo</strong> (e limiti più alti) puoi attivare il <strong>Piano Per esame</strong>; per <strong>esami illimitati</strong> e ancora più risorse, l'<strong>Abbonamento mensile</strong>. Tutto da Account nell'app.</p>
       </div>
     </details>
 
@@ -593,7 +635,7 @@
       </summary>
       <div class="faq-a">
         <p>Mnesti utilizza <strong>Claude di Anthropic</strong>, uno dei modelli di linguaggio avanzato più accurati oggi disponibili. Claude è stato scelto per la sua capacità di lavorare su testi lunghi come le dispense universitarie e per la qualità del feedback su risposte aperte.</p>
-        <p>L'API è gestita centralmente da Mnesti: <strong>non devi procurarti una chiave API personale</strong> né pagare Anthropic separatamente. Il costo è incluso nel piano Mnesti (gratuito entro i limiti del piano base).</p>
+        <p>L'API è gestita centralmente da Mnesti: <strong>non devi procurarti una chiave API personale</strong> né pagare Anthropic separatamente. L'uso dell'AI è incluso nel tuo piano Mnesti — sul <strong>piano gratuito</strong> entro i limiti giornalieri; sui <strong>piani a pagamento</strong> con limiti più alti (vedi Account nell'app).</p>
       </div>
     </details>
 
@@ -662,7 +704,7 @@
           <li>Consultare i piani di studio già creati</li>
           <li>Svolgere il Brain Dump con testo (l'analisi riprende al giorno successivo)</li>
         </ul>
-        <p>150 chiamate al giorno sono sufficienti per una sessione di studio intensa standard. Per chi studia più materie in parallelo con uso intensivo, sono in arrivo piani avanzati.</p>
+        <p>150 chiamate al giorno sono pensate per una sessione di studio intensa su <strong>un</strong> esame. Se ti servono limiti più alti (fino a 500 o 1000 al giorno), puoi passare a un <strong>piano a pagamento</strong> dall'area Account.</p>
       </div>
     </details>
 
@@ -687,7 +729,17 @@
         <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </summary>
       <div class="faq-a">
-        <p>Registrarsi è immediato: vai su <a href="https://mnesti.it">mnesti.it</a>, clicca <strong>"Inizia gratis"</strong>, inserisci email e password. Riceverai un'email di conferma: clicca il link per attivare l'account. L'intero processo richiede meno di 2 minuti. Nessuna carta di credito richiesta.</p>
+        <p>Registrarsi è immediato: vai su <a href="https://mnesti.it">mnesti.it</a>, clicca <strong>"Inizia gratis"</strong>, inserisci email e password. Riceverai un'email di conferma: clicca il link per attivare l'account. L'intero processo richiede meno di 2 minuti. <strong>Nessuna carta</strong> per preparare il <strong>primo esame</strong> sul piano gratuito.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-q">
+        <span class="faq-q-text">Cosa succede dopo la data dell'esame?</span>
+        <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <div class="faq-a">
+        <p>Quando la data dell'esame è <strong>nel passato</strong>, alla prossima apertura dell'app può comparire un breve messaggio per registrare se hai <strong>superato</strong> o <strong>non superato</strong> e, in caso positivo, il <strong>voto</strong>. Il risultato viene salvato nel tuo profilo insieme a un riepilogo degli indicatori di preparazione del periodo.</p>
       </div>
     </details>
 
@@ -742,7 +794,7 @@
   <!-- CTA -->
   <aside class="cta-box" aria-label="Inizia a usare Mnesti">
     <h2>Pronto a prepararti meglio?</h2>
-    <p>Crea il tuo piano di studio personalizzato in 2 minuti. Gratis, nessuna carta richiesta.</p>
+    <p>Crea il tuo piano di studio personalizzato in 2 minuti. <strong>Il primo esame è gratis</strong> — nessuna carta per iniziare.</p>
     <a href="https://mnesti.it/app.html" class="cta-btn">Inizia gratis →</a>
   </aside>
 
