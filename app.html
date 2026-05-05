@@ -9168,6 +9168,26 @@ function _autoSetStatus(dayId) {
 }
 
 // ── Day Complete Modal ────────────────────────────────────────
+/** Media qualità verifiche: `score` in app è rubrica 1–5 (non percentuale). */
+function _dcmVerifyQualityPct(feedbacks) {
+  const arr = Object.values(feedbacks || {});
+  if (!arr.length) return null;
+  const gradeFallback = { good: 4, partial: 2, poor: 1 };
+  const parts = [];
+  for (const f of arr) {
+    let v = typeof f.score === 'number' && f.score > 0 ? f.score : null;
+    if (v == null && f.grade) v = gradeFallback[f.grade] || null;
+    if (v != null && v > 0) parts.push(v);
+  }
+  if (!parts.length) return null;
+  const avg = parts.reduce((a, b) => a + b, 0) / parts.length;
+  const maxV = Math.max.apply(null, parts);
+  const pct = maxV <= 5
+    ? Math.min(100, Math.round((avg / 5) * 100))
+    : Math.min(100, Math.round(avg));
+  return { pct, mean5: Math.round(avg * 10) / 10 };
+}
+
 function _showDayCompleteModal(dayId) {
   const _sKey = 'dcm_' + dayId;
   if (localStorage.getItem(_sKey)) return;
@@ -9181,13 +9201,7 @@ function _showDayCompleteModal(dayId) {
                       ? ds.aiQuestions : (day.questions || []);
   const total     = qList.length;
 
-  // Average score from feedbacks
-  const scores = Object.values(feedbacks)
-    .map(f => typeof f.score === 'number' ? f.score : 0)
-    .filter(s => s > 0);
-  const avgScore = scores.length > 0
-    ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-    : null;
+  const qual = _dcmVerifyQualityPct(feedbacks);
 
   // Readiness label + colour
   const { prepLevel } = calcDayReadiness(dayId);
@@ -9209,10 +9223,11 @@ function _showDayCompleteModal(dayId) {
     <span class="dcm-stat-num">${total}</span>
     <span class="dcm-stat-label">Domande</span>
   </div>`;
-  if (avgScore !== null) {
-    statsHtml += `<div class="dcm-stat">
-      <span class="dcm-stat-num">${avgScore}%</span>
-      <span class="dcm-stat-label">Punteggio</span>
+  if (qual) {
+    const tip = 'Media delle valutazioni per domanda (scala 1–5: es. BUONO = 4/5), espressa in percentuale.';
+    statsHtml += `<div class="dcm-stat" title="${tip}">
+      <span class="dcm-stat-num">${qual.pct}%</span>
+      <span class="dcm-stat-label">Media verifiche</span>
     </div>`;
   }
   statsHtml += `<div class="dcm-stat">
