@@ -11033,8 +11033,8 @@ async function _loadAccountPane() {
   try {
     const planMeta = {
       free:    { badge: 'FREE',  name: 'Piano gratuito',      desc: '150 chiamate/giorno · 1 esame · 5 MB',               color: 'var(--text-3)' },
-      exam:    { badge: 'ESAME', name: 'Piano per esame',     desc: '500 chiamate/giorno · 2 esami · 50 MB · 90 giorni',  color: '#27ae60' },
-      monthly: { badge: 'PRO',   name: 'Abbonamento mensile', desc: '1000 chiamate/giorno · esami illimitati · 200 MB',   color: 'var(--accent)' },
+      exam:    { badge: 'ESAME', name: 'Piano per esame (€30)',     desc: '500 chiamate/giorno · 2 esami · 50 MB · 90 giorni',  color: '#27ae60' },
+      monthly: { badge: 'PRO',   name: 'Abbonamento mensile (€15/mese)', desc: '1000 chiamate/giorno · esami illimitati · 200 MB',   color: 'var(--accent)' },
     };
     const meta = planMeta[planType] || planMeta.free;
 
@@ -12429,12 +12429,12 @@ updateSourcesBtn();
                   <div class="acct-plan-option-header">
                     <div>
                       <div class="acct-plan-option-name">Per esame</div>
-                      <div class="acct-plan-option-price">€9,99 <span>una tantum</span></div>
+                      <div class="acct-plan-option-price">€30 <span>una tantum</span></div>
                       <div class="acct-plan-option-desc">500 chiamate/giorno · 1 esame aggiuntivo · 50 MB · 90 giorni</div>
                     </div>
                     <button class="acct-pay-btn" onclick="startCheckout('exam')">
                       <i data-lucide="credit-card" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
-                      Acquista
+                      Acquista — €30
                     </button>
                   </div>
                 </div>
@@ -12442,12 +12442,12 @@ updateSourcesBtn();
                   <div class="acct-plan-option-header">
                     <div>
                       <div class="acct-plan-option-name">Mensile</div>
-                      <div class="acct-plan-option-price">€9,99 <span>/ mese</span></div>
+                      <div class="acct-plan-option-price">€15 <span>/ mese</span></div>
                       <div class="acct-plan-option-desc">1000 chiamate/giorno · esami illimitati · 200 MB storage</div>
                     </div>
                     <button class="acct-pay-btn primary" onclick="startCheckout('monthly')">
                       <i data-lucide="zap" style="width:11px;height:11px;stroke-width:2;flex-shrink:0"></i>
-                      Abbonati
+                      Abbonati — €15/mese
                     </button>
                   </div>
                 </div>

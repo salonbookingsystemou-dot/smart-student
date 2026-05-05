@@ -843,7 +843,7 @@
     .pricing-header .section-sub { margin: 0 auto; }
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       position: relative; z-index: 1;
     }
@@ -879,7 +879,8 @@
     .plan-cta-outline:hover { border-color: var(--accent); color: var(--accent); }
     .pricing-note { text-align: center; margin-top: 28px; font-size: 0.82rem; color: var(--grey2); }
     .pricing-note a { color: var(--accent); text-decoration: none; }
-    @media (max-width: 900px) { .pricing-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 1100px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px)  { .pricing-grid { grid-template-columns: 1fr; } }
 
     /* ─── RISPARMIO ─── */
     #risparmio {
@@ -1326,7 +1327,7 @@
       <!-- ESAME SINGOLO -->
       <div class="plan-card fade-in fade-in-delay-2" style="border-color:rgba(217,119,87,0.25);">
         <p class="plan-name">Esame singolo</p>
-        <p class="plan-price"><sup>€</sup>9,99</p>
+        <p class="plan-price"><sup>€</sup>30</p>
         <p class="plan-desc">Paghi una volta, prepari un esame senza limiti giornalieri. Nessun rinnovo automatico. Valido ~90 giorni.</p>
         <ul class="plan-features">
           <li><span class="check">✓</span> Fino a 500 chiamate AI/giorno</li>
@@ -1336,14 +1337,14 @@
           <li><span class="check">✓</span> Feedback AI potenziato</li>
           <li><span class="cross">✗</span> Esami illimitati in parallelo</li>
         </ul>
-        <a href="./app.html" class="plan-cta plan-cta-outline">Acquista in app</a>
+        <a href="./app.html" class="plan-cta plan-cta-outline">Acquista — €30 una tantum</a>
       </div>
 
       <!-- PRO (featured) -->
       <div class="plan-card featured fade-in fade-in-delay-3">
         <span class="plan-badge">Più conveniente</span>
         <p class="plan-name">Pro mensile</p>
-        <p class="plan-price"><sup>€</sup>9,99<sub>/mese</sub></p>
+        <p class="plan-price"><sup>€</sup>15<sub>/mese</sub></p>
         <p class="plan-desc">Esami illimitati per tutta la durata dell'abbonamento. Ideale per la sessione intensa o l'anno accademico.</p>
         <ul class="plan-features">
           <li><span class="check">✓</span> Esami illimitati in parallelo</li>
@@ -1353,11 +1354,24 @@
           <li><span class="check">✓</span> Feedback AI potenziato</li>
           <li><span class="check">✓</span> Disdici quando vuoi</li>
         </ul>
-        <a href="./app.html" class="plan-cta plan-cta-primary">Abbonati — da app</a>
+        <a href="./app.html" class="plan-cta plan-cta-primary">Abbonati — €15/mese</a>
+      </div>
+
+      <!-- IL CALCOLO -->
+      <div class="plan-card fade-in fade-in-delay-3" style="background:rgba(217,119,87,0.05);border-color:rgba(217,119,87,0.15);">
+        <p class="plan-name">Il calcolo</p>
+        <p class="plan-price" style="font-size:2rem;line-height:1.2;color:var(--accent);">1 anno<br>fuori corso</p>
+        <p class="plan-desc" style="margin-top:8px;">Costa in media oltre <strong style="color:var(--white);">€20.000</strong> tra tasse universitarie e mancato stipendio. Mnesti Pro costa una frazione di quello.</p>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> Tasse risparmiate: ~€4.000+/anno</li>
+          <li><span class="check">✓</span> Stipendio anticipato: ~€18.000/anno</li>
+          <li><span class="check">✓</span> Stress e tempo: impagabili</li>
+        </ul>
+        <a href="./app.html" class="plan-cta plan-cta-outline">Inizia gratis</a>
       </div>
 
     </div>
-    <p class="pricing-note fade-in">Pagamenti sicuri tramite <strong>Stripe</strong> · Disdici in qualsiasi momento · I prezzi esatti sono visibili in app su <a href="./app.html">mnesti.it/app.html</a></p>
+    <p class="pricing-note fade-in">Pagamenti sicuri tramite <strong>Stripe</strong> · Disdici in qualsiasi momento · I prezzi definitivi sono confermati al checkout</p>
   </div>
 </section>
 
