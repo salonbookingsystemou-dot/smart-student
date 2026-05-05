@@ -817,25 +817,43 @@
     .risparmio-left .section-sub { max-width: 420px; margin-bottom: 40px; }
     .risparmio-free {
       display: inline-flex;
+      flex-direction: column;
+      gap: 10px;
+      background: rgba(217,119,87,0.08);
+      border: 1px solid rgba(217,119,87,0.22);
+      border-radius: 14px;
+      padding: 20px 24px;
+      max-width: 380px;
+    }
+    .risparmio-free-top {
+      display: flex;
       align-items: center;
       gap: 10px;
-      background: rgba(217,119,87,0.1);
-      border: 1px solid rgba(217,119,87,0.25);
-      border-radius: 12px;
-      padding: 16px 24px;
-      font-size: 1rem;
-      color: var(--white);
-      font-weight: 500;
     }
     .risparmio-free-badge {
       background: var(--accent);
       color: #fff;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       padding: 4px 10px;
       border-radius: 100px;
       text-transform: uppercase;
       letter-spacing: 0.06em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .risparmio-free-tagline {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.3;
+    }
+    .risparmio-free-sub {
+      font-size: 0.82rem;
+      color: var(--grey);
+      line-height: 1.55;
+      padding-top: 6px;
+      border-top: 1px solid rgba(217,119,87,0.15);
     }
     .risparmio-numbers {
       display: flex;
@@ -1243,8 +1261,11 @@
       <h2 id="risparmio-heading" class="section-title">Non è questione di voto.<br>È questione di <em style="font-style:italic;color:var(--accent);">soldi.</em></h2>
       <p class="section-sub">Un anno fuori corso non è solo uno stress in più. È un costo reale, calcolabile, che ti segue per anni.</p>
       <div class="risparmio-free fade-in fade-in-delay-1">
-        <span class="risparmio-free-badge">1° esame gratis</span>
-        Mnesti non ti costa nulla per preparare il <strong>primo esame</strong> — nessuna carta per iniziare. Piani a pagamento solo se ti servono più esami o limiti più alti.
+        <div class="risparmio-free-top">
+          <span class="risparmio-free-badge">1° esame gratis</span>
+          <span class="risparmio-free-tagline">Nessuna carta per iniziare.</span>
+        </div>
+        <p class="risparmio-free-sub">Mnesti non ti costa nulla per preparare il <strong style="color:var(--white)">primo esame</strong>. Piani a pagamento opzionali solo se ti servono più esami o limiti più alti.</p>
       </div>
     </div>
     <div class="risparmio-numbers fade-in fade-in-delay-2">
