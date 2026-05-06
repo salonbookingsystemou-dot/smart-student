@@ -16,6 +16,7 @@ Disallow: /.well-known/
 Disallow: /CNAME
 Disallow: /sw.js
 Disallow: /manifest.json
+Disallow: /icon-preview.html
 
 # Sitemap
 Sitemap: https://mnesti.it/sitemap.xml
