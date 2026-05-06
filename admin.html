@@ -1523,7 +1523,7 @@ function filterExams() { renderExamsTable(); }
 /* ───────────────────────────────────────────────
    ANTHROPIC SERVICE STATUS
 ─────────────────────────────────────────────── */
-const _SVC_BASE = 'https://status.anthropic.com/api/v2';
+const _SVC_PROXY = `${SB_URL}/functions/v1/anthropic-status`;
 let _svcLoading = false;
 
 const _SVC_INDICATOR_LABEL = {
@@ -1571,12 +1571,16 @@ async function loadAnthropicStatus() {
   svcResolved.innerHTML   = '<div class="svc-loading">Caricamento…</div>';
 
   try {
-    const [sRes, cRes, iRes] = await Promise.all([
-      fetch(`${_SVC_BASE}/status.json`),
-      fetch(`${_SVC_BASE}/components.json`),
-      fetch(`${_SVC_BASE}/incidents.json`),
-    ]);
-    const [sData, cData, iData] = await Promise.all([sRes.json(), cRes.json(), iRes.json()]);
+    const token = _sb ? (await _sb.auth.getSession()).data.session?.access_token : null;
+    const res = await fetch(_SVC_PROXY, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error(`Proxy error ${res.status}`);
+    const payload = await res.json();
+    if (payload.error) throw new Error(payload.error);
+    const sData = payload.status;
+    const cData = payload.components;
+    const iData = payload.incidents;
 
     // ── Overall status ──────────────────────────────────────────
     const indicator = sData.status?.indicator || 'none';
