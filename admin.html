@@ -541,6 +541,143 @@
     .view-section { display: none; }
     .view-section.active { display: block; }
 
+    /* ── SERVICE STATUS ── */
+    .nav-status-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      margin-left: auto;
+      flex-shrink: 0;
+      background: var(--grey2);
+    }
+    .nav-status-dot.ok       { background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .nav-status-dot.warn     { background: var(--yellow); box-shadow: 0 0 5px var(--yellow); }
+    .nav-status-dot.error    { background: var(--red); box-shadow: 0 0 5px var(--red); }
+
+    .svc-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .svc-banner-left  { display: flex; align-items: center; gap: 14px; }
+    .svc-banner-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .svc-banner-title { font-size: 1.05rem; font-weight: 700; }
+    .svc-banner-sub   { font-size: .78rem; color: var(--grey); margin-top: 2px; }
+    .svc-updated      { font-size: .72rem; color: var(--grey); }
+    .svc-ext-link {
+      font-size: .75rem;
+      color: var(--accent);
+      text-decoration: none;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+    .svc-ext-link:hover { background: var(--dim); }
+
+    .svc-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .svc-dot--loading  { background: var(--grey2); }
+    .svc-dot--none     { background: var(--green);  box-shadow: 0 0 10px var(--green); }
+    .svc-dot--minor    { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+    .svc-dot--major    { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .svc-dot--critical { background: var(--red);    box-shadow: 0 0 10px var(--red); }
+
+    .svc-section-title {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--grey);
+      margin-bottom: 10px;
+    }
+
+    .svc-components {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .svc-component {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .svc-comp-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .svc-comp-dot--operational              { background: var(--green); }
+    .svc-comp-dot--degraded_performance     { background: var(--yellow); }
+    .svc-comp-dot--partial_outage           { background: var(--accent); }
+    .svc-comp-dot--major_outage             { background: var(--red); }
+    .svc-comp-dot--under_maintenance        { background: var(--blue); }
+    .svc-comp-name  { font-size: .82rem; flex: 1; }
+    .svc-comp-badge {
+      font-size: .66rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: capitalize;
+    }
+    .badge--operational          { background: #4caf5022; color: var(--green); }
+    .badge--degraded_performance { background: #f0b42922; color: var(--yellow); }
+    .badge--partial_outage       { background: #d9775722; color: var(--accent); }
+    .badge--major_outage         { background: #e5555522; color: var(--red); }
+    .badge--under_maintenance    { background: #4a9eff22; color: var(--blue); }
+
+    .svc-incidents { display: flex; flex-direction: column; gap: 10px; }
+    .svc-incident {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .svc-incident.svc-incident--none {
+      color: var(--grey);
+      font-size: .82rem;
+      padding: 16px;
+      text-align: center;
+      background: var(--bg2);
+    }
+    .svc-incident-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .svc-incident-name  { font-size: .88rem; font-weight: 600; flex: 1; }
+    .svc-incident-meta  { font-size: .7rem; color: var(--grey); }
+    .svc-impact {
+      font-size: .67rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .impact--none     { background: #4caf5022; color: var(--green); }
+    .impact--minor    { background: #f0b42922; color: var(--yellow); }
+    .impact--major    { background: #d9775722; color: var(--accent); }
+    .impact--critical { background: #e5555522; color: var(--red); }
+
+    .svc-updates { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+    .svc-update  { font-size: .77rem; color: var(--grey); margin-bottom: 6px; line-height: 1.5; }
+    .svc-update-time { font-size: .68rem; opacity: .6; margin-left: 4px; }
+    .svc-loading { color: var(--grey); font-size: .82rem; padding: 16px; }
+
     /* ── SCROLLBAR ── */
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
@@ -608,6 +745,11 @@
       </a>
       <a class="nav-item" data-view="plans" onclick="switchView('plans',this)">
         <span class="nav-icon">🎓</span> Piani & Esami
+      </a>
+      <p class="nav-section-label" style="margin-top:12px">Sistema</p>
+      <a class="nav-item" data-view="services" onclick="switchView('services',this);loadAnthropicStatus()">
+        <span class="nav-icon">🔌</span> Stato Servizi
+        <span class="nav-status-dot" id="nav-status-dot"></span>
       </a>
     </nav>
     <div class="sidebar-footer">
@@ -812,6 +954,45 @@
             </table>
           </div>
         </div>
+      </section>
+
+      <!-- ── VIEW: SERVICES ── -->
+      <section class="view-section" id="view-services">
+
+        <!-- Overall status banner -->
+        <div class="svc-banner" id="svc-banner">
+          <div class="svc-banner-left">
+            <span class="svc-dot svc-dot--loading" id="svc-dot-main"></span>
+            <div>
+              <div class="svc-banner-title" id="svc-banner-title">Caricamento stato…</div>
+              <div class="svc-banner-sub" id="svc-banner-sub">Recupero dati da status.anthropic.com</div>
+            </div>
+          </div>
+          <div class="svc-banner-right">
+            <span class="svc-updated" id="svc-updated"></span>
+            <button class="btn-refresh" onclick="loadAnthropicStatus()"><span class="refresh-icon">↻</span> Aggiorna</button>
+            <a class="svc-ext-link" href="https://status.anthropic.com" target="_blank" rel="noopener">Pagina ufficiale ↗</a>
+          </div>
+        </div>
+
+        <!-- Components grid -->
+        <div class="svc-section-title">Componenti</div>
+        <div class="svc-components" id="svc-components">
+          <div class="svc-loading">Caricamento componenti…</div>
+        </div>
+
+        <!-- Active incidents -->
+        <div class="svc-section-title" style="margin-top:28px">Incidenti attivi</div>
+        <div class="svc-incidents" id="svc-incidents">
+          <div class="svc-loading">Caricamento incidenti…</div>
+        </div>
+
+        <!-- Recent resolved incidents -->
+        <div class="svc-section-title" style="margin-top:28px">Ultimi incidenti risolti</div>
+        <div class="svc-incidents" id="svc-resolved">
+          <div class="svc-loading">Caricamento…</div>
+        </div>
+
       </section>
 
     </div><!-- /page-content -->
@@ -1340,13 +1521,144 @@ function renderExamsTable(users) {
 function filterExams() { renderExamsTable(); }
 
 /* ───────────────────────────────────────────────
+   ANTHROPIC SERVICE STATUS
+─────────────────────────────────────────────── */
+const _SVC_BASE = 'https://status.anthropic.com/api/v2';
+let _svcLoading = false;
+
+const _SVC_INDICATOR_LABEL = {
+  none:     'Tutti i sistemi operativi',
+  minor:    'Degradazione minore',
+  major:    'Degradazione maggiore',
+  critical: 'Interruzione critica',
+};
+const _COMP_STATUS_LABEL = {
+  operational:          'Operativo',
+  degraded_performance: 'Degradato',
+  partial_outage:       'Parziale',
+  major_outage:         'Interruzione',
+  under_maintenance:    'Manutenzione',
+};
+const _IMPACT_LABEL = {
+  none: 'Nessuno', minor: 'Minore', major: 'Maggiore', critical: 'Critico'
+};
+
+function _svcFmt(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' })
+    + ' ' + d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+}
+
+async function loadAnthropicStatus() {
+  if (_svcLoading) return;
+  _svcLoading = true;
+
+  const bannerTitle  = document.getElementById('svc-banner-title');
+  const bannerSub    = document.getElementById('svc-banner-sub');
+  const dotMain      = document.getElementById('svc-dot-main');
+  const svcUpdated   = document.getElementById('svc-updated');
+  const svcComponents= document.getElementById('svc-components');
+  const svcIncidents = document.getElementById('svc-incidents');
+  const svcResolved  = document.getElementById('svc-resolved');
+  const navDot       = document.getElementById('nav-status-dot');
+
+  bannerTitle.textContent = 'Caricamento…';
+  bannerSub.textContent   = 'Recupero dati da status.anthropic.com';
+  dotMain.className       = 'svc-dot svc-dot--loading';
+  svcComponents.innerHTML = '<div class="svc-loading">Caricamento componenti…</div>';
+  svcIncidents.innerHTML  = '<div class="svc-loading">Caricamento incidenti…</div>';
+  svcResolved.innerHTML   = '<div class="svc-loading">Caricamento…</div>';
+
+  try {
+    const [sRes, cRes, iRes] = await Promise.all([
+      fetch(`${_SVC_BASE}/status.json`),
+      fetch(`${_SVC_BASE}/components.json`),
+      fetch(`${_SVC_BASE}/incidents.json`),
+    ]);
+    const [sData, cData, iData] = await Promise.all([sRes.json(), cRes.json(), iRes.json()]);
+
+    // ── Overall status ──────────────────────────────────────────
+    const indicator = sData.status?.indicator || 'none';
+    bannerTitle.textContent = _SVC_INDICATOR_LABEL[indicator] || sData.status?.description || 'Stato sconosciuto';
+    bannerSub.textContent   = `Aggiornato alle ${_svcFmt(sData.page?.updated_at)}`;
+    dotMain.className       = `svc-dot svc-dot--${indicator}`;
+    svcUpdated.textContent  = `Ultimo check: ${new Date().toLocaleTimeString('it-IT')}`;
+
+    // Nav dot color
+    if (navDot) {
+      navDot.className = 'nav-status-dot ' + (indicator === 'none' ? 'ok' : indicator === 'minor' ? 'warn' : 'error');
+    }
+
+    // ── Components ──────────────────────────────────────────────
+    const components = (cData.components || []).filter(c => !c.group);
+    if (!components.length) {
+      svcComponents.innerHTML = '<div class="svc-loading">Nessun componente disponibile.</div>';
+    } else {
+      svcComponents.innerHTML = components.map(c => {
+        const st  = c.status || 'operational';
+        const lbl = _COMP_STATUS_LABEL[st] || st;
+        return `<div class="svc-component">
+          <span class="svc-comp-dot svc-comp-dot--${st}"></span>
+          <span class="svc-comp-name">${c.name}</span>
+          <span class="svc-comp-badge badge--${st}">${lbl}</span>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Incidents ───────────────────────────────────────────────
+    const allIncidents = iData.incidents || [];
+    const active   = allIncidents.filter(i => i.status !== 'resolved' && i.status !== 'postmortem');
+    const resolved = allIncidents.filter(i => i.status === 'resolved' || i.status === 'postmortem').slice(0, 5);
+
+    const _renderIncidents = (list, emptyMsg) => {
+      if (!list.length) return `<div class="svc-incident svc-incident--none">${emptyMsg}</div>`;
+      return list.map(inc => {
+        const impact = inc.impact || 'none';
+        const updates = (inc.incident_updates || []).slice(0, 3);
+        return `<div class="svc-incident">
+          <div class="svc-incident-header">
+            <div class="svc-incident-name">${inc.name}</div>
+            <span class="svc-impact impact--${impact}">${_IMPACT_LABEL[impact] || impact}</span>
+          </div>
+          <div class="svc-incident-meta">
+            Creato: ${_svcFmt(inc.created_at)}
+            ${inc.resolved_at ? ` · Risolto: ${_svcFmt(inc.resolved_at)}` : ''}
+          </div>
+          ${updates.length ? `<div class="svc-updates">${updates.map(u =>
+            `<div class="svc-update">
+              <strong style="text-transform:capitalize">${u.status}</strong> — ${u.body}
+              <span class="svc-update-time">${_svcFmt(u.created_at)}</span>
+            </div>`
+          ).join('')}</div>` : ''}
+        </div>`;
+      }).join('');
+    };
+
+    svcIncidents.innerHTML = _renderIncidents(active,   '✓ Nessun incidente attivo');
+    svcResolved.innerHTML  = _renderIncidents(resolved, 'Nessun incidente recente');
+
+  } catch(e) {
+    bannerTitle.textContent = 'Impossibile recuperare lo stato';
+    bannerSub.textContent   = `Errore: ${e.message} — verifica la connessione o visita status.anthropic.com`;
+    dotMain.className       = 'svc-dot svc-dot--critical';
+    svcComponents.innerHTML = '';
+    svcIncidents.innerHTML  = '';
+    svcResolved.innerHTML   = '';
+  } finally {
+    _svcLoading = false;
+  }
+}
+
+/* ───────────────────────────────────────────────
    NAVIGATION
 ─────────────────────────────────────────────── */
 const VIEW_TITLES = {
   overview: 'Dashboard',
   users:    'Utenti',
   usage:    'Utilizzo API',
-  plans:    'Piani & Esami'
+  plans:    'Piani & Esami',
+  services: 'Stato Servizi'
 };
 
 function switchView(id, navEl) {
