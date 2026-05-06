@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
       return json({ error: 'Richiesta malformata (JSON non valido)', code: 'BAD_REQUEST' }, 400)
     }
 
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const anthropicCall = () => fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -105,6 +105,14 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify(payload),
     })
+
+    let anthropicRes = await anthropicCall()
+
+    // Retry once after 3 s if Anthropic is overloaded (529)
+    if (anthropicRes.status === 529) {
+      await new Promise(r => setTimeout(r, 3000))
+      anthropicRes = await anthropicCall()
+    }
 
     let data: Record<string, unknown>
     try {
@@ -117,6 +125,14 @@ Deno.serve(async (req) => {
     // Log Anthropic-level errors for debugging
     if (!anthropicRes.ok) {
       console.error('[claude-proxy] Anthropic error:', anthropicRes.status, JSON.stringify(data))
+    }
+
+    // Return a user-friendly error when Anthropic is still overloaded after the retry
+    if (anthropicRes.status === 529) {
+      return json({
+        error: 'Il servizio AI è momentaneamente sovraccarico. Riprova tra qualche secondo.',
+        code: 'OVERLOADED',
+      }, 503)
     }
 
     // ── 5. Log usage (fire-and-forget) ────────────────────────────

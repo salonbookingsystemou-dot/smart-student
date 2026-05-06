@@ -7368,6 +7368,11 @@ async function _callClaude(payload) {
     if (data?.code === 'UNAUTHORIZED') {
       throw new Error('Sessione scaduta — effettua di nuovo il login.');
     }
+    if (data?.code === 'OVERLOADED' || data?.error?.type === 'overloaded_error' || res.status === 529) {
+      const e = new Error('Il servizio AI è momentaneamente sovraccarico. Riprova tra qualche secondo.');
+      e.name = 'OverloadedError';
+      throw e;
+    }
     throw new Error(msg);
   }
 
@@ -9728,7 +9733,16 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
 
   } catch(err) {
     feedbackEl.className = 'q-feedback poor visible';
-    feedbackEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div><div style="font-size:13px;margin-top:4px">' + (err.message || 'Errore sconosciuto') + '</div>';
+    if (err.name === 'OverloadedError') {
+      const _qEsc = questionText.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const _tEsc = (qType||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      feedbackEl.innerHTML =
+        '<div class="q-feedback-label feedback-poor" style="background:var(--accent-soft,#f5a623)22;color:var(--accent,#f5a623)">⏳ Servizio sovraccarico</div>' +
+        '<div style="font-size:13px;margin-top:6px;line-height:1.5">' + escHtml(err.message) + '</div>' +
+        `<button class="q-verify-btn" style="margin-top:10px;width:auto;padding:6px 14px" onclick="verifyAnswer('${dayId}',${qIdx},'${_qEsc}','${_tEsc}')">↩ Riprova</button>`;
+    } else {
+      feedbackEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div><div style="font-size:13px;margin-top:4px">' + (err.message || 'Errore sconosciuto') + '</div>';
+    }
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="check-circle" style="width:13px;height:13px;stroke-width:2.2;flex-shrink:0"></i> Verifica risposta'; lucide.createIcons();
@@ -9888,7 +9902,16 @@ Tono da mantenere:
 
   } catch(err) {
     fbEl.className = 'q-feedback poor visible';
-    fbEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div>' + escHtml(err.message);
+    if (err.name === 'OverloadedError') {
+      const _qEsc = questionText.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const _tEsc = (qType||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      fbEl.innerHTML =
+        '<div class="q-feedback-label feedback-poor" style="background:var(--accent-soft,#f5a623)22;color:var(--accent,#f5a623)">⏳ Servizio sovraccarico</div>' +
+        '<div style="font-size:13px;margin-top:6px;line-height:1.5">' + escHtml(err.message) + '</div>' +
+        `<button class="q-verify-btn" style="margin-top:10px;width:auto;padding:6px 14px" onclick="reverifyAnswer('${dayId}',${qIdx},'${_qEsc}','${_tEsc}')">↩ Riprova</button>`;
+    } else {
+      fbEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div>' + escHtml(err.message);
+    }
   } finally {
     rvBtn.disabled = false;
     rvBtn.textContent = 'Riverifica →';
