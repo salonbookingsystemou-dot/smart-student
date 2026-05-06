@@ -5626,6 +5626,26 @@ const _ACCENT_PRESETS = [
 
   /* ── Post-auth bootstrap ── */
   let _bootstrapped = false;
+  // Upsert the current exam info into user_exams so the admin dashboard
+  // always sees correct counts, even for exams created before the table existed.
+  function _syncExamInfoToSupabase(userId) {
+    if (!_sb || !userId) return;
+    try {
+      const info = JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
+      const subject = (info.subject || '').trim();
+      if (!subject) return;
+      _sb.from('user_exams')
+        .upsert(
+          { user_id: userId, exam_name: subject, exam_date: info.date || null, updated_at: new Date().toISOString() },
+          { onConflict: 'user_id,exam_name' }
+        )
+        .then(({ error }) => { if (error) console.warn('[user_exams] sync failed:', error.message, error.details); })
+        .catch(e => console.warn('[user_exams] sync error:', e));
+    } catch(e) {
+      console.warn('[user_exams] sync exception:', e);
+    }
+  }
+
   let _logoutInProgress = false;
   async function _bootstrap(session, isNewLogin) {
     if (_bootstrapped) return;
@@ -5641,6 +5661,9 @@ const _ACCENT_PRESETS = [
     _hideLogin();
 
     await window._syncToSupabase();
+
+    // Backfill user_exams row so admin dashboard always counts correctly
+    _syncExamInfoToSupabase(session.user.id);
 
     // Check if new user needs onboarding (no exam date or no AI plan)
     const info = JSON.parse(localStorage.getItem('psico_exam_info') || '{}');
@@ -12064,11 +12087,7 @@ REGOLE ASSOLUTE (non derogabili):
     _safeLSSet('psico_ai_plan', JSON.stringify(plan));
 
     // Sync exam to Supabase user_exams (for admin dashboard tracking)
-    if (_sb && window._currentUserId && subject) {
-      _sb.from('user_exams')
-        .upsert({ user_id: window._currentUserId, exam_name: subject, exam_date: info.date || null, updated_at: new Date().toISOString() }, { onConflict: 'user_id,exam_name' })
-        .then(() => {}).catch(() => {});
-    }
+    _syncExamInfoToSupabase(window._currentUserId);
 
     _setPlanGenUI('Piano completato ✓', `${normalizedDays.length} giorni pianificati fino all\'esame.`, 100, 'Caricamento…');
     await new Promise(r => setTimeout(r, 800));
