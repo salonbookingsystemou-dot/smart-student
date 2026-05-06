@@ -106,11 +106,13 @@ Deno.serve(async (req) => {
       body: JSON.stringify(payload),
     })
 
+    // Retry up to 3 times with exponential backoff on 529 Overloaded
+    const RETRY_DELAYS = [2000, 5000, 10000]
     let anthropicRes = await anthropicCall()
-
-    // Retry once after 3 s if Anthropic is overloaded (529)
-    if (anthropicRes.status === 529) {
-      await new Promise(r => setTimeout(r, 3000))
+    for (const delay of RETRY_DELAYS) {
+      if (anthropicRes.status !== 529) break
+      console.warn(`[claude-proxy] Anthropic 529 — retrying in ${delay}ms`)
+      await new Promise(r => setTimeout(r, delay))
       anthropicRes = await anthropicCall()
     }
 
@@ -127,10 +129,10 @@ Deno.serve(async (req) => {
       console.error('[claude-proxy] Anthropic error:', anthropicRes.status, JSON.stringify(data))
     }
 
-    // Return a user-friendly error when Anthropic is still overloaded after the retry
+    // Still overloaded after all retries
     if (anthropicRes.status === 529) {
       return json({
-        error: 'Il servizio AI è momentaneamente sovraccarico. Riprova tra qualche secondo.',
+        error: 'Il servizio AI è sovraccarico. Riprova tra qualche minuto.',
         code: 'OVERLOADED',
       }, 503)
     }

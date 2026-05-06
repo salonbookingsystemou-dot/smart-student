@@ -9584,6 +9584,54 @@ function _dismissCoachModal(advance) {
   }
 }
 
+// ── Auto-retry countdown for overloaded errors ───────────────
+const _overloadedTimers = {};
+function _showOverloadedUI(containerEl, retryFn, countdownSecs = 15) {
+  const timerId = 'ol_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  const btnId   = 'ol-btn-' + timerId;
+  const lblId   = 'ol-lbl-' + timerId;
+
+  containerEl.className = 'q-feedback poor visible';
+  containerEl.innerHTML =
+    '<div class="q-feedback-label feedback-poor" style="background:#f5a62322;color:#f5a623">⏳ Servizio sovraccarico</div>' +
+    '<div style="font-size:13px;margin-top:6px;line-height:1.5">Il servizio AI è momentaneamente sovraccarico. Riprova tra qualche secondo.</div>' +
+    `<div style="display:flex;align-items:center;gap:10px;margin-top:10px">` +
+      `<button class="q-verify-btn" id="${btnId}" style="width:auto;padding:6px 14px">↩ Riprova</button>` +
+      `<span id="${lblId}" style="font-size:12px;opacity:0.65">Riprova automatica tra <b>${countdownSecs}s</b></span>` +
+    `</div>`;
+
+  let remaining = countdownSecs;
+  const lblEl = () => document.getElementById(lblId);
+  const btnEl = () => document.getElementById(btnId);
+
+  const tick = () => {
+    remaining--;
+    const l = lblEl();
+    if (!l) { clearInterval(_overloadedTimers[timerId]); return; }
+    if (remaining <= 0) {
+      clearInterval(_overloadedTimers[timerId]);
+      delete _overloadedTimers[timerId];
+      const b = btnEl(); if (b) b.disabled = true;
+      if (l) l.textContent = 'Nuovo tentativo…';
+      retryFn();
+    } else {
+      l.innerHTML = `Riprova automatica tra <b>${remaining}s</b>`;
+    }
+  };
+
+  _overloadedTimers[timerId] = setInterval(tick, 1000);
+
+  // Manual retry button cancels the timer
+  setTimeout(() => {
+    const b = btnEl();
+    if (b) b.onclick = () => {
+      clearInterval(_overloadedTimers[timerId]);
+      delete _overloadedTimers[timerId];
+      retryFn();
+    };
+  }, 0);
+}
+
 async function verifyAnswer(dayId, qIdx, questionText, qType) {
   const answerEl = document.getElementById('answer-' + dayId + '-' + qIdx);
   const feedbackEl = document.getElementById('feedback-' + dayId + '-' + qIdx);
@@ -9732,15 +9780,10 @@ Sii come un professore esigente ma dalla parte dello studente: onesto, preciso, 
     _showCoachModal(grade, score, () => advanceQuestion(dayId, _autoAdv), _autoAdv);
 
   } catch(err) {
-    feedbackEl.className = 'q-feedback poor visible';
     if (err.name === 'OverloadedError') {
-      const _qEsc = questionText.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      const _tEsc = (qType||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      feedbackEl.innerHTML =
-        '<div class="q-feedback-label feedback-poor" style="background:var(--accent-soft,#f5a623)22;color:var(--accent,#f5a623)">⏳ Servizio sovraccarico</div>' +
-        '<div style="font-size:13px;margin-top:6px;line-height:1.5">' + escHtml(err.message) + '</div>' +
-        `<button class="q-verify-btn" style="margin-top:10px;width:auto;padding:6px 14px" onclick="verifyAnswer('${dayId}',${qIdx},'${_qEsc}','${_tEsc}')">↩ Riprova</button>`;
+      _showOverloadedUI(feedbackEl, () => verifyAnswer(dayId, qIdx, questionText, qType));
     } else {
+      feedbackEl.className = 'q-feedback poor visible';
       feedbackEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div><div style="font-size:13px;margin-top:4px">' + (err.message || 'Errore sconosciuto') + '</div>';
     }
   } finally {
@@ -9901,15 +9944,10 @@ Tono da mantenere:
     _showCoachModal(grade, score, null);
 
   } catch(err) {
-    fbEl.className = 'q-feedback poor visible';
     if (err.name === 'OverloadedError') {
-      const _qEsc = questionText.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      const _tEsc = (qType||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      fbEl.innerHTML =
-        '<div class="q-feedback-label feedback-poor" style="background:var(--accent-soft,#f5a623)22;color:var(--accent,#f5a623)">⏳ Servizio sovraccarico</div>' +
-        '<div style="font-size:13px;margin-top:6px;line-height:1.5">' + escHtml(err.message) + '</div>' +
-        `<button class="q-verify-btn" style="margin-top:10px;width:auto;padding:6px 14px" onclick="reverifyAnswer('${dayId}',${qIdx},'${_qEsc}','${_tEsc}')">↩ Riprova</button>`;
+      _showOverloadedUI(fbEl, () => reverifyAnswer(dayId, qIdx, questionText, qType));
     } else {
+      fbEl.className = 'q-feedback poor visible';
       fbEl.innerHTML = '<div class="q-feedback-label feedback-poor">ERRORE</div>' + escHtml(err.message);
     }
   } finally {
