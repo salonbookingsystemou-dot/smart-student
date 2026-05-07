@@ -8594,8 +8594,9 @@ function _mcBindCarousel() {
     const slide = e.target.closest('.mc-carousel-slide');
     if (!slide) return;
     const i = +slide.dataset.mcI;
-    if (i !== _mcCarouselSnapIndex()) return;
-    _mcIdx = i;
+    // Use _mcIdx (state variable) instead of recalculating from scrollLeft,
+    // which can differ by sub-pixels on desktop (DPR, native scrollbar width, etc.)
+    if (i !== _mcIdx) return;
     const cardEl = slide.querySelector('.mc-card');
     if (!cardEl) return;
     cardEl.classList.toggle('flipped');
