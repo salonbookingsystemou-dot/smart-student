@@ -1618,7 +1618,7 @@
     font-size: 13px;
     padding: 8px 10px;
     resize: vertical;
-    min-height: 70px;
+    min-height: 140px;
     outline: none;
     transition: border-color 0.15s;
     line-height: 1.5;
@@ -5786,7 +5786,7 @@
     /* ── Questions ── */
     .q-top { flex-direction: column; gap: 8px; }
     .q-type { align-self: flex-start; flex-direction: row; gap: 6px; }
-    .q-answer-input { font-size: 16px; min-height: 120px; }
+    .q-answer-input { font-size: 16px; min-height: 240px; }
     .q-answer-tools { gap: 10px; }
     .q-mic-btn { width: 44px; height: 44px; flex-shrink: 0; }
     .q-cam-btn { width: 44px; height: 44px; flex-shrink: 0; }
