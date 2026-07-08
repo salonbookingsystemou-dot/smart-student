@@ -2884,7 +2884,7 @@ function _renderQsPanel(dayId) {
     const fb = feedbacks[i];
       const gradeIcon = { good: '✓', partial: '◑', poor: '✗' }[fb.grade] || '?';
     const ans = answers[i] || '';
-    const ansPreview = escHtml(ans.length > 300 ? ans.substring(0,300) + '…' : ans);
+    const ansPreview = escHtml(ans);
     // Support both full HTML feedback and compacted text-only feedback
     // Reconstruct feedback HTML from stored components (never rely on saved raw HTML)
     const _fbScore = fb.score || { good: 4, partial: 2, poor: 1 }[fb.grade] || 2;
@@ -6064,10 +6064,9 @@ Tono da mantenere:
     fbEl.className = `q-feedback ${grade} visible`;
     fbEl.innerHTML = fbHtml;
 
-    // Update answer preview
+    // Update answer text (mostrata per intero)
     const previewEl = document.getElementById(`done-ans-text-${dayId}-${qIdx}`);
-    const preview = answer.length > 300 ? answer.substring(0, 300) + '…' : answer;
-    if (previewEl) previewEl.textContent = preview;
+    if (previewEl) previewEl.textContent = answer;
 
     // Update grade icon on toggle button
     const iconEl = document.querySelector(`#done-q-${dayId}-${qIdx} .q-done-grade-icon`);
