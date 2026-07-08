@@ -6618,12 +6618,11 @@ function _ocrOverlayClick(e) {
 }
 
 // ══════════════════════════════════════════════════════════
-// TUTOR ASSISTANT — voice-first study helper
+// TUTOR ASSISTANT — text-first study helper (mic = dettatura)
 // ══════════════════════════════════════════════════════════
 const _tutor = {
   open: false,
   listening: false,
-  speaking: false,
   loading: false,
   messages: [],   // [{role:'user'|'ai', text, ts}]
   recognition: null,
@@ -6641,9 +6640,9 @@ function toggleTutor() {
   if (_tutor.open) {
     _tutorUpdateHeader();
     lucide.createIcons({ nodes: [panel] });
+    document.getElementById('tutorTextInput')?.focus();
   } else {
     _tutorStopListening(false);
-    _tutorStopSpeaking();
   }
 }
 
@@ -6740,14 +6739,13 @@ function _tutorRender() {
     div.className = `tutor-msg ${msg.role}`;
 
     const time = new Date(msg.ts).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    const isSpeaking = _tutor.speaking && i === _tutor.messages.length - 1 && msg.role === 'ai';
 
     const SUPPORT_TOKEN = '[SUPPORTO_UMANO]';
     if (msg.role === 'ai' && msg.text.includes(SUPPORT_TOKEN)) {
       const cleanText = msg.text.replace(SUPPORT_TOKEN, '').trim();
       const msgId = `tsup-${i}`;
       div.innerHTML = `
-        <div class="tutor-bubble${isSpeaking ? ' speaking' : ''}">
+        <div class="tutor-bubble">
           ${_tutorEsc(cleanText)}
           <div class="tutor-support-wrap" id="${msgId}-wrap">
             <div class="tutor-support-note">Nessun problema — puoi scrivere direttamente al team Mnesti.</div>
@@ -6769,7 +6767,7 @@ function _tutorRender() {
         <div class="tutor-msg-time">${time}</div>`;
     } else {
       div.innerHTML = `
-        <div class="tutor-bubble${isSpeaking ? ' speaking' : ''}">${_tutorEsc(msg.text)}</div>
+        <div class="tutor-bubble">${_tutorEsc(msg.text)}</div>
         <div class="tutor-msg-time">${time}</div>`;
     }
     container.appendChild(div);
@@ -6964,31 +6962,13 @@ function _tutorStopVisualizer() {
   }
 }
 
-// ── Microphone ─────────────────────────────────────────────
+// ── Microphone (dettatura nel campo di testo) ──────────────
 function _tutorToggleMic() {
   if (_tutor.listening) {
     _tutorStopListening(true);
   } else {
-    // Unlock speechSynthesis on iOS/Android: must be called inside
-    // a direct user-gesture handler. We speak a zero-volume empty
-    // utterance here so the audio session is already open when the
-    // AI response arrives (after the async Claude call).
-    _tutorUnlockTts();
     _tutorStartListening();
   }
-}
-
-function _tutorUnlockTts() {
-  if (!window.speechSynthesis) return;
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance('');
-    u.volume = 0;
-    u.lang   = 'it-IT';
-    speechSynthesis.speak(u);
-    // Also resume in case iOS put synthesis in paused state
-    if (speechSynthesis.paused) speechSynthesis.resume();
-  } catch(e) {}
 }
 
 function _tutorStartListening() {
@@ -6998,7 +6978,6 @@ function _tutorStartListening() {
     return;
   }
   if (_tutor.loading) return;
-  _tutorStopSpeaking();
 
   const rec = new SpeechRec();
   rec.lang = 'it-IT';
@@ -7012,11 +6991,17 @@ function _tutorStartListening() {
   _tutorSetMicState(true);
   _tutorStartVisualizer();
 
-  const transcriptEl = document.getElementById('tutorTranscript');
-  if (transcriptEl) {
-    transcriptEl.className = 'tutor-transcript-row live';
-    transcriptEl.textContent = 'In ascolto…';
-  }
+  const input = document.getElementById('tutorTextInput');
+  // Testo già digitato prima della dettatura: la trascrizione si accoda
+  const baseText = input ? input.value.trim() : '';
+  if (input) input.placeholder = 'In ascolto…';
+
+  const _applyTranscript = () => {
+    if (!input) return;
+    const t = _tutor.liveTranscript.trim();
+    input.value = baseText ? (t ? baseText + ' ' + t : baseText) : t;
+    _tutorInputChanged();
+  };
 
   rec.onresult = (e) => {
     let interim = '', final = '';
@@ -7025,7 +7010,7 @@ function _tutorStartListening() {
       if (e.results[i].isFinal) final += t; else interim += t;
     }
     _tutor.liveTranscript = final || interim;
-    if (transcriptEl) transcriptEl.textContent = _tutor.liveTranscript || 'In ascolto…';
+    _applyTranscript();
   };
 
   rec.onerror = (e) => {
@@ -7034,15 +7019,13 @@ function _tutorStartListening() {
   };
 
   rec.onend = () => {
-    const text = _tutor.liveTranscript.trim();
     _tutor.listening = false;
     _tutorSetMicState(false);
-    if (text) _tutorSend(text);
-    else {
-      if (transcriptEl) {
-        transcriptEl.className = 'tutor-transcript-row placeholder';
-        transcriptEl.textContent = 'Premi il microfono per parlare…';
-      }
+    _tutorStopVisualizer();
+    _applyTranscript();
+    if (input) {
+      input.placeholder = 'Scrivi la tua domanda…';
+      input.focus();
     }
   };
 
@@ -7058,18 +7041,45 @@ function _tutorStopListening(commit) {
   _tutor.listening = false;
   _tutorSetMicState(false);
   _tutorStopVisualizer();
-  if (!commit) {
-    const transcriptEl = document.getElementById('tutorTranscript');
-    if (transcriptEl) {
-      transcriptEl.className = 'tutor-transcript-row placeholder';
-      transcriptEl.textContent = 'Premi il microfono per parlare…';
-    }
-  }
+  const input = document.getElementById('tutorTextInput');
+  if (input) input.placeholder = 'Scrivi la tua domanda…';
 }
 
 function _tutorSetMicState(listening) {
   const btn = document.getElementById('tutorMicBtn');
   if (btn) btn.classList.toggle('listening', listening);
+}
+
+// ── Text input ─────────────────────────────────────────────
+function _tutorInputChanged() {
+  const input = document.getElementById('tutorTextInput');
+  const btn   = document.getElementById('tutorSendBtn');
+  if (!input) return;
+  // Auto-grow fino a ~4 righe
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 96) + 'px';
+  if (btn) btn.disabled = !input.value.trim() || _tutor.loading;
+}
+
+function _tutorInputKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    _tutorSendFromInput();
+  }
+}
+
+function _tutorSendFromInput() {
+  if (_tutor.loading) return;
+  const input = document.getElementById('tutorTextInput');
+  const text  = (input?.value || '').trim();
+  if (!text) return;
+  if (_tutor.listening) _tutorStopListening(false);
+  if (input) {
+    input.value = '';
+    input.style.height = 'auto';
+  }
+  _tutorInputChanged();
+  _tutorSend(text);
 }
 
 // ── Send to Claude ─────────────────────────────────────────
@@ -7081,13 +7091,7 @@ async function _tutorSend(userText) {
   _tutor.history.push({ role: 'user', content: userText });
   _tutor.loading = true;
   _tutorRender();
-
-  // Reset transcript
-  const transcriptEl = document.getElementById('tutorTranscript');
-  if (transcriptEl) {
-    transcriptEl.className = 'tutor-transcript-row placeholder';
-    transcriptEl.textContent = 'Elaborazione…';
-  }
+  _tutorInputChanged();
 
   try {
     const messages = _tutor.history.slice(-TUTOR_MAX_HISTORY);
@@ -7109,13 +7113,7 @@ async function _tutorSend(userText) {
     _tutor.messages.push({ role: 'ai', text: reply, ts: Date.now() });
     _tutor.loading = false;
     _tutorRender();
-
-    if (transcriptEl) {
-      transcriptEl.className = 'tutor-transcript-row placeholder';
-      transcriptEl.textContent = 'Premi il microfono per parlare…';
-    }
-
-    _tutorSpeak(reply);
+    _tutorInputChanged();
 
   } catch(err) {
     console.error('[Tutor]', err);
@@ -7124,139 +7122,8 @@ async function _tutorSend(userText) {
     _tutor.messages.push({ role: 'ai', text: errMsg, ts: Date.now() });
     _tutor.loading = false;
     _tutorRender();
-    if (transcriptEl) {
-      transcriptEl.className = 'tutor-transcript-row placeholder';
-      transcriptEl.textContent = 'Premi il microfono per parlare…';
-    }
+    _tutorInputChanged();
   }
-}
-
-// ── Text-to-Speech ─────────────────────────────────────────
-// Cache voices as soon as they are available (Chrome loads them async)
-let _ttsVoices = [];
-function _ttsLoadVoices() {
-  const v = window.speechSynthesis ? speechSynthesis.getVoices() : [];
-  if (v.length) _ttsVoices = v;
-  return _ttsVoices;
-}
-
-/**
- * Seleziona la migliore voce italiana disponibile.
- * Priorità: voci neurali native (Alice/Federica/Luca su macOS/iOS) →
- *           Google italiano (Chrome) → qualsiasi voce it non-Compact → fallback.
- */
-function _ttsBestItalianVoice() {
-  const voices = _ttsLoadVoices();
-  const it = voices.filter(v => v.lang.startsWith('it'));
-  if (!it.length) return null;
-
-  // Voci neurali di alta qualità, in ordine di preferenza
-  const PREFERRED = ['Alice', 'Federica', 'Luca', 'Google italiano', 'Google Italian'];
-  for (const name of PREFERRED) {
-    const match = it.find(v => v.name.includes(name));
-    if (match) return match;
-  }
-  // Evita voci "Compact" (bassa qualità) e scegli la prima disponibile
-  return it.find(v => !v.name.includes('Compact')) || it[0];
-}
-
-/**
- * Pulisce il testo prima della sintesi vocale:
- * rimuove emoji, simboli markdown, virgolette tipografiche, token speciali.
- */
-function _ttsClean(text) {
-  return (text || '')
-    // Rimuovi token interni dell'app
-    .replace(/\[SUPPORTO_UMANO\]/g, '')
-    // Rimuovi emoji (Unicode ranges principali)
-    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
-    .replace(/[\u{2600}-\u{27BF}]/gu, ' ')
-    .replace(/[\u{FE00}-\u{FEFF}]/gu, '')
-    // Rimuovi simboli markdown
-    .replace(/[*_`#~|\\]/g, '')
-    // Rimuovi virgolette tipografiche e angolari
-    .replace(/[«»""„‟‹›''‚]/g, '')
-    // Rimuovi frecce, pallini, segni di spunta e simili
-    .replace(/[•·→←↑↓⇒⇐►◄▸▹▶▷◆◇■□●○✓✗✘✔✕✖]/g, '')
-    // [testo] → testo
-    .replace(/\[([^\]]*)\]/g, '$1')
-    // Abbrevia sequenze di punteggiatura
-    .replace(/\.{2,}/g, '.')
-    .replace(/[!?]{2,}/g, m => m[0])
-    // Normalizza spazi
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-if (window.speechSynthesis) {
-  // Chrome fires voiceschanged once the list is ready
-  speechSynthesis.onvoiceschanged = _ttsLoadVoices;
-  // Immediate attempt (Firefox, Safari)
-  _ttsLoadVoices();
-  // Fallback per iOS Safari dove onvoiceschanged potrebbe non scattare mai
-  setTimeout(_ttsLoadVoices, 500);
-  setTimeout(_ttsLoadVoices, 1500);
-  setTimeout(_ttsLoadVoices, 3000);
-}
-
-function _tutorSpeak(text) {
-  if (!window.speechSynthesis || !text) return;
-  _tutorStopSpeaking();
-
-  const cleanText = _ttsClean(text);
-  if (!cleanText) return;
-
-  function _doSpeak() {
-    const utter = new SpeechSynthesisUtterance(cleanText);
-    utter.lang  = 'it-IT';
-    utter.rate  = 0.95;  // leggermente più lento = più naturale
-    utter.pitch = 1.0;
-
-    const voice = _ttsBestItalianVoice();
-    if (voice) utter.voice = voice;
-
-    utter.onstart = () => {
-      _tutor.speaking = true;
-      const btn = document.getElementById('tutorStopBtn');
-      if (btn) btn.style.display = '';
-      _tutorRender();
-    };
-    utter.onend = utter.onerror = () => {
-      _tutor.speaking = false;
-      const btn = document.getElementById('tutorStopBtn');
-      if (btn) btn.style.display = 'none';
-      _tutorRender();
-    };
-
-    // iOS may put synthesis in paused state — always resume first.
-    if (speechSynthesis.paused) speechSynthesis.resume();
-    // Small delay: Chrome/Android sometimes drops speak() called
-    // immediately after a long async gap; rescheduling is reliable.
-    setTimeout(() => {
-      if (!window.speechSynthesis) return;
-      if (speechSynthesis.paused) speechSynthesis.resume();
-      speechSynthesis.speak(utter);
-    }, 100);
-  }
-
-  if (_ttsVoices.length) {
-    _doSpeak();
-  } else {
-    // Voices not ready yet — wait for them then speak
-    const prevHandler = speechSynthesis.onvoiceschanged;
-    speechSynthesis.onvoiceschanged = function() {
-      _ttsLoadVoices();
-      speechSynthesis.onvoiceschanged = prevHandler;
-      _doSpeak();
-    };
-  }
-}
-
-function _tutorStopSpeaking() {
-  if (window.speechSynthesis) speechSynthesis.cancel();
-  _tutor.speaking = false;
-  const btn = document.getElementById('tutorStopBtn');
-  if (btn) btn.style.display = 'none';
 }
 
 // ── Quiz ────────────────────────────────────────────────────
@@ -10780,8 +10647,6 @@ const MnestiAI = Object.freeze({
   extractJson:        _extractJson,
   repairQuiz:         _repairAndParseQuiz,
   tutorSend:          _tutorSend,
-  tutorSpeak:         _tutorSpeak,
-  tutorStopSpeaking:  _tutorStopSpeaking,
   startOcr:           startPhotoOcr,
   runOcrVision:       _ocrRunVision,
 });
