@@ -1592,7 +1592,7 @@
       <div class="tutor-empty-icon">
         <img src="logo-mark.png" alt="" aria-hidden="true" class="tutor-empty-logo">
       </div>
-      <div class="tutor-empty-text">Premi il microfono e fai una domanda sull'esame — rispondo a voce.</div>
+      <div class="tutor-empty-text">Scrivi una domanda sull'esame — oppure dettala con il microfono.</div>
     </div>
   </div>
 
@@ -1602,14 +1602,15 @@
     <div class="tutor-wave mic-indicator" id="tutorWave" style="display:none;margin-bottom:4px;height:36px">
       <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
-    <div class="tutor-transcript-row placeholder" id="tutorTranscript">Premi il microfono per parlare…</div>
     <div class="tutor-input-row">
-      <button class="tutor-mic-btn" id="tutorMicBtn" onclick="_tutorToggleMic()" title="Parla">
+      <button class="tutor-mic-btn" id="tutorMicBtn" onclick="_tutorToggleMic()" title="Detta la domanda">
         <i data-lucide="mic" style="width:16px;height:16px;stroke-width:2.2"></i>
       </button>
-      <div class="tutor-center-hint" id="tutorHint">Puoi chiedere chiarimenti,<br>definizioni o esempi sull'esame</div>
-      <button class="tutor-stop-btn" id="tutorStopBtn" onclick="_tutorStopSpeaking()" title="Ferma audio" style="display:none">
-        <i data-lucide="volume-x" style="width:14px;height:14px;stroke-width:2.2"></i>
+      <textarea class="tutor-text-input" id="tutorTextInput" rows="1"
+        placeholder="Scrivi la tua domanda…"
+        oninput="_tutorInputChanged()" onkeydown="_tutorInputKeydown(event)"></textarea>
+      <button class="tutor-send-btn" id="tutorSendBtn" onclick="_tutorSendFromInput()" title="Invia" disabled>
+        <i data-lucide="send" style="width:15px;height:15px;stroke-width:2.2"></i>
       </button>
     </div>
   </div>
