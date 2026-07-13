@@ -6623,12 +6623,15 @@ const _tutor = {
   open: false,
   listening: false,
   loading: false,
-  messages: [],   // [{role:'user'|'ai', text, ts}]
+  messages: [],   // [{role:'user'|'ai', text, attachment?, ts}]
   recognition: null,
   liveTranscript: '',
-  history: []     // last N pairs for Claude context [{role,content}]
+  history: [],    // last N pairs for Claude context [{role,content}]
+  attachment: null // { name, pages, text, truncated } — PDF in attesa di invio
 };
 const TUTOR_MAX_HISTORY = 8; // messaggi Claude da tenere in contesto
+const TUTOR_PDF_MAX_CHARS = 30000; // ~7500 token inviati a Claude
+const TUTOR_PDF_MAX_MB = 25;
 
 function toggleTutor() {
   _tutor.open = !_tutor.open;
@@ -6714,7 +6717,8 @@ REGOLE ASSOLUTE:
 6. Parla come un tutor universitario esperto: preciso, diretto, incoraggiante.
 7. Tono conversazionale, non da manuale accademico. Elenchi puntati solo quando aiutano davvero la comprensione.
 8. Non aggiungere mai [SUPPORTO_UMANO] per domande sull'esame o sul suo contenuto.
-9. TRACCIABILITÀ: se ti chiedono da quale fonte proviene una domanda del piano, usa l'indice domande qui sotto per rispondere con precisione — cita nome fonte, sezione/slide e l'estratto testuale del sourceRef.${srcCtx}${questionIndex}`;
+9. TRACCIABILITÀ: se ti chiedono da quale fonte proviene una domanda del piano, usa l'indice domande qui sotto per rispondere con precisione — cita nome fonte, sezione/slide e l'estratto testuale del sourceRef.
+10. DOCUMENTI ALLEGATI: se il messaggio contiene un blocco [DOCUMENTO ALLEGATO … FINE DOCUMENTO], lo studente ha caricato un PDF da analizzare: rispondi basandoti sul suo contenuto (riassunti, spiegazioni, collegamenti con l'esame). Il documento allegato è sempre pertinente. Se il testo è segnato come parziale, avvisa che l'analisi copre solo la parte iniziale del documento.${srcCtx}${questionIndex}`;
 }
 
 // ── Render ─────────────────────────────────────────────────
@@ -6765,8 +6769,14 @@ function _tutorRender() {
         </div>
         <div class="tutor-msg-time">${time}</div>`;
     } else {
+      const attChip = msg.attachment
+        ? `<div class="tutor-msg-attach">
+             <i data-lucide="file-text" style="width:12px;height:12px;stroke-width:2;flex-shrink:0"></i>
+             ${_tutorEsc(msg.attachment.name)} · ${msg.attachment.pages} pag.
+           </div>`
+        : '';
       div.innerHTML = `
-        <div class="tutor-bubble">${_tutorEsc(msg.text)}</div>
+        <div class="tutor-bubble">${attChip}${_tutorEsc(msg.text)}</div>
         <div class="tutor-msg-time">${time}</div>`;
     }
     container.appendChild(div);
@@ -7057,7 +7067,8 @@ function _tutorInputChanged() {
   // Auto-grow fino a ~4 righe
   input.style.height = 'auto';
   input.style.height = Math.min(input.scrollHeight, 96) + 'px';
-  if (btn) btn.disabled = !input.value.trim() || _tutor.loading;
+  const hasAttachment = !!(_tutor.attachment && !_tutor.attachment.loading);
+  if (btn) btn.disabled = (!input.value.trim() && !hasAttachment) || _tutor.loading;
 }
 
 function _tutorInputKeydown(e) {
@@ -7070,8 +7081,9 @@ function _tutorInputKeydown(e) {
 function _tutorSendFromInput() {
   if (_tutor.loading) return;
   const input = document.getElementById('tutorTextInput');
-  const text  = (input?.value || '').trim();
-  if (!text) return;
+  let text = (input?.value || '').trim();
+  if (!text && !_tutor.attachment) return;
+  if (!text) text = 'Analizza il contenuto di questo documento e riassumine i punti chiave.';
   if (_tutor.listening) _tutorStopListening(false);
   if (input) {
     input.value = '';
@@ -7081,13 +7093,105 @@ function _tutorSendFromInput() {
   _tutorSend(text);
 }
 
+// ── PDF attachment ──────────────────────────────────────────
+async function _tutorAttachPdf(fileInput) {
+  const file = fileInput.files && fileInput.files[0];
+  fileInput.value = ''; // permette di riselezionare lo stesso file
+  if (!file) return;
+
+  if (file.size > TUTOR_PDF_MAX_MB * 1024 * 1024) {
+    alert(`Il file supera ${TUTOR_PDF_MAX_MB} MB. Scegli un PDF più piccolo.`);
+    return;
+  }
+
+  _tutor.attachment = { name: file.name, pages: 0, text: '', truncated: false, loading: true };
+  _tutorRenderAttachment();
+
+  try {
+    const buffer = await file.arrayBuffer();
+    const { text, pdf } = await _extractPdfText(buffer);
+
+    if (!text || text.length < 50) {
+      _tutor.attachment = null;
+      _tutorRenderAttachment();
+      alert('Questo PDF non contiene testo selezionabile (probabilmente sono immagini/scansioni).\nCaricalo tra le Fonti di studio: lì l\'app usa l\'OCR automatico per estrarre il testo.');
+      return;
+    }
+
+    const truncated = text.length > TUTOR_PDF_MAX_CHARS;
+    _tutor.attachment = {
+      name: file.name,
+      pages: pdf.numPages,
+      text: truncated ? text.substring(0, TUTOR_PDF_MAX_CHARS) : text,
+      truncated,
+      loading: false
+    };
+  } catch (e) {
+    console.error('[TutorPdf]', e);
+    _tutor.attachment = null;
+    alert('Errore nella lettura del PDF: ' + e.message);
+  }
+  _tutorRenderAttachment();
+  _tutorInputChanged();
+  document.getElementById('tutorTextInput')?.focus();
+}
+
+function _tutorRenderAttachment() {
+  const el = document.getElementById('tutorAttachment');
+  if (!el) return;
+  const att = _tutor.attachment;
+  if (!att) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = 'flex';
+  if (att.loading) {
+    el.innerHTML = `
+      <div class="tutor-attach-chip loading">
+        <i data-lucide="file-text" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i>
+        <span class="tutor-attach-name">${_tutorEsc(att.name)}</span>
+        <span class="tutor-attach-meta">estrazione testo…</span>
+      </div>`;
+  } else {
+    el.innerHTML = `
+      <div class="tutor-attach-chip">
+        <i data-lucide="file-text" style="width:13px;height:13px;stroke-width:2;flex-shrink:0"></i>
+        <span class="tutor-attach-name">${_tutorEsc(att.name)}</span>
+        <span class="tutor-attach-meta">${att.pages} pag.${att.truncated ? ' · testo parziale' : ''}</span>
+        <button class="tutor-attach-remove" onclick="_tutorRemoveAttachment()" title="Rimuovi allegato">
+          <i data-lucide="x" style="width:11px;height:11px;stroke-width:2.5;pointer-events:none"></i>
+        </button>
+      </div>`;
+  }
+  if (window.lucide) lucide.createIcons({ nodes: [el] });
+}
+
+function _tutorRemoveAttachment() {
+  _tutor.attachment = null;
+  _tutorRenderAttachment();
+  _tutorInputChanged();
+}
+
 // ── Send to Claude ─────────────────────────────────────────
 async function _tutorSend(userText) {
   if (!userText.trim()) return;
 
+  // Documento PDF allegato: il testo estratto viaggia nella history di Claude
+  // (così anche le domande successive possono riferirsi al documento),
+  // mentre nella chat si mostra solo un chip con il nome del file.
+  const att = (_tutor.attachment && !_tutor.attachment.loading) ? _tutor.attachment : null;
+  const historyContent = att
+    ? `[DOCUMENTO ALLEGATO: "${att.name}" — ${att.pages} pagine${att.truncated ? ' — testo parziale, il documento è più lungo' : ''}]\n${att.text}\n[FINE DOCUMENTO]\n\n${userText}`
+    : userText;
+
   // Add user message
-  _tutor.messages.push({ role: 'user', text: userText, ts: Date.now() });
-  _tutor.history.push({ role: 'user', content: userText });
+  _tutor.messages.push({
+    role: 'user', text: userText, ts: Date.now(),
+    ...(att ? { attachment: { name: att.name, pages: att.pages } } : {})
+  });
+  _tutor.history.push({ role: 'user', content: historyContent });
+  if (att) { _tutor.attachment = null; _tutorRenderAttachment(); }
   _tutor.loading = true;
   _tutorRender();
   _tutorInputChanged();
